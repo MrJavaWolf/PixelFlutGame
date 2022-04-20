@@ -33,7 +33,9 @@ using Microsoft.Extensions.Logging;
             {
                 Console.WriteLine(message);
             }
-        }
+            if(exception != null)
+            Console.WriteLine(exception.ToString());
+    }
 
         /// <inheritdoc />
         public bool IsEnabled(LogLevel logLevel) => LogLevel <= logLevel;

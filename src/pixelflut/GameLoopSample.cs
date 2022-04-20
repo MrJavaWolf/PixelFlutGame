@@ -20,7 +20,7 @@ public class GameLoopSample : Sample
         // Create a singleton instance of the controllers object, that we should dispose
         // on closing the game, here we use a using block, but can obviously call controllers.Dispose()
         using var devices = new Devices(CreateLogger<Devices>());
-
+        
         Logger.LogInformation("Press A Button to exit!");
 
         // Holds a reference to the current gamepad, which is set asynchronously as they are detected.

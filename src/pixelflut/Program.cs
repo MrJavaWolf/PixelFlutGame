@@ -7,6 +7,7 @@
 using System.Net;
 using System.Net.Sockets;
 
+
 //TestProtocol_2_Bit_setup();
 //return;
 Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -25,6 +26,7 @@ short screenYEnd = 600; //1200;
 
 int myOffsetX = 0;
 int myOffsetY = 0;
+
 
 GameLoopSample game = new GameLoopSample();
 await game.ExecuteAsync();

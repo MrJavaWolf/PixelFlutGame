@@ -29,7 +29,13 @@ int myOffsetX = 0;
 int myOffsetY = 0;
 Console.WriteLine("Hello world of pixel flut");
 DeviceList.Local.Changed += Local_Changed;
-PrintDevices(); 
+
+while (true)
+{
+    PrintDevices();
+    if (Console.ReadLine() == "Y") break;
+}
+
 
 
 
@@ -42,7 +48,7 @@ PrintDevices();
 
 
 //while(true) RunProtocol_1();
-Console.ReadLine();
+//Console.ReadLine();
 Console.WriteLine("Done");
 
 
@@ -245,7 +251,9 @@ void TestProtocol_2_Bit_setup()
 void PrintDevices()
 {
     int i = 0;
-    foreach (var hidDevice in DeviceList.Local.GetHidDevices())
+    var hidDevices = DeviceList.Local.GetHidDevices();
+    Console.WriteLine($"Number of HID devices: {hidDevices.Count()}");
+    foreach (var hidDevice in hidDevices)
     {
         string friendlyName = "<Unknown name>";
         try

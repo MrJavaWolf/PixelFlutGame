@@ -27,7 +27,7 @@ short screenYEnd = 600; //1200;
 
 int myOffsetX = 0;
 int myOffsetY = 0;
-
+Console.WriteLine("Hello world of pixel flut");
 DeviceList.Local.Changed += Local_Changed;
 PrintDevices(); 
 

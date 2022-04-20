@@ -27,12 +27,15 @@ short screenYEnd = 600; //1200;
 int myOffsetX = 0;
 int myOffsetY = 0;
 
+while(true)
+{
+    GameLoopSample game = new GameLoopSample();
+    await game.ExecuteAsync();
+    if (Console.ReadLine() == "Y") break;
+}
 
-GameLoopSample game = new GameLoopSample();
-await game.ExecuteAsync();
 
 //while(true) RunProtocol_1();
-Console.ReadLine();
 Console.WriteLine("Done");
 
 

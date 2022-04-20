@@ -34,7 +34,7 @@ using Microsoft.Extensions.Logging;
                 Console.WriteLine(message);
             }
             if(exception != null)
-            Console.WriteLine(exception.ToString());
+                Console.WriteLine(exception.ToString());
     }
 
         /// <inheritdoc />

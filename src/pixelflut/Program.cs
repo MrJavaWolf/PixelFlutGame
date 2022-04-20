@@ -29,7 +29,8 @@ int myOffsetY = 0;
 GameLoopSample game = new GameLoopSample();
 await game.ExecuteAsync();
 
-while(true) RunProtocol_1();
+//while(true) RunProtocol_1();
+Console.ReadLine();
 Console.WriteLine("Done");
 
 

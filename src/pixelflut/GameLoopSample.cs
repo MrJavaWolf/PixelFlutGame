@@ -31,7 +31,7 @@ using Microsoft.Extensions.Logging;
                 device => device.ControlUsagesAll(GenericDesktopPage.X, GenericDesktopPage.Y))
                 .Subscribe();
 
-            using var subsub = devices.ControlUsagesAny(UsageType.)
+            
             // Controller to any gamepads as they are found
             using var subscription = devices.Controllers<Gamepad>().Subscribe(g =>
             {
@@ -104,11 +104,11 @@ using Microsoft.Extensions.Logging;
                     }
 
                     // Or directly access controls
-                    if (currentGamepad.AButton)
-                    {
-                        Logger.LogInformation("A Button pressed, finishing.");
-                        return;
-                    }
+                    //if (currentGamepad.AButton)
+                    //{
+                    //    Logger.LogInformation("A Button pressed, finishing.");
+                    //    return;
+                    //}
                 }
             }
             finally

@@ -30,9 +30,9 @@ namespace pixelflut
                 new Thread(() => RendererThread(cancellationToken)).Start();
             }
 
-            Stopwatch loopTime = new Stopwatch();
-            Stopwatch totalGameTimer = new Stopwatch();
-            GameTime gameTime = new GameTime();
+            Stopwatch loopTime = new();
+            Stopwatch totalGameTimer = new();
+            GameTime gameTime = new();
             totalGameTimer.Start();
             PixelflutPingPong pingpong = provider.GetRequiredService<PixelflutPingPong>();
             pingpong.Startup();
@@ -52,7 +52,6 @@ namespace pixelflut
             PixelFlutRenderer renderer = provider.GetRequiredService<PixelFlutRenderer>();
             while (!cancellationToken.IsCancellationRequested)
             {
-                //Thread.Sleep(1);
                 renderer.Render(pixels);
             }
         }

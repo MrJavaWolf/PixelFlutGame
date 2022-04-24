@@ -30,7 +30,9 @@ namespace pixelflut
         private readonly PixelFlutRendererConfiguration configuration;
         private Socket socket;
         private IPEndPoint endPoint;
-
+        private List<PixelFlutPixel>? lastRenderedPixels;
+        private int samePixelsCounter;
+        private byte[] send_buffer;
         public PixelFlutRenderer(PixelFlutRendererConfiguration configuration, ILogger<PixelFlutRenderer> logger)
         {
             this.configuration = configuration;
@@ -38,19 +40,27 @@ namespace pixelflut
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             IPAddress serverAddr = IPAddress.Parse(configuration.Ip);
             endPoint = new IPEndPoint(serverAddr, configuration.Port);
+            send_buffer = PixelFlutScreenProtocol1.CreateBuffer();
         }
 
         public void Render(List<PixelFlutPixel> pixels)
         {
-            // Inefficient to create new buffer every frame
-            byte[] send_buffer = PixelFlutScreenProtocol1.CreateBuffer();
-            IEnumerable<PixelFlutPixel> scaledPixelsToDraw = ScalePixels(pixels);
-            IEnumerable<PixelFlutPixel> pixelsToDraw = PickRandomPixels(scaledPixelsToDraw, PixelFlutScreenProtocol1.MaximumNumberOfPixel);
-            int pixelNumber = 0;
-            foreach (PixelFlutPixel pixel in pixelsToDraw)
+            if (lastRenderedPixels != pixels || samePixelsCounter % 10 == 0)
             {
-                PixelFlutScreenProtocol1.WriteToBuffer(send_buffer, pixelNumber, (int)pixel.X, (int)pixel.Y, pixel.R, pixel.G, pixel.B, pixel.A);
-                pixelNumber++;
+                lastRenderedPixels = pixels;
+                samePixelsCounter = 1;
+                IEnumerable<PixelFlutPixel> scaledPixelsToDraw = ScalePixels(pixels);
+                IEnumerable<PixelFlutPixel> pixelsToDraw = PickRandomPixels(scaledPixelsToDraw, PixelFlutScreenProtocol1.MaximumNumberOfPixel);
+                int pixelNumber = 0;
+                foreach (PixelFlutPixel pixel in pixelsToDraw)
+                {
+                    PixelFlutScreenProtocol1.WriteToBuffer(send_buffer, pixelNumber, (int)pixel.X, (int)pixel.Y, pixel.R, pixel.G, pixel.B, pixel.A);
+                    pixelNumber++;
+                }
+            }
+            else
+            {
+                samePixelsCounter++;
             }
             socket.SendTo(send_buffer, endPoint);
         }
@@ -65,7 +75,8 @@ namespace pixelflut
                 {
                     for (int x = 0; x < configuration.ScaleX; x++)
                     {
-                        scaledPixel.Add(pixel with { 
+                        scaledPixel.Add(pixel with
+                        {
                             X = pixel.X * configuration.ScaleX + x,
                             Y = pixel.Y * configuration.ScaleY + y,
                         });
@@ -79,7 +90,7 @@ namespace pixelflut
         {
             List<PixelFlutPixel> randomised = new();
             int totalAmountOfPixels = pixels.Count(); ;
-            for (int i = 0; i < amount; i++)
+            for (int i = 0; i < amount && i < totalAmountOfPixels; i++)
             {
                 randomised.Add(pixels.ElementAt(Random.Shared.Next(totalAmountOfPixels)));
             }

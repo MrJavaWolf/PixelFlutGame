@@ -5,9 +5,31 @@
 // A example client: https://github.com/Hafpaf/pixelVloedClient 
 
 using HidSharp;
+using pixelflut;
 using System.Net;
 using System.Net.Sockets;
 
+
+PixelFlutGamepad pixelFlutGamepad = new PixelFlutGamepad(
+    new SimpleConsoleLogger<PixelFlutGamepad>(Microsoft.Extensions.Logging.LogLevel.Information), 
+    new SimpleConsoleLogger<DevDecoder.HIDDevices.Devices>(Microsoft.Extensions.Logging.LogLevel.Information));
+
+Task.Run(async () => await pixelFlutGamepad.Run(CancellationToken.None));
+
+while(true)
+{
+    Console.WriteLine(
+        $"X: {pixelFlutGamepad.X}, " +
+        $"Y: {pixelFlutGamepad.Y}, " +
+        $"IsEastButtonPressed: {pixelFlutGamepad.IsEastButtonPressed}, " +
+        $"IsNorthButtonPressed: {pixelFlutGamepad.IsNorthButtonPressed}, " +
+        $"IsWestButtonPressed: {pixelFlutGamepad.IsWestButtonPressed}, " +
+        $"IsSouthButtonPressed: {pixelFlutGamepad.IsSouthButtonPressed}, " +
+        $"IsStartButtonPressed: {pixelFlutGamepad.IsStartButtonPressed}, " +
+        $"IsSelectButtonPressed: {pixelFlutGamepad.IsSelectButtonPressed} " +
+        $"");
+    await Task.Delay(100);
+}
 
 //TestProtocol_2_Bit_setup();
 //return;

@@ -1,37 +1,53 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 
 namespace pixelflut
 {
+    public class GameLoopConfiguration
+    {
+        public double TargetGameLoopUpdateSpeed = 60;
+    }
+
     public class GameLoop
     {
-        private const double targetFPS = 60;
-        private readonly PixelFlutRenderer renderer;
-        private readonly PixelFlutGamepad gamepad;
-        private PixelflutPingPong pingPong;
-        public GameLoop(PixelFlutRenderer renderer, PixelFlutGamepad gamepad)
+        private readonly IServiceProvider provider;
+        private readonly GameLoopConfiguration configuration;
+        private List<PixelFlutPixel> pixels = new();
+
+        public GameLoop(IServiceProvider provider, GameLoopConfiguration configuration)
         {
-            this.renderer = renderer;
-            this.gamepad = gamepad;
-            pingPong = new PixelflutPingPong(gamepad);
+            this.provider = provider;
+            this.configuration = configuration;
         }
 
         public async Task RunAsync(CancellationToken cancellationToken)
         {
+            new Thread(() => RendererThread(cancellationToken)).Start();
+            
             Stopwatch stopwatch = new Stopwatch();
+            PixelflutPingPong pingpong = provider.GetRequiredService<PixelflutPingPong>();
             while (!cancellationToken.IsCancellationRequested)
             {
                 stopwatch.Start();
-                List<PixelFlutPixel> pixels = Loop();
-                renderer.Render(pixels);
-                int sleepTimeMs = Math.Max(1, (int)(1000.0 / targetFPS - stopwatch.Elapsed.TotalMilliseconds));
+                pixels = Loop(pingpong);
+                int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopUpdateSpeed - stopwatch.Elapsed.TotalMilliseconds));
                 await Task.Delay(sleepTimeMs, cancellationToken);
                 stopwatch.Reset();
             }
         }
 
-        public List<PixelFlutPixel> Loop()
+        private void RendererThread(CancellationToken cancellationToken)
         {
-            return pingPong.Loop();
+            PixelFlutRenderer renderer = provider.GetRequiredService<PixelFlutRenderer>();
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                renderer.Render(pixels);
+            }
+        }
+
+        public List<PixelFlutPixel> Loop(PixelflutPingPong pingpong)
+        {
+            return pingpong.Loop();
         }
     }
 }

@@ -5,6 +5,13 @@ using Microsoft.Extensions.Logging;
 
 namespace pixelflut
 {
+    public class PixelFlutGamepadConfiguration
+    {
+        public TimeSpan DeviceScanFrequency { get; set; } = TimeSpan.FromSeconds(5);
+
+        public float DeadzoneSize { get; set; } = 0.1f;
+    }
+
     public class PixelFlutGamepad
     {
         private static class ButtonId
@@ -27,11 +34,7 @@ namespace pixelflut
             public const int PSController_Start = 589834;
             public const int PSController_Select = 589833;
         }
-
-
-        private readonly TimeSpan DeviceScanFrequency = TimeSpan.FromSeconds(5);
-
-        private float DeadzoneSize = 0.1f;
+  
 
         public event EventHandler? ChangeOfDevicesDetected;
         public double X { get; set; } = 0.5;
@@ -43,13 +46,19 @@ namespace pixelflut
         public bool IsStartButtonPressed { get; set; } = false;
         public bool IsSelectButtonPressed { get; set; } = false;
 
-        private ILogger<PixelFlutGamepad>? logger;
-        private ILogger<Devices>? devicesLogger;
+        private readonly PixelFlutGamepadConfiguration configuration;
+        private ILogger<PixelFlutGamepad> logger;
+        private ILogger<Devices> devicesLogger;
 
-        public PixelFlutGamepad(ILogger<PixelFlutGamepad>? logger, ILogger<Devices>? devicesLogger)
+        public PixelFlutGamepad(
+            PixelFlutGamepadConfiguration configuration, 
+            ILogger<PixelFlutGamepad> logger, 
+            ILogger<Devices> devicesLogger)
         {
+            this.configuration = configuration;
             this.logger = logger;
             this.devicesLogger = devicesLogger;
+            logger.LogInformation($"Gamepad: {{@configuration}}", configuration);
         }
 
         public async Task RunAsync(CancellationToken token)
@@ -100,13 +109,13 @@ namespace pixelflut
         /// <param name="usage"></param>
         private void HandleGamepadInput(DevDecoder.HIDDevices.Device device, ControlChange change, Usage usage)
         {
-            //Logger?.LogInformation(
-            //    $"Timestamp: {change.Timestamp}, " +
-            //    $"Control: {change.Control}, " +
-            //    $"Value: {change.Value}, " +
-            //    $"Elapsed: {change.Elapsed}, " +
-            //    $"Device: {device.Name}, " +
-            //    $"");
+            logger.LogInformation(
+                $"Timestamp: {change.Timestamp}, " +
+                $"Control: {change.Control}, " +
+                $"Value: {change.Value}, " +
+                $"Elapsed: {change.Elapsed}, " +
+                $"Device: {device.Name}, " +
+                $"");
 
             if (device.Name?.ToLower()?.Contains("sony") == true)
             {
@@ -174,8 +183,8 @@ namespace pixelflut
             value > 0.5;
 
         private bool IsInDeadzone(double value) =>
-            value > 0.5 - DeadzoneSize &&
-            value < 0.5 + DeadzoneSize;
+            value > 0.5 - configuration.DeadzoneSize &&
+            value < 0.5 + configuration.DeadzoneSize;
 
         /// <summary>
         /// This is a blocking call and will only return when a change of connected hid devices have been detected.
@@ -188,7 +197,7 @@ namespace pixelflut
 
             while (!token.IsCancellationRequested)
             {
-                await Task.Delay(DeviceScanFrequency, token);
+                await Task.Delay(configuration.DeviceScanFrequency, token);
                 var currentHidDevices = DeviceList.Local.GetHidDevices();
                 if (originalHidDevices.Count() != currentHidDevices.Count())
                 {
@@ -216,7 +225,7 @@ namespace pixelflut
             }
             if (changeDetected)
             {
-                logger?.LogInformation($"Detected a change of connected devices...");
+                logger.LogInformation($"Detected a change of connected devices...");
                 ChangeOfDevicesDetected?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -227,16 +236,17 @@ namespace pixelflut
         private void PrintDevices(IEnumerable<HidDevice> hidDevices)
         {
             int i = 0;
-            logger?.LogInformation($"Number of HID devices: {hidDevices.Count()}");
+            logger.LogInformation($"Number of HID devices: {hidDevices.Count()}");
             foreach (var hidDevice in hidDevices)
             {
+                i++;
                 string friendlyName = "<Unknown name>";
                 try
                 {
                     friendlyName = hidDevice.GetFriendlyName();
                 }
                 catch { }
-                logger?.LogInformation($"{i}: " +
+                logger.LogInformation($"{i}: " +
                     $"{friendlyName}, " +
                     $"{hidDevice.DevicePath}, " +
                     $"{hidDevice.VendorID}, " +

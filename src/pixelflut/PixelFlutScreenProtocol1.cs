@@ -14,7 +14,7 @@
             return send_buffer;
         }
 
-        public static void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y, byte r, byte g, byte b, int a)
+        public static void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y, byte r, byte g, byte b, byte a)
         {
             int offset = HeaderSize + pixelNumber * BytesPerPixel;
             byte[] xBytes = BitConverter.GetBytes(x);

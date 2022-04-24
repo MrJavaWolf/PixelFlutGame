@@ -34,7 +34,7 @@ namespace pixelflut
         public PixelFlutRenderer(PixelFlutRendererConfiguration configuration, ILogger<PixelFlutRenderer> logger)
         {
             this.configuration = configuration;
-            logger.LogInformation("PixelFlutScreen: {{@pixelFlutScreen}}", configuration);
+            logger.LogInformation($"PixelFlutScreen: {{@pixelFlutScreen}}", configuration);
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             IPAddress serverAddr = IPAddress.Parse(configuration.Ip);
             endPoint = new IPEndPoint(serverAddr, configuration.Port);

@@ -78,18 +78,12 @@ namespace pixelflut
         private IEnumerable<PixelFlutPixel> PickRandomPixels(IEnumerable<PixelFlutPixel> pixels, int amount)
         {
             List<PixelFlutPixel> randomised = new();
-            foreach (PixelFlutPixel pixel in pixels)
+            int totalAmountOfPixels = pixels.Count(); ;
+            for (int i = 0; i < amount; i++)
             {
-                if (randomised.Count > 0)
-                {
-                    randomised.Insert(Random.Shared.Next(randomised.Count + 1), pixel);
-                }
-                else
-                {
-                    randomised.Add(pixel);
-                }
+                randomised.Add(pixels.ElementAt(Random.Shared.Next(totalAmountOfPixels)));
             }
-            return randomised.Take(amount);
+            return randomised;
         }
     }
 }

@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace pixelflut
 {
     public class GameLoopConfiguration
     {
-        public double TargetGameLoopUpdateSpeed = 60;
+        public double TargetGameLoopUpdateSpeed { get; set; } = 60;
+        public int NumberOfRenderer { get; set; } = 1;
     }
 
     public class GameLoop
@@ -14,16 +16,20 @@ namespace pixelflut
         private readonly GameLoopConfiguration configuration;
         private List<PixelFlutPixel> pixels = new();
 
-        public GameLoop(IServiceProvider provider, GameLoopConfiguration configuration)
+        public GameLoop(ILogger<GameLoop> logger, IServiceProvider provider, GameLoopConfiguration configuration)
         {
             this.provider = provider;
             this.configuration = configuration;
+            logger.LogInformation($"GameLoop: {{@configuration}}", configuration);
         }
 
         public async Task RunAsync(CancellationToken cancellationToken)
         {
-            new Thread(() => RendererThread(cancellationToken)).Start();
-            
+            for (int i = 0; i < configuration.NumberOfRenderer; i++)
+            {
+                new Thread(() => RendererThread(cancellationToken)).Start();
+            }
+
             Stopwatch stopwatch = new Stopwatch();
             PixelflutPingPong pingpong = provider.GetRequiredService<PixelflutPingPong>();
             while (!cancellationToken.IsCancellationRequested)

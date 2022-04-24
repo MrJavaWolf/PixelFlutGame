@@ -110,11 +110,12 @@ namespace pixelflut
         private void HandleGamepadInput(DevDecoder.HIDDevices.Device device, ControlChange change, Usage usage)
         {
             logger.LogInformation(
+                "Gamepad input event detected: " +
+                $"Device: {device.Name}" +
                 $"Timestamp: {change.Timestamp}, " +
                 $"Control: {change.Control}, " +
                 $"Value: {change.Value}, " +
                 $"Elapsed: {change.Elapsed}, " +
-                $"Device: {device.Name}, " +
                 $"");
 
             if (device.Name?.ToLower()?.Contains("sony") == true)

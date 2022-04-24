@@ -52,15 +52,15 @@ namespace pixelflut
             this.devicesLogger = devicesLogger;
         }
 
-        public async Task Run(CancellationToken token)
+        public async Task RunAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
-                await ListenForGamepadInputs(token);
+                await ListenForGamepadInputsAsync(token);
             }
         }
 
-        private async Task ListenForGamepadInputs(CancellationToken token)
+        private async Task ListenForGamepadInputsAsync(CancellationToken token)
         {
 
             // Subscribes to all inputs from all devices 
@@ -89,7 +89,7 @@ namespace pixelflut
                         });
                     }
                 });
-            await WaitForDeviceChange(token);
+            await WaitForDeviceChangeAsync(token);
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace pixelflut
         /// <summary>
         /// This is a blocking call and will only return when a change of connected hid devices have been detected.
         /// </summary>
-        private async Task WaitForDeviceChange(CancellationToken token)
+        private async Task WaitForDeviceChangeAsync(CancellationToken token)
         {
             var originalHidDevices = DeviceList.Local.GetHidDevices();
             PrintDevices(originalHidDevices);

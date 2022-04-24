@@ -1,8 +1,4 @@
-﻿// Official wiki: https://labitat.dk/wiki/Pixelflut 
-// DO NOT TRUST THE PROTOCOL DOCUMENTATION: https://github.com/JanKlopper/pixelvloed/blob/master/protocol.md
-// Only trust the server code: https://github.com/JanKlopper/pixelvloed/blob/master/C/Server/main.c 
-// The server: https://github.com/JanKlopper/pixelvloed
-// A example client: https://github.com/Hafpaf/pixelVloedClient 
+﻿
 
 using HidSharp;
 using pixelflut;
@@ -14,7 +10,7 @@ PixelFlutGamepad pixelFlutGamepad = new PixelFlutGamepad(
     new SimpleConsoleLogger<PixelFlutGamepad>(Microsoft.Extensions.Logging.LogLevel.Information), 
     new SimpleConsoleLogger<DevDecoder.HIDDevices.Devices>(Microsoft.Extensions.Logging.LogLevel.Information));
 
-Task.Run(async () => await pixelFlutGamepad.Run(CancellationToken.None));
+Task.Run(async () => await pixelFlutGamepad.RunAsync(CancellationToken.None));
 
 while(true)
 {

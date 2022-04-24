@@ -31,11 +31,14 @@ namespace pixelflut
             }
 
             Stopwatch stopwatch = new Stopwatch();
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
             PixelflutPingPong pingpong = provider.GetRequiredService<PixelflutPingPong>();
+            pingpong.Startup();
             while (!cancellationToken.IsCancellationRequested)
             {
                 stopwatch.Start();
-                pixels = Loop(pingpong);
+                pixels = Loop(pingpong, timer.Elapsed).ToList();
                 int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopUpdateSpeed - stopwatch.Elapsed.TotalMilliseconds));
                 await Task.Delay(sleepTimeMs, cancellationToken);
                 stopwatch.Reset();
@@ -51,9 +54,9 @@ namespace pixelflut
             }
         }
 
-        public List<PixelFlutPixel> Loop(PixelflutPingPong pingpong)
+        public List<PixelFlutPixel> Loop(PixelflutPingPong pingpong, TimeSpan time)
         {
-            return pingpong.Loop();
+            return pingpong.Loop(time);
         }
     }
 }

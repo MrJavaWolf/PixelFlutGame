@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using pixelflut;
 using Serilog;
 
-
 // Configuration
 IConfiguration Configuration = new ConfigurationBuilder()
                         .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -14,6 +13,7 @@ IConfiguration Configuration = new ConfigurationBuilder()
 PixelFlutRendererConfiguration rendererConfig = Configuration.GetSection("Renderer").Get<PixelFlutRendererConfiguration>();
 PixelFlutGamepadConfiguration gamepadConfig = Configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>();
 GameLoopConfiguration gameloopConfig = Configuration.GetSection("GameLoop").Get<GameLoopConfiguration>();
+PingPongConfiguration pingPongConfig = Configuration.GetSection("PingPong").Get<PingPongConfiguration>();
 
 // Dependency injection
 var services = new ServiceCollection();
@@ -21,6 +21,7 @@ services.AddSingleton(Configuration);
 services.AddSingleton(rendererConfig);
 services.AddSingleton(gamepadConfig);
 services.AddSingleton(gameloopConfig);
+services.AddSingleton(pingPongConfig);
 services.AddSingleton<PixelFlutGamepad>();
 services.AddSingleton<PixelflutPingPong>();
 services.AddSingleton<GameLoop>();

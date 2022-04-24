@@ -30,18 +30,20 @@ namespace pixelflut
                 new Thread(() => RendererThread(cancellationToken)).Start();
             }
 
-            Stopwatch stopwatch = new Stopwatch();
-            Stopwatch timer = new Stopwatch();
-            timer.Start();
+            Stopwatch loopTime = new Stopwatch();
+            Stopwatch totalGameTimer = new Stopwatch();
+            GameTime gameTime = new GameTime();
+            totalGameTimer.Start();
             PixelflutPingPong pingpong = provider.GetRequiredService<PixelflutPingPong>();
             pingpong.Startup();
             while (!cancellationToken.IsCancellationRequested)
             {
-                stopwatch.Start();
-                pixels = Loop(pingpong, timer.Elapsed).ToList();
-                int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopUpdateSpeed - stopwatch.Elapsed.TotalMilliseconds));
+                gameTime.TotalTime = totalGameTimer.Elapsed;
+                gameTime.DeltaTime = loopTime.Elapsed;
+                loopTime.Restart();
+                pixels = Loop(pingpong, gameTime).ToList();
+                int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopUpdateSpeed - loopTime.Elapsed.TotalMilliseconds));
                 await Task.Delay(sleepTimeMs, cancellationToken);
-                stopwatch.Reset();
             }
         }
 
@@ -50,11 +52,12 @@ namespace pixelflut
             PixelFlutRenderer renderer = provider.GetRequiredService<PixelFlutRenderer>();
             while (!cancellationToken.IsCancellationRequested)
             {
+                //Thread.Sleep(1);
                 renderer.Render(pixels);
             }
         }
 
-        public List<PixelFlutPixel> Loop(PixelflutPingPong pingpong, TimeSpan time)
+        public List<PixelFlutPixel> Loop(PixelflutPingPong pingpong, GameTime time)
         {
             return pingpong.Loop(time);
         }

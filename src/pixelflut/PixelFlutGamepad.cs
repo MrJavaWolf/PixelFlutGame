@@ -7,9 +7,9 @@ namespace pixelflut
 {
     public class PixelFlutGamepadConfiguration
     {
-        public TimeSpan DeviceScanFrequency { get; set; } = TimeSpan.FromSeconds(5);
+        public TimeSpan DeviceScanFrequency { get; set; }
 
-        public float DeadzoneSize { get; set; } = 0.1f;
+        public float DeadzoneSize { get; set; }
     }
 
     public class PixelFlutGamepad

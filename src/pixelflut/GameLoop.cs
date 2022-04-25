@@ -6,8 +6,8 @@ namespace pixelflut
 {
     public class GameLoopConfiguration
     {
-        public double TargetGameLoopUpdateSpeed { get; set; } = 60;
-        public int NumberOfRenderer { get; set; } = 1;
+        public double TargetGameLoopUpdateSpeed { get; set; }
+        public int NumberOfRenderer { get; set; }
     }
 
     public class GameLoop

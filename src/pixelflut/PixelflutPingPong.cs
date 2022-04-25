@@ -5,23 +5,23 @@ namespace pixelflut
 
     public class PingPongConfiguration
     {
-        public int BallRadius { get; set; } = 3;
-        public int BallBorder { get; set; } = 6;
+        public int BallRadius { get; set; }
+        public int BallBorder { get; set; }
 
-        public double BallStartSpeed { get; set; } = 5;
+        public double BallStartSpeed { get; set; }
 
-        public double BallSpeedIncrease { get; set; } = 0.5;
+        public double BallSpeedIncrease { get; set; }
 
-        public int PlayerHeight { get; set; } = 25;
+        public int PlayerHeight { get; set; }
 
-        public int PlayerWidth { get; set; } = 2;
+        public int PlayerWidth { get; set; } 
 
-        public int PlayerSpeed { get; set; } = 10;
-        public int PlayerBorder { get; set; } = 6;
+        public int PlayerSpeed { get; set; } 
+        public int PlayerBorder { get; set; }
 
-        public int PlayerDistanceToSides { get; set; } = 10;
+        public int PlayerDistanceToSides { get; set; }
 
-        public int NumberOfGoalsToWin { get; set; } = 25;
+        public int NumberOfGoalsToWin { get; set; }
 
     }
 

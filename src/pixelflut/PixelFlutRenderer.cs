@@ -12,17 +12,17 @@ namespace pixelflut
 {
     public class PixelFlutRendererConfiguration
     {
-        public string Ip { get; set; } = "10.42.1.12";
-        public int Port { get; set; } = 5005;
+        public string Ip { get; set; }
+        public int Port { get; set; }
 
-        public int OffsetX { get; set; } = 0;
-        public int OffsetY { get; set; } = 0;
+        public int OffsetX { get; set; }
+        public int OffsetY { get; set; }
 
-        public int ResultionX { get; set; } = 500;
-        public int ResultionY { get; set; } = 500;
+        public int ResultionX { get; set; }
+        public int ResultionY { get; set; }
 
-        public int ScaleX { get; set; } = 1;
-        public int ScaleY { get; set; } = 1;
+        public int ScaleX { get; set; }
+        public int ScaleY { get; set; }
     }
 
     public class PixelFlutRenderer

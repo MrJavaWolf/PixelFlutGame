@@ -12,28 +12,25 @@ namespace PixelFlut
 {
     public class PixelFlutRendererConfiguration
     {
-        public string Ip { get; set; }
+        public string Ip { get; set; } = null!;
         public int Port { get; set; }
-
         public int OffsetX { get; set; }
         public int OffsetY { get; set; }
-
         public int ResultionX { get; set; }
         public int ResultionY { get; set; }
-
         public int ScaleX { get; set; }
         public int ScaleY { get; set; }
     }
 
-    public class PixelFlutRenderer
+    public class PixelFlutScreenRenderer
     {
         private readonly PixelFlutRendererConfiguration configuration;
         private Socket socket;
         private IPEndPoint endPoint;
         private List<PixelFlutPixel>? lastRenderedPixels;
         private int samePixelsCounter;
-        private byte[] send_buffer;
-        public PixelFlutRenderer(PixelFlutRendererConfiguration configuration, ILogger<PixelFlutRenderer> logger)
+        private readonly byte[] send_buffer;
+        public PixelFlutScreenRenderer(PixelFlutRendererConfiguration configuration, ILogger<PixelFlutScreenRenderer> logger)
         {
             this.configuration = configuration;
             logger.LogInformation($"PixelFlutScreen: {{@pixelFlutScreen}}", configuration);

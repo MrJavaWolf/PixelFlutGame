@@ -31,7 +31,7 @@ public class Program
         services.AddSingleton<PingPongGame>();
         services.AddSingleton<GameLoop>();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
-        services.AddTransient<PixelFlutRenderer>();
+        services.AddTransient<PixelFlutScreenRenderer>();
         ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         // Create pixel game loop

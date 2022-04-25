@@ -57,7 +57,7 @@ namespace PixelFlut
 
         private void RendererThread(CancellationToken cancellationToken)
         {
-            PixelFlutRenderer renderer = provider.GetRequiredService<PixelFlutRenderer>();
+            PixelFlutScreenRenderer renderer = provider.GetRequiredService<PixelFlutScreenRenderer>();
             while (!cancellationToken.IsCancellationRequested)
             {
                 renderer.Render(pixels);

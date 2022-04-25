@@ -3,7 +3,7 @@ using DevDecoder.HIDDevices.Usages;
 using HidSharp;
 using Microsoft.Extensions.Logging;
 
-namespace pixelflut
+namespace PixelFlut
 {
     public class PixelFlutGamepadConfiguration
     {
@@ -34,7 +34,7 @@ namespace pixelflut
             public const int PSController_Start = 589834;
             public const int PSController_Select = 589833;
         }
-  
+
 
         public event EventHandler? ChangeOfDevicesDetected;
         public double X { get; set; } = 0.5;
@@ -51,8 +51,8 @@ namespace pixelflut
         private ILogger<Devices> devicesLogger;
 
         public PixelFlutGamepad(
-            PixelFlutGamepadConfiguration configuration, 
-            ILogger<PixelFlutGamepad> logger, 
+            PixelFlutGamepadConfiguration configuration,
+            ILogger<PixelFlutGamepad> logger,
             ILogger<Devices> devicesLogger)
         {
             this.configuration = configuration;
@@ -141,7 +141,7 @@ namespace pixelflut
                         this.X = IsInDeadzone(change.Value) ? 0.5 : change.Value;
                         break;
                     case ButtonId.PSController_Select:
-                        this.IsSelectButtonPressed= IsPressed(change.Value);
+                        this.IsSelectButtonPressed = IsPressed(change.Value);
                         break;
                     case ButtonId.PSController_Start:
                         this.IsStartButtonPressed = IsPressed(change.Value);
@@ -198,7 +198,14 @@ namespace pixelflut
 
             while (!token.IsCancellationRequested)
             {
-                await Task.Delay(configuration.DeviceScanFrequency, token);
+                try
+                {
+                    await Task.Delay(configuration.DeviceScanFrequency, token);
+                }
+                catch (TaskCanceledException)
+                {
+                    return;
+                }
                 var currentHidDevices = DeviceList.Local.GetHidDevices();
                 if (originalHidDevices.Count() != currentHidDevices.Count())
                 {

@@ -1,4 +1,4 @@
-﻿namespace pixelflut
+﻿namespace PixelFlut
 {
     public class PixelFlutScreenProtocol1
     {

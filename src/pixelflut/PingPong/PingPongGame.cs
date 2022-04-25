@@ -1,28 +1,20 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace pixelflut
+namespace PixelFlut.PingPong
 {
 
     public class PingPongConfiguration
     {
         public int BallRadius { get; set; }
         public int BallBorder { get; set; }
-
         public double BallStartSpeed { get; set; }
-
         public double BallSpeedIncrease { get; set; }
-
         public int PlayerHeight { get; set; }
-
         public int PlayerWidth { get; set; } 
-
         public int PlayerSpeed { get; set; } 
         public int PlayerBorder { get; set; }
-
         public int PlayerDistanceToSides { get; set; }
-
         public int NumberOfGoalsToWin { get; set; }
-
     }
 
     public enum PingPongGameStateType
@@ -50,24 +42,22 @@ namespace pixelflut
 
     }
 
-    public class PixelflutPingPong
+    public class PingPongGame
     {
         private readonly PingPongConfiguration pingPongConfig;
         private readonly PixelFlutGamepad gamepad;
         private readonly PixelFlutRendererConfiguration screenConfig;
-        private readonly ILogger<PixelflutPingPong> logger;
-        private List<PixelFlutPixel> pixels = new List<PixelFlutPixel>();
-
-        private PingPongGameState gameState = new PingPongGameState();
+        private readonly ILogger<PingPongGame> logger;
+        private PingPongGameState gameState = new();
 
         public int MinimumYPlayerPosition { get => 0; }
         public int MaximumYPlayerPosition { get => screenConfig.ResultionY - pingPongConfig.PlayerHeight; }
 
-        public PixelflutPingPong(
+        public PingPongGame(
             PingPongConfiguration pingPongConfig,
             PixelFlutGamepad gamepad,
             PixelFlutRendererConfiguration screenConfig,
-            ILogger<PixelflutPingPong> logger)
+            ILogger<PingPongGame> logger)
         {
             this.pingPongConfig = pingPongConfig;
             this.gamepad = gamepad;
@@ -109,8 +99,7 @@ namespace pixelflut
             gameState.Player1VerticalPosition = CalculateNewPlayerPosition(gameState.Player1VerticalPosition, gamepad.Y, time);
             gameState.Player2VerticalPosition = CalculateNewPlayerPosition(gameState.Player2VerticalPosition, GetPlayer2Input(), time);
             UpdateBallPosition(time);
-            UpdatePixels();
-            return pixels;
+            return PingPongPixelRenderer.CreatePixels(pingPongConfig, gameState);
         }
 
         private double GetPlayer2Input()
@@ -243,105 +232,5 @@ namespace pixelflut
             }
             return newPosition;
         }
-
-        private void UpdatePixels()
-        {
-            pixels.Clear();
-
-            // Draw the ball
-            for (int x = 0; x < pingPongConfig.BallRadius + pingPongConfig.BallBorder * 2; x++)
-            {
-                for (int y = 0; y < pingPongConfig.BallRadius + pingPongConfig.BallBorder * 2; y++)
-                {
-                    int ballPixelX = (int)gameState.BallXPosition - pingPongConfig.BallBorder + x;
-                    int ballPixelY = (int)gameState.BallYPosition - pingPongConfig.BallBorder + y;
-                    if (ballPixelX < 0 || ballPixelY < 0) continue;
-                    if (x < pingPongConfig.BallBorder ||
-                        y < pingPongConfig.BallBorder ||
-                        x > pingPongConfig.BallRadius + pingPongConfig.BallBorder ||
-                        y > pingPongConfig.BallRadius + pingPongConfig.BallBorder)
-                    {
-                        pixels.Add(CreatePixelWithRandomColor(ballPixelX, ballPixelY));
-                    }
-                    else
-                    {
-                        pixels.Add(CreatePixelWithBallColor(ballPixelX, ballPixelY));
-                    }
-                }
-            }
-
-            // Draw the players
-            DrawPlayer((int)gameState.Player1HorizontalPosition, (int)gameState.Player1VerticalPosition);
-            DrawPlayer((int)gameState.Player2HorizontalPosition, (int)gameState.Player2VerticalPosition);
-        }
-
-        private void DrawPlayer(int playerPositionX, int playerPositionY)
-        {
-            for (int x = 0; x < pingPongConfig.PlayerWidth + pingPongConfig.PlayerBorder * 2; x++)
-            {
-                for (int y = 0; y < pingPongConfig.PlayerHeight + pingPongConfig.PlayerBorder * 2; y++)
-                {
-                    int playerPixelX = playerPositionX - pingPongConfig.PlayerBorder + x;
-                    int playerPixelY = playerPositionY - pingPongConfig.PlayerBorder + y;
-                    if (playerPixelX < 0 || playerPixelY < 0) continue;
-                    if (
-                        x < pingPongConfig.PlayerBorder ||
-                        y < pingPongConfig.PlayerBorder ||
-                        x > pingPongConfig.PlayerWidth + pingPongConfig.PlayerBorder ||
-                        y > pingPongConfig.PlayerHeight + pingPongConfig.PlayerBorder)
-                    {
-                        pixels.Add(CreatePixelWithRandomColor(playerPixelX, playerPixelY));
-                    }
-                    else
-                    {
-                        pixels.Add(CreatePixelWithPlayerColor(playerPixelX, playerPixelY));
-                    }
-                }
-            }
-        }
-
-        private static PixelFlutPixel CreatePixelWithBallColor(int x, int y)
-        {
-            return new PixelFlutPixel()
-            {
-                X = x,
-                Y = y,
-                R = 255,
-                G = 255,
-                B = 255,
-                A = 255
-            };
-        }
-
-        private static PixelFlutPixel CreatePixelWithPlayerColor(int x, int y)
-        {
-            return new PixelFlutPixel()
-            {
-                X = x,
-                Y = y,
-                R = 255,
-                G = 255,
-                B = 255,
-                A = 255
-            };
-        }
-
-        private static PixelFlutPixel CreatePixelWithRandomColor(int x, int y)
-        {
-            return new PixelFlutPixel()
-            {
-                X = x,
-                Y = y,
-                //R = (byte)Random.Shared.Next(0, 255),
-                //G = (byte)Random.Shared.Next(0, 255),
-                //B = (byte)Random.Shared.Next(0, 255),
-                R = 0,
-                G = 0,
-                B = 0,
-                A = 255
-            };
-        }
-
-
     }
 }

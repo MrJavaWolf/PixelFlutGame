@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Sockets;
 
-namespace pixelflut
+namespace PixelFlut
 {
     public class PixelFlutRendererConfiguration
     {

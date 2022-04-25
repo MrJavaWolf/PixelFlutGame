@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PixelFlut.PingPong;
 using System.Diagnostics;
 
-namespace pixelflut
+namespace PixelFlut
 {
     public class GameLoopConfiguration
     {
@@ -34,7 +35,7 @@ namespace pixelflut
             Stopwatch totalGameTimer = new();
             GameTime gameTime = new();
             totalGameTimer.Start();
-            PixelflutPingPong pingpong = provider.GetRequiredService<PixelflutPingPong>();
+            PingPongGame pingpong = provider.GetRequiredService<PingPongGame>();
             pingpong.Startup();
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -43,7 +44,14 @@ namespace pixelflut
                 loopTime.Restart();
                 pixels = Loop(pingpong, gameTime).ToList();
                 int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopUpdateSpeed - loopTime.Elapsed.TotalMilliseconds));
-                await Task.Delay(sleepTimeMs, cancellationToken);
+                try
+                {
+                    await Task.Delay(sleepTimeMs, cancellationToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    return;
+                }
             }
         }
 
@@ -56,7 +64,7 @@ namespace pixelflut
             }
         }
 
-        public List<PixelFlutPixel> Loop(PixelflutPingPong pingpong, GameTime time)
+        public List<PixelFlutPixel> Loop(PingPongGame pingpong, GameTime time)
         {
             return pingpong.Loop(time);
         }

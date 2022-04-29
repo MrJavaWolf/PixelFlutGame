@@ -1,4 +1,4 @@
-﻿namespace PixelFlut
+﻿namespace PixelFlut.Core
 {
     public record PixelFlutPixel
     {

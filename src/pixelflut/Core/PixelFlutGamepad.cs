@@ -3,7 +3,7 @@ using DevDecoder.HIDDevices.Usages;
 using HidSharp;
 using Microsoft.Extensions.Logging;
 
-namespace PixelFlut
+namespace PixelFlut.Core
 {
     public class PixelFlutGamepadConfiguration
     {

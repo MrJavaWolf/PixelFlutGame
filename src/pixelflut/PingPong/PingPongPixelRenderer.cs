@@ -1,4 +1,6 @@
-﻿namespace PixelFlut.PingPong
+﻿using PixelFlut.Core;
+
+namespace PixelFlut.PingPong
 {
     public static class PingPongPixelRenderer
     {

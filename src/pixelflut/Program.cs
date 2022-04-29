@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PixelFlut.Core;
 using PixelFlut.PingPong;
 using Serilog;
 namespace PixelFlut;
@@ -46,6 +47,7 @@ public class Program
             e.Cancel = true;
             tokenSource.Cancel();
         };
+        
 
         // Run
         Task t1 = Task.Run(async () => await gamepad.RunAsync(tokenSource.Token));

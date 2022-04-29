@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using PixelFlut.PingPong;
 using System.Diagnostics;
 
-namespace PixelFlut
+namespace PixelFlut.Core
 {
     public class GameLoopConfiguration
     {

@@ -53,8 +53,10 @@ public class Program
 
         // Run
         Task t1 = Task.Run(async () => await gamepad.RunAsync(tokenSource.Token));
-        Task t2 = Task.Run(async () => await gameLoop.RunAsync(tokenSource.Token));
-        await Task.WhenAll(t1, t2);
+        Thread gameLoopThread = new(() => gameLoop.Run(tokenSource.Token));
+        gameLoopThread.Start();
+        gameLoopThread.Join();
+        await Task.WhenAll(t1);
 
         logger.LogInformation($"- - - - -  Shutdown pixelflut game - - - - - ");
     }

@@ -105,7 +105,7 @@ namespace PixelFlut.PingPong
                 screenConfig.ResultionY / 2 - pingPongConfig.PlayerHeight / 2);
             gameState.Player2Position = new(
                 screenConfig.ResultionX - pingPongConfig.PlayerDistanceToSides,
-                screenConfig.ResultionY / 2);
+                screenConfig.ResultionY / 2 - pingPongConfig.PlayerHeight / 2);
             gameState.Player1Score = 0;
             gameState.Player2Score = 0;
             ResetBall();
@@ -114,12 +114,12 @@ namespace PixelFlut.PingPong
         private void ResetBall()
         {
             logger.LogInformation("Resets pingpong ball");
-            //double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
-            //bool leftRight = (Random.Shared.NextDouble() < 0.5 ? true : false);
-            //bool upDown = (Random.Shared.NextDouble() < 0.5 ? true : false);
-            double startXYBallVerlocitySplit = 0.01;
-            bool leftRight = true;
-            bool upDown = true;
+            double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
+            bool leftRight = (Random.Shared.NextDouble() < 0.5 ? true : false);
+            bool upDown = (Random.Shared.NextDouble() < 0.5 ? true : false);
+            //double startXYBallVerlocitySplit = 0.01;
+            //bool leftRight = true;
+            //bool upDown = true;
             gameState.BallPosition = new Vector2(
                 screenConfig.ResultionX / 2,
                 screenConfig.ResultionY / 2);

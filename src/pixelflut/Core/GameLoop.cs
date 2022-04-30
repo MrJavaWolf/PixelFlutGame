@@ -7,7 +7,7 @@ namespace PixelFlut.Core
 {
     public class GameLoopConfiguration
     {
-        public double TargetGameLoopUpdateSpeed { get; set; }
+        public double TargetGameLoopFPS { get; set; }
         public int NumberOfRenderer { get; set; }
     }
 
@@ -24,7 +24,7 @@ namespace PixelFlut.Core
             logger.LogInformation($"GameLoop: {{@configuration}}", configuration);
         }
 
-        public async Task RunAsync(CancellationToken cancellationToken)
+        public void Run(CancellationToken cancellationToken)
         {
             for (int i = 0; i < configuration.NumberOfRenderer; i++)
             {
@@ -43,15 +43,8 @@ namespace PixelFlut.Core
                 gameTime.DeltaTime = loopTime.Elapsed;
                 loopTime.Restart();
                 pixels = Loop(pingpong, gameTime).ToList();
-                int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopUpdateSpeed - loopTime.Elapsed.TotalMilliseconds));
-                try
-                {
-                    await Task.Delay(sleepTimeMs, cancellationToken);
-                }
-                catch (TaskCanceledException)
-                {
-                    return;
-                }
+                int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
+                Thread.Sleep(sleepTimeMs);
             }
         }
 

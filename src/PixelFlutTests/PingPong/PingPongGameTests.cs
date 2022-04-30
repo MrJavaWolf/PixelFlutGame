@@ -39,15 +39,17 @@ namespace PixelFlut.PingPong.Tests
 
             pingPongGameState = new()
             {
-                BallXPosition = pixelFlutRendererConfiguration.ResultionX / 2,
-                BallYPosition = pixelFlutRendererConfiguration.ResultionY / 2,
-                Player1PositionX = pingPongConfig.PlayerDistanceToSides,
-                Player1PositionY = pixelFlutRendererConfiguration.ResultionY / 2 - pingPongConfig.PlayerHeight / 2,
-                Player2PositionX = pixelFlutRendererConfiguration.ResultionX - pingPongConfig.PlayerDistanceToSides - pingPongConfig.PlayerWidth,
-                Player2PositionY = pixelFlutRendererConfiguration.ResultionY / 2 - pingPongConfig.PlayerHeight / 2,
+                BallPosition = new(
+                    pixelFlutRendererConfiguration.ResultionX / 2,
+                    pixelFlutRendererConfiguration.ResultionY / 2),
+                Player1Position = new(
+                    pingPongConfig.PlayerDistanceToSides,
+                    pixelFlutRendererConfiguration.ResultionY / 2 - pingPongConfig.PlayerHeight / 2),
+                Player2Position = new(
+                    pixelFlutRendererConfiguration.ResultionX - pingPongConfig.PlayerDistanceToSides - pingPongConfig.PlayerWidth,
+                    pixelFlutRendererConfiguration.ResultionY / 2 - pingPongConfig.PlayerHeight / 2),
                 CurrentGameState = PingPongGameStateType.Playing,
-                BallXVerlocity = -10,
-                BallYVerlocity = 0,
+                BallVerlocity = new(-10, 0)
             };
 
             input = new();
@@ -70,14 +72,12 @@ namespace PixelFlut.PingPong.Tests
                 TotalTime = TimeSpan.FromMilliseconds(5000),
             };
 
-            pingPongGameState.BallXPosition = 20;
-            pingPongGameState.BallYPosition = 50;
-            pingPongGameState.Player1PositionY = 40;
-            pingPongGameState.Player2PositionY = 40;
-            pingPongGameState.BallXVerlocity = -10;
-            pingPongGameState.BallYVerlocity = 0;
+            pingPongGameState.BallPosition = new(20, 50);
+            pingPongGameState.Player1Position = new (pingPongGameState.Player1Position.X, 40);
+            pingPongGameState.Player2Position = new (pingPongGameState.Player2Position.X, 40);
+            pingPongGameState.BallVerlocity = new(-10, 0);
             pingPongGame.Loop(gameTime);
-            
+
         }
     }
 }

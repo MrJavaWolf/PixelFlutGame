@@ -14,8 +14,8 @@ namespace PixelFlut.PingPong
             DrawBall(pingPongConfig, gameState, pixels);
 
             // Draw the players
-            DrawPlayer((int)gameState.Player1PositionX, (int)gameState.Player1PositionY, pingPongConfig, pixels);
-            DrawPlayer((int)gameState.Player2PositionX, (int)gameState.Player2PositionY, pingPongConfig, pixels);
+            DrawPlayer((int)gameState.Player1Position.X, (int)gameState.Player1Position.Y, pingPongConfig, pixels);
+            DrawPlayer((int)gameState.Player2Position.X, (int)gameState.Player2Position.Y, pingPongConfig, pixels);
 
             return pixels;
         }
@@ -26,8 +26,8 @@ namespace PixelFlut.PingPong
             {
                 for (int y = 0; y < pingPongConfig.BallRadius * 2 + pingPongConfig.BallBorder * 2; y++)
                 {
-                    int ballPixelX = (int)gameState.BallXPosition - pingPongConfig.BallBorder - pingPongConfig.BallRadius + x;
-                    int ballPixelY = (int)gameState.BallYPosition - pingPongConfig.BallBorder - pingPongConfig.BallRadius + y;
+                    int ballPixelX = (int)gameState.BallPosition.X - pingPongConfig.BallBorder - pingPongConfig.BallRadius + x;
+                    int ballPixelY = (int)gameState.BallPosition.Y - pingPongConfig.BallBorder - pingPongConfig.BallRadius + y;
                     if (ballPixelX < 0 || ballPixelY < 0) continue;
                     if (x < pingPongConfig.BallBorder ||
                         y < pingPongConfig.BallBorder ||

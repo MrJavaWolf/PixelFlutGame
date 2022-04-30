@@ -12,7 +12,7 @@ namespace PixelFlut.Core
         public float DeadzoneSize { get; set; }
     }
 
-    public class PixelFlutGamepad
+    public class PixelFlutGamepad : IPixelFlutInput
     {
         private static class ButtonId
         {

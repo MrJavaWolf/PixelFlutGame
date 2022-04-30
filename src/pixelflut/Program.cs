@@ -16,7 +16,7 @@ public class Program
                         .AddEnvironmentVariables()
                         .AddCommandLine(args)
                         .Build();
-        PixelFlutRendererConfiguration rendererConfig = Configuration.GetSection("Renderer").Get<PixelFlutRendererConfiguration>();
+        PixelFlutScreenRendererConfiguration rendererConfig = Configuration.GetSection("Renderer").Get<PixelFlutScreenRendererConfiguration>();
         PixelFlutGamepadConfiguration gamepadConfig = Configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>();
         GameLoopConfiguration gameloopConfig = Configuration.GetSection("GameLoop").Get<GameLoopConfiguration>();
         PingPongConfiguration pingPongConfig = Configuration.GetSection("PingPong").Get<PingPongConfiguration>();

@@ -74,7 +74,7 @@ namespace PixelFlut.PingPong
     {
         private readonly PingPongConfiguration pingPongConfig;
         private readonly IPixelFlutInput input;
-        private readonly PixelFlutRendererConfiguration screenConfig;
+        private readonly PixelFlutScreenRendererConfiguration screenConfig;
         private readonly ILogger<PingPongGame> logger;
         private PingPongGameState gameState = new();
 
@@ -84,7 +84,7 @@ namespace PixelFlut.PingPong
         public PingPongGame(
             PingPongConfiguration pingPongConfig,
             IPixelFlutInput input,
-            PixelFlutRendererConfiguration screenConfig,
+            PixelFlutScreenRendererConfiguration screenConfig,
             ILogger<PingPongGame> logger,
             PingPongGameState? pingPongGameState = null)
         {

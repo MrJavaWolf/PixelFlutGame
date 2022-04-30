@@ -10,7 +10,7 @@ namespace PixelFlut.PingPong.Tests
     public class PingPongGameTests
     {
         PingPongConfiguration pingPongConfig = null!;
-        PixelFlutRendererConfiguration pixelFlutRendererConfiguration = null!;
+        PixelFlutScreenRendererConfiguration pixelFlutRendererConfiguration = null!;
         PingPongGameState pingPongGameState = null!;
         Mock<IPixelFlutInput> input = null!;
         PingPongGame pingPongGame = null!;

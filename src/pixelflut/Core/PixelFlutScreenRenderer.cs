@@ -51,7 +51,7 @@ namespace PixelFlut.Core
                 int pixelNumber = 0;
                 foreach (PixelFlutPixel pixel in pixelsToDraw)
                 {
-                    PixelFlutScreenProtocol1.WriteToBuffer(send_buffer, pixelNumber, (int)pixel.X, (int)pixel.Y, pixel.R, pixel.G, pixel.B, pixel.A);
+                    PixelFlutScreenProtocol1.WriteToBuffer(send_buffer, pixelNumber, (int)pixel.X + configuration.OffsetX, (int)pixel.Y + configuration.OffsetY, pixel.R, pixel.G, pixel.B, pixel.A);
                     pixelNumber++;
                 }
             }

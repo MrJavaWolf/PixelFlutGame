@@ -28,7 +28,9 @@ public class Program
         services.AddSingleton(gamepadConfig);
         services.AddSingleton(gameloopConfig);
         services.AddSingleton(pingPongConfig);
+
         services.AddSingleton<PixelFlutGamepad>();
+        services.AddSingleton<IPixelFlutInput>( s => s.GetRequiredService<PixelFlutGamepad>());
         services.AddSingleton<PingPongGame>();
         services.AddSingleton<GameLoop>();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));

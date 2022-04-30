@@ -120,7 +120,7 @@ namespace PixelFlut.PingPong
         {
             logger.LogInformation("Initializes pingpong game");
             gameState = new PingPongGameState();
-            gameState.Player1PositionY = screenConfig.ResultionY / 2;
+            gameState.Player1PositionY = screenConfig.ResultionY / 2 - pingPongConfig.PlayerHeight / 2;
             gameState.Player1PositionX = pingPongConfig.PlayerDistanceToSides;
             gameState.Player2PositionY = screenConfig.ResultionY / 2;
             gameState.Player2PositionX = screenConfig.ResultionX - pingPongConfig.PlayerDistanceToSides;
@@ -132,10 +132,10 @@ namespace PixelFlut.PingPong
         private void ResetBall()
         {
             logger.LogInformation("Resets pingpong ball");
-            //double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
-            double startXYBallVerlocitySplit = 0;
-            //bool leftRight = (Random.Shared.NextDouble() < 0.5 ? true : false);
-            bool leftRight = true;
+            double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
+            //double startXYBallVerlocitySplit = 0.01;
+            bool leftRight = (Random.Shared.NextDouble() < 0.5 ? true : false);
+            //bool leftRight = true;
             bool upDown = (Random.Shared.NextDouble() < 0.5 ? true : false);
             gameState.BallYPosition = screenConfig.ResultionY / 2;
             gameState.BallXPosition = screenConfig.ResultionX / 2;
@@ -149,12 +149,17 @@ namespace PixelFlut.PingPong
             // Update player position
             gameState.Player1PositionY = CalculateNewPlayerPosition(gameState.Player1PositionY, input.Y, time);
             gameState.Player2PositionY = CalculateNewPlayerPosition(gameState.Player2PositionY, GetPlayer2Input(), time);
+
+            // Update ball
             UpdateBallPosition(time);
+
+            // Renderer
             return PingPongPixelRenderer.CreatePixels(pingPongConfig, gameState);
         }
 
         private double GetPlayer2Input()
         {
+            // Currently player 2 input is the right side of the controller
             if (input.IsNorthButtonPressed && !input.IsSouthButtonPressed)
                 return 0;
             else if (!input.IsNorthButtonPressed && input.IsSouthButtonPressed)
@@ -165,22 +170,28 @@ namespace PixelFlut.PingPong
 
         private void UpdateBallPosition(GameTime time)
         {
+            // Calculate next ball position
             double wantedNewBallPositionX = gameState.BallXPosition + gameState.BallXVerlocity * time.DeltaTime.TotalSeconds;
             double wantedNewBallPositionY = gameState.BallYPosition + gameState.BallYVerlocity * time.DeltaTime.TotalSeconds;
+
+            // Bounce top/bottom
             if (wantedNewBallPositionY > screenConfig.ResultionY ||
                 wantedNewBallPositionY < 0)
             {
                 gameState.BallYVerlocity = -gameState.BallYVerlocity;
                 wantedNewBallPositionY = gameState.BallYPosition + gameState.BallYVerlocity * time.DeltaTime.TotalSeconds;
-                logger.LogInformation("Ball hit up/down side");
+                logger.LogInformation("Ball bounced against top/bottom");
             }
 
+            // Set the ball position
             gameState.BallXPosition = wantedNewBallPositionX;
             gameState.BallYPosition = wantedNewBallPositionY;
 
+            // Handle if the ball was hit by a player
             HandlePlayerBounce(gameState.Player1PositionX, gameState.Player1PositionY, 1);
             HandlePlayerBounce(gameState.Player2PositionX, gameState.Player2PositionY, -1);
 
+            // Goal by player 1
             if (gameState.BallXPosition > screenConfig.ResultionX)
             {
                 gameState.Player1Score++;
@@ -188,6 +199,8 @@ namespace PixelFlut.PingPong
                 logger.LogInformation($"Player 1: {gameState.Player1Score} VS Player 2: {gameState.Player2Score}");
                 ResetBall();
             }
+
+            // Goal by player 2
             else if (gameState.BallXPosition < 0)
             {
                 gameState.Player2Score++;
@@ -222,9 +235,9 @@ namespace PixelFlut.PingPong
             double minSplit = 0;
             double split;
             bool upperPart = false;
-            if (ballY > playerY + playerHeight / 2)
+            if (ballY < playerY + playerHeight / 2)
             {
-                ballY -= playerHeight / 2;
+                ballY += playerHeight / 2;
                 upperPart = true;
             }
             split = RemapRange(ballY, playerY + playerHeight / 2, playerY + playerHeight, minSplit, maxSplit);
@@ -243,8 +256,8 @@ namespace PixelFlut.PingPong
                 gameState.BallXPosition,
                 gameState.BallYPosition,
                 pingPongConfig.BallRadius,
-                playerXPosition,
-                playerYPosition,
+                playerXPosition - pingPongConfig.PlayerWidth / 2,
+                playerYPosition + pingPongConfig.PlayerHeight / 2,
                 pingPongConfig.PlayerWidth,
                 pingPongConfig.PlayerHeight);
 

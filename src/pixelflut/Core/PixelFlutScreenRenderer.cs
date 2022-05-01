@@ -133,7 +133,7 @@ namespace PixelFlut.Core
             stopwatch.Start();
         }
 
-        public void PrepareRender(List<PixelFlutPixel> frame)
+        public void PrepareRender(int numberOfPixelsInFrame, List<PixelFlutPixel> frame)
         {
             // Update stats
             stats.Frames++;
@@ -145,7 +145,10 @@ namespace PixelFlut.Core
             // Selects the pixels to render
             for (int i = 0; i < preparedBuffers.Count; i++)
             {
-                IEnumerable<PixelFlutPixel> pixelsToDraw = PickRandomPixels(scaledFrameToDraw, PixelFlutScreenProtocol1.MaximumNumberOfPixel);
+                IEnumerable<PixelFlutPixel> pixelsToDraw = PickRandomPixels(
+                    scaledFrameToDraw,
+                    numberOfPixelsInFrame,
+                    PixelFlutScreenProtocol1.MaximumNumberOfPixel);
                 // Prepares the buffer to send
                 int pixelNumber = 0;
                 foreach (PixelFlutPixel pixel in pixelsToDraw)
@@ -202,10 +205,13 @@ namespace PixelFlut.Core
             return scaledPixel;
         }
 
-        private IEnumerable<PixelFlutPixel> PickRandomPixels(IEnumerable<PixelFlutPixel> pixels, int amount)
+        private IEnumerable<PixelFlutPixel> PickRandomPixels(
+            IEnumerable<PixelFlutPixel> pixels,
+            int numberOfPixelsInFrame,
+            int amount)
         {
             List<PixelFlutPixel> randomised = new();
-            int totalAmountOfPixels = pixels.Count(); ;
+            int totalAmountOfPixels = Math.Min(numberOfPixelsInFrame, pixels.Count());
             for (int i = 0; i < amount && i < totalAmountOfPixels; i++)
             {
                 randomised.Add(pixels.ElementAt(Random.Shared.Next(totalAmountOfPixels)));

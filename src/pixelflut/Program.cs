@@ -30,7 +30,7 @@ public class Program
         services.AddSingleton(pingPongConfig);
 
         services.AddSingleton<PixelFlutGamepad>();
-        services.AddSingleton<IPixelFlutInput>( s => s.GetRequiredService<PixelFlutGamepad>());
+        services.AddSingleton<IPixelFlutInput>(s => s.GetRequiredService<PixelFlutGamepad>());
         services.AddSingleton<PingPongGame>();
         services.AddSingleton<GameLoop>();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
@@ -45,11 +45,12 @@ public class Program
 
         // Setup gracefull shutdown
         CancellationTokenSource tokenSource = new();
-        Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e) {
+        Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e)
+        {
             e.Cancel = true;
             tokenSource.Cancel();
         };
-        
+
 
         // Run
         Task t1 = Task.Run(async () => await gamepad.RunAsync(tokenSource.Token));
@@ -63,5 +64,5 @@ public class Program
 
 
 }
-       
+
 

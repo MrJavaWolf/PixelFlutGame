@@ -4,24 +4,31 @@ namespace PixelFlut.PingPong
 {
     public static class PingPongPixelRenderer
     {
-        public static List<PixelFlutPixel> CreatePixels(
+        public static int DrawFrame(
             PingPongConfiguration pingPongConfig,
-            PingPongGameState gameState)
+            PingPongGameState gameState,
+            List<PixelFlutPixel> frame)
         {
-            List<PixelFlutPixel> pixels = new();
-
             // Draw the ball
-            DrawBall(pingPongConfig, gameState, pixels);
+            int frameIndexOffset = 0;
+            frameIndexOffset += DrawBall(pingPongConfig, gameState, frameIndexOffset, frame);
 
             // Draw the players
-            DrawPlayer((int)gameState.Player1Position.X, (int)gameState.Player1Position.Y, pingPongConfig, pixels);
-            DrawPlayer((int)gameState.Player2Position.X, (int)gameState.Player2Position.Y, pingPongConfig, pixels);
+            frameIndexOffset += DrawPlayer((int)gameState.Player1Position.X, (int)gameState.Player1Position.Y, pingPongConfig, frameIndexOffset, frame);
+            frameIndexOffset += DrawPlayer((int)gameState.Player2Position.X, (int)gameState.Player2Position.Y, pingPongConfig, frameIndexOffset, frame);
 
-            return pixels;
+            return frameIndexOffset;
         }
 
-        private static void DrawBall(PingPongConfiguration pingPongConfig, PingPongGameState gameState, List<PixelFlutPixel> pixels)
+
+
+        private static int DrawBall(
+            PingPongConfiguration pingPongConfig,
+            PingPongGameState gameState,
+            int frameIndexOffset,
+            List<PixelFlutPixel> frame)
         {
+            int numberOfPixels = 0;
             for (int x = 0; x < pingPongConfig.BallRadius * 2 + pingPongConfig.BallBorder * 2; x++)
             {
                 for (int y = 0; y < pingPongConfig.BallRadius * 2 + pingPongConfig.BallBorder * 2; y++)
@@ -31,25 +38,38 @@ namespace PixelFlut.PingPong
                     if (ballPixelX < 0 || ballPixelY < 0) continue;
                     if (x < pingPongConfig.BallBorder ||
                         y < pingPongConfig.BallBorder ||
-                        x > pingPongConfig.BallRadius * 2 + pingPongConfig.BallBorder  ||
+                        x > pingPongConfig.BallRadius * 2 + pingPongConfig.BallBorder ||
                         y > pingPongConfig.BallRadius * 2 + pingPongConfig.BallBorder)
                     {
-                        pixels.Add(CreatePixelWithBackgroundColor(ballPixelX, ballPixelY));
+                        DrawPixelWithBackgroundColor(
+                            frame,
+                            frameIndexOffset + numberOfPixels,
+                            ballPixelX,
+                            ballPixelY);
                     }
                     else
                     {
-                        pixels.Add(CreatePixelWithBallColor(ballPixelX, ballPixelY));
+                        DrawPixelWithBallColor(
+                            frame,
+                            frameIndexOffset + numberOfPixels,
+                            ballPixelX,
+                            ballPixelY);
                     }
+                    numberOfPixels++;
                 }
             }
+            return numberOfPixels;
         }
 
-        private static void DrawPlayer(
-            int playerPositionX, 
-            int playerPositionY, 
+        private static int DrawPlayer(
+            int playerPositionX,
+            int playerPositionY,
             PingPongConfiguration pingPongConfig,
-            List<PixelFlutPixel> pixels)
+            int frameIndexOffset,
+            List<PixelFlutPixel> frame)
         {
+            int numberOfPixels = 0;
+
             for (int x = 0; x < pingPongConfig.PlayerWidth + pingPongConfig.PlayerBorder * 2; x++)
             {
                 for (int y = 0; y < pingPongConfig.PlayerHeight + pingPongConfig.PlayerBorder * 2; y++)
@@ -57,62 +77,113 @@ namespace PixelFlut.PingPong
                     int playerPixelX = playerPositionX - pingPongConfig.PlayerBorder + x;
                     int playerPixelY = playerPositionY - pingPongConfig.PlayerBorder + y;
                     if (playerPixelX < 0 || playerPixelY < 0) continue;
-                    if (
-                        x < pingPongConfig.PlayerBorder ||
+                    if (x < pingPongConfig.PlayerBorder ||
                         y < pingPongConfig.PlayerBorder ||
                         x > pingPongConfig.PlayerWidth + pingPongConfig.PlayerBorder ||
                         y > pingPongConfig.PlayerHeight + pingPongConfig.PlayerBorder)
                     {
-                        pixels.Add(CreatePixelWithBackgroundColor(playerPixelX, playerPixelY));
+                        DrawPixelWithBackgroundColor(
+                            frame,
+                            frameIndexOffset + numberOfPixels,
+                            playerPixelX,
+                            playerPixelY);
                     }
                     else
                     {
-                        pixels.Add(CreatePixelWithPlayerColor(playerPixelX, playerPixelY));
+                        DrawPixelWithPlayerColor(
+                            frame,
+                            frameIndexOffset + numberOfPixels,
+                            playerPixelX,
+                            playerPixelY);
                     }
+                    numberOfPixels++;
                 }
             }
+            return numberOfPixels;
         }
 
-        private static PixelFlutPixel CreatePixelWithBallColor(int x, int y)
+        private static void DrawPixelWithBallColor(
+            List<PixelFlutPixel> frame,
+            int index,
+            int x,
+            int y)
         {
-            return new PixelFlutPixel()
-            {
-                X = x,
-                Y = y,
-                R = 255,
-                G = 255,
-                B = 255,
-                A = 255
-            };
+            DrawPixel(
+             frame,
+             index,
+             x,
+             y,
+             R: 255,
+             G: 255,
+             B: 255,
+             A: 255);
         }
 
-        private static PixelFlutPixel CreatePixelWithPlayerColor(int x, int y)
+        private static void DrawPixelWithPlayerColor(
+             List<PixelFlutPixel> frame,
+            int index,
+            int x,
+            int y)
         {
-            return new PixelFlutPixel()
-            {
-                X = x,
-                Y = y,
-                R = 255,
-                G = 255,
-                B = 255,
-                A = 255
-            };
+            DrawPixel(
+               frame,
+               index,
+               x,
+               y,
+               R: 255,
+               G: 255,
+               B: 255,
+               A: 255);
         }
 
-        private static PixelFlutPixel CreatePixelWithBackgroundColor(int x, int y)
+        private static void DrawPixelWithBackgroundColor(
+            List<PixelFlutPixel> frame,
+            int index,
+            int x,
+            int y)
         {
-            return new PixelFlutPixel()
+            DrawPixel(
+                frame,
+                index,
+                x,
+                y,
+                R: 0,
+                G: 0,
+                B: 0,
+                A: 255);
+        }
+
+        private static void DrawPixel(
+            List<PixelFlutPixel> frame,
+            int index,
+            double X,
+            double Y,
+            byte R,
+            byte G,
+            byte B,
+            byte A)
+        {
+            if (frame.Count > index)
             {
-                X = x,
-                Y = y,
-                //R = (byte)Random.Shared.Next(0, 255),
-                //G = (byte)Random.Shared.Next(0, 255),
-                //B = (byte)Random.Shared.Next(0, 255),
-                R = 0,
-                G = 0,
-                B = 0,
-                A = 255
-            };
+                frame[index].X = X;
+                frame[index].Y = Y;
+                frame[index].R = R;
+                frame[index].G = G;
+                frame[index].B = B;
+                frame[index].A = A;
+            }
+            else
+            {
+                frame.Add(new PixelFlutPixel()
+                {
+                    X = X,
+                    Y = Y,
+                    R = R,
+                    G = G,
+                    B = B,
+                    A = A
+                });
+            }
         }
     }
 }

@@ -46,9 +46,9 @@ namespace PixelFlut.Core
                 gameTime.TotalTime = totalGameTimer.Elapsed;
                 gameTime.DeltaTime = loopTime.Elapsed;
                 loopTime.Restart();
-                List<PixelFlutPixel> pixels = Loop(pingpong, gameTime).ToList();
+                (int numberOfPixels, List<PixelFlutPixel> frame) = Loop(pingpong, gameTime);
                 foreach (var renderer in renderers)
-                    renderer.PrepareRender(pixels);
+                    renderer.PrepareRender(numberOfPixels, frame);
                 int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
                 Thread.Sleep(sleepTimeMs);
             }
@@ -62,7 +62,7 @@ namespace PixelFlut.Core
             }
         }
 
-        public List<PixelFlutPixel> Loop(PingPongGame pingpong, GameTime time)
+        public (int numberOfPixels, List<PixelFlutPixel> frame) Loop(PingPongGame pingpong, GameTime time)
         {
             return pingpong.Loop(time);
         }

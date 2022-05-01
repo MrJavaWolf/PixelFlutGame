@@ -77,7 +77,7 @@ namespace PixelFlut.PingPong
         private readonly PixelFlutScreenRendererConfiguration screenConfig;
         private readonly ILogger<PingPongGame> logger;
         private PingPongGameState gameState = new();
-
+        private List<PixelFlutPixel> frame = new();
         public int MinimumYPlayerPosition { get => 0; }
         public int MaximumYPlayerPosition { get => screenConfig.ResultionY - pingPongConfig.PlayerHeight; }
 
@@ -129,7 +129,7 @@ namespace PixelFlut.PingPong
             gameState.BallBounces = 0;
         }
 
-        public List<PixelFlutPixel> Loop(GameTime time)
+        public (int numberOfPixels, List<PixelFlutPixel> frame) Loop(GameTime time)
         {
             // Update player position
             gameState.Player1Position = CalculateNewPlayerPosition(gameState.Player1Position, input.Y, time);
@@ -139,7 +139,8 @@ namespace PixelFlut.PingPong
             UpdateBallPosition(time);
 
             // Renderer
-            return PingPongPixelRenderer.CreatePixels(pingPongConfig, gameState);
+            int numberOfPixels = PingPongPixelRenderer.DrawFrame(pingPongConfig, gameState, frame);
+            return (numberOfPixels, frame);
         }
 
         private double GetPlayer2Input()

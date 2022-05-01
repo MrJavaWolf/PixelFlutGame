@@ -55,6 +55,11 @@ namespace PixelFlut.Core
         /// [NumberOfPreparedBuffers] >= [Number of pixels per frame] / [number of pixels per buffer]
         /// </summary>
         public int NumberOfPreparedBuffers { get; set; }
+
+        /// <summary>
+        /// Sleep time between frames, set to -1 to run 100% CPU
+        /// </summary>
+        public int SleepTimeBetweenFrames { get; set; }
     }
 
     public class PixelFlutScreenStats
@@ -92,8 +97,6 @@ namespace PixelFlut.Core
 
     public class PixelFlutScreenRenderer
     {
-
-
         // Overall
         private readonly IPixelFlutScreenProtocol screenProtocol;
         private readonly PixelFlutScreenRendererConfiguration configuration;
@@ -184,6 +187,10 @@ namespace PixelFlut.Core
             int bytesSent = socket.SendTo(sendBuffer, endPoint);
             stats.BytesSent += bytesSent;
             stats.BuffersSent++;
+            if(configuration.SleepTimeBetweenFrames != -1)
+            {
+                Thread.Sleep(configuration.SleepTimeBetweenFrames);
+            }
         }
 
         private IEnumerable<PixelFlutPixel> ScalePixels(List<PixelFlutPixel> pixels)

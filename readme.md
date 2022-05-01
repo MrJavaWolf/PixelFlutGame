@@ -13,8 +13,27 @@ Requirements:
 2. `cd src/PixelFlut`
 3. Edit `appsettings.json` to point to the correct IP address and port
 4. `dotnet run`
+5. Make sure the Game Controller is connected
 
-You can now control the 2 paddels with the Game Controller
+You can now control the 2 players with the Game Controller.
+
+### Nitendo like game controller
+
+| Input Id | Input  | Action |
+| - | - | - |
+| 65585 | Up | Moves left player up |
+| 65585 | Down | Moves left player down |
+| 589825 | X | Moves right player up |
+| 589827 | B | Moves left player down |
+
+### Playstation like game controller
+
+| Input Id | Input  | Action |
+| - | - | - |
+| 65585 | Left stick | Moves left player up |
+| 65585 | Left stick | Moves left player down |
+| 589828 | Triangle | Moves right player up |
+| 589826 | Cross | Moves left player down |
 
 ## Configuration
 

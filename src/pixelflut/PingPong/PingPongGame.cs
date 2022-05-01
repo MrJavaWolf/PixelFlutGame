@@ -15,6 +15,7 @@ namespace PixelFlut.PingPong
         public int PlayerSpeed { get; set; }
         public int PlayerBorder { get; set; }
         public int PlayerDistanceToSides { get; set; }
+
         /// <summary>
         /// When hitting the ball on the side of the player paddle, how steep an angle (in radians) is allowed.
         /// Lowering the value will make the ball go more at an angle
@@ -124,12 +125,15 @@ namespace PixelFlut.PingPong
         private void ResetBall()
         {
             logger.LogInformation("Resets pingpong ball");
-            //double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
-            //bool leftRight = (Random.Shared.NextDouble() < 0.5 ? true : false);
-            //bool upDown = (Random.Shared.NextDouble() < 0.5 ? true : false);
-            double startXYBallVerlocitySplit = 0.09;
-            bool leftRight = true;
-            bool upDown = true;
+            double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
+            bool leftRight = Random.Shared.NextDouble() < 0.5;
+            bool upDown = Random.Shared.NextDouble() < 0.5;
+
+            //// Debug values
+            //startXYBallVerlocitySplit = 0.09;
+            //leftRight = true;
+            //upDown = true;
+
             gameState.BallPosition = new Vector2(
                 screenConfig.ResultionX / 2,
                 screenConfig.ResultionY / 2);

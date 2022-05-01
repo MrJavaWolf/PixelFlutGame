@@ -29,6 +29,7 @@ public class Program
         services.AddSingleton(gameloopConfig);
         services.AddSingleton(pongConfig);
 
+        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
         services.AddSingleton<PixelFlutGamepad>();
         services.AddSingleton<IPixelFlutInput>(s => s.GetRequiredService<PixelFlutGamepad>());
         services.AddSingleton<PongGame>();

@@ -1,20 +1,20 @@
 ﻿namespace PixelFlut.Core
 {
-    public class PixelFlutScreenProtocol1
+    public class PixelFlutScreenProtocol1 : IPixelFlutScreenProtocol
     {
-        public const int MaximumNumberOfPixel = 140;
+        public int PixelPerBuffer { get; } = 140;
         public const int BytesPerPixel = 8;
         public const int HeaderSize = 2;
 
-        public static byte[] CreateBuffer()
+        public byte[] CreateBuffer()
         {
-            byte[] send_buffer = new byte[HeaderSize + MaximumNumberOfPixel * BytesPerPixel];
+            byte[] send_buffer = new byte[HeaderSize + PixelPerBuffer * BytesPerPixel];
             send_buffer[0] = 0x01; // Protocol 1
             send_buffer[1] = 0x00; // Not used
             return send_buffer;
         }
 
-        public static void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y, byte r, byte g, byte b, byte a)
+        public void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y, byte r, byte g, byte b, byte a)
         {
             int offset = HeaderSize + pixelNumber * BytesPerPixel;
             byte[] xBytes = BitConverter.GetBytes(x);

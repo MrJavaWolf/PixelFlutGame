@@ -1,10 +1,4 @@
-﻿// Official wiki: https://labitat.dk/wiki/Pixelflut 
-// DO NOT TRUST THE PROTOCOL DOCUMENTATION: https://github.com/JanKlopper/pixelvloed/blob/master/protocol.md
-// Only trust the server code: https://github.com/JanKlopper/pixelvloed/blob/master/C/Server/main.c 
-// The server: https://github.com/JanKlopper/pixelvloed
-// A example client: https://github.com/Hafpaf/pixelVloedClient 
-
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -98,7 +92,10 @@ namespace PixelFlut.Core
 
     public class PixelFlutScreenRenderer
     {
+
+
         // Overall
+        private readonly IPixelFlutScreenProtocol screenProtocol;
         private readonly PixelFlutScreenRendererConfiguration configuration;
         private readonly ILogger<PixelFlutScreenRenderer> logger;
 
@@ -115,8 +112,12 @@ namespace PixelFlut.Core
         private readonly List<byte[]> preparedBuffers = new();
 
 
-        public PixelFlutScreenRenderer(PixelFlutScreenRendererConfiguration configuration, ILogger<PixelFlutScreenRenderer> logger)
+        public PixelFlutScreenRenderer(
+            IPixelFlutScreenProtocol screenProtocol,
+            PixelFlutScreenRendererConfiguration configuration,
+            ILogger<PixelFlutScreenRenderer> logger)
         {
+            this.screenProtocol = screenProtocol;
             this.configuration = configuration;
             this.logger = logger;
             logger.LogInformation($"PixelFlutScreen: {{@pixelFlutScreen}}", configuration);
@@ -127,7 +128,8 @@ namespace PixelFlut.Core
             endPoint = new IPEndPoint(serverAddr, configuration.Port);
 
             // Prepare buffers
-            for (int i = 0; i < configuration.NumberOfPreparedBuffers; i++) preparedBuffers.Add(PixelFlutScreenProtocol1.CreateBuffer());
+            for (int i = 0; i < configuration.NumberOfPreparedBuffers; i++) 
+                preparedBuffers.Add(screenProtocol.CreateBuffer());
 
             // Stats counter
             stopwatch.Start();
@@ -148,12 +150,12 @@ namespace PixelFlut.Core
                 IEnumerable<PixelFlutPixel> pixelsToDraw = PickRandomPixels(
                     scaledFrameToDraw,
                     numberOfPixelsInFrame,
-                    PixelFlutScreenProtocol1.MaximumNumberOfPixel);
+                    screenProtocol.PixelPerBuffer);
                 // Prepares the buffer to send
                 int pixelNumber = 0;
                 foreach (PixelFlutPixel pixel in pixelsToDraw)
                 {
-                    PixelFlutScreenProtocol1.WriteToBuffer(
+                    screenProtocol.WriteToBuffer(
                         preparedBuffers[i],
                         pixelNumber,
                         (int)pixel.X + configuration.OffsetX,

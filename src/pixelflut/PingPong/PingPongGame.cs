@@ -15,7 +15,17 @@ namespace PixelFlut.PingPong
         public int PlayerSpeed { get; set; }
         public int PlayerBorder { get; set; }
         public int PlayerDistanceToSides { get; set; }
+        /// <summary>
+        /// When hitting the ball on the side of the player paddle, how steep an angle (in radians) is allowed.
+        /// Lowering the value will make the ball go more at an angle
+        /// Recommended range:
+        /// - Minimum: 0.20 (~11.5 degrees)
+        /// - Maximum: 0.75 (~45 degrees)
+        /// </summary>
+        public float PlayerMaxRebounceAngle { get; set; }
         public int NumberOfGoalsToWin { get; set; }
+
+      
     }
 
     public enum PingPongGameStateType
@@ -114,12 +124,12 @@ namespace PixelFlut.PingPong
         private void ResetBall()
         {
             logger.LogInformation("Resets pingpong ball");
-            double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
-            bool leftRight = (Random.Shared.NextDouble() < 0.5 ? true : false);
-            bool upDown = (Random.Shared.NextDouble() < 0.5 ? true : false);
-            //double startXYBallVerlocitySplit = 0.01;
-            //bool leftRight = true;
-            //bool upDown = true;
+            //double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
+            //bool leftRight = (Random.Shared.NextDouble() < 0.5 ? true : false);
+            //bool upDown = (Random.Shared.NextDouble() < 0.5 ? true : false);
+            double startXYBallVerlocitySplit = 0.09;
+            bool leftRight = true;
+            bool upDown = true;
             gameState.BallPosition = new Vector2(
                 screenConfig.ResultionX / 2,
                 screenConfig.ResultionY / 2);
@@ -218,18 +228,36 @@ namespace PixelFlut.PingPong
             float playerHeight,
             float ballY)
         {
-            float maxSplit = 0.8f;
-            float minSplit = -0.8f;
-            float split = RemapRange(ballY, playerY, playerY + playerHeight, minSplit, maxSplit);
-            Vector2 direction = new((float)(1 - split), (float)split);
-            return Vector2.Normalize(direction);
+            float minAngleRadians = pingPongConfig.PlayerMaxRebounceAngle;
+            float maxAngleRadians = (float)Math.PI - pingPongConfig.PlayerMaxRebounceAngle;
+
+            float radians = RemapRange(ballY, playerY, playerY + playerHeight, minAngleRadians, maxAngleRadians);
+            Vector2 direction = new((float)Math.Sin(radians), -(float)Math.Cos(radians));
+            return direction;
+        }
+
+        public static Vector2 Rotate(Vector2 v, double degrees)
+        {
+            return new Vector2(
+                (float)(v.X * Math.Cos(degrees) - v.Y * Math.Sin(degrees)),
+                (float)(v.X * Math.Sin(degrees) + v.Y * Math.Cos(degrees))
+            );
         }
 
 
-        public static float RemapRange(float value, float from1, float to1, float from2, float to2)
+        public static float RemapRange(float from, float fromMin, float fromMax, float toMin, float toMax)
         {
-            value = Math.Clamp(value, from1, to1);
-            return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+            var fromAbs = from - fromMin;
+            var fromMaxAbs = fromMax - fromMin;
+
+            var normal = fromAbs / fromMaxAbs;
+
+            var toMaxAbs = toMax - toMin;
+            var toAbs = toMaxAbs * normal;
+
+            var to = toAbs + toMin;
+
+            return to;
         }
 
         bool IntersectsPlayerWithBall(Vector2 playerPosition)

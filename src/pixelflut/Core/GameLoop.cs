@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using PixelFlut.PingPong;
+using PixelFlut.Pong;
 using System.Diagnostics;
 
 namespace PixelFlut.Core
@@ -39,14 +39,14 @@ namespace PixelFlut.Core
             Stopwatch totalGameTimer = new();
             GameTime gameTime = new();
             totalGameTimer.Start();
-            PingPongGame pingpong = provider.GetRequiredService<PingPongGame>();
-            pingpong.Startup();
+            PongGame pong = provider.GetRequiredService<PongGame>();
+            pong.Startup();
             while (!cancellationToken.IsCancellationRequested)
             {
                 gameTime.TotalTime = totalGameTimer.Elapsed;
                 gameTime.DeltaTime = loopTime.Elapsed;
                 loopTime.Restart();
-                (int numberOfPixels, List<PixelFlutPixel> frame) = Loop(pingpong, gameTime);
+                (int numberOfPixels, List<PixelFlutPixel> frame) = Loop(pong, gameTime);
                 foreach (var renderer in renderers)
                     renderer.PrepareRender(numberOfPixels, frame);
                 int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
@@ -62,9 +62,9 @@ namespace PixelFlut.Core
             }
         }
 
-        public (int numberOfPixels, List<PixelFlutPixel> frame) Loop(PingPongGame pingpong, GameTime time)
+        public (int numberOfPixels, List<PixelFlutPixel> frame) Loop(PongGame pong, GameTime time)
         {
-            return pingpong.Loop(time);
+            return pong.Loop(time);
         }
     }
 }

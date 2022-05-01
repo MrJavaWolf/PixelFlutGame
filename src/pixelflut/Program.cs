@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PixelFlut.Core;
-using PixelFlut.PingPong;
+using PixelFlut.Pong;
 using Serilog;
 namespace PixelFlut;
 
@@ -19,7 +19,7 @@ public class Program
         PixelFlutScreenRendererConfiguration rendererConfig = Configuration.GetSection("Renderer").Get<PixelFlutScreenRendererConfiguration>();
         PixelFlutGamepadConfiguration gamepadConfig = Configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>();
         GameLoopConfiguration gameloopConfig = Configuration.GetSection("GameLoop").Get<GameLoopConfiguration>();
-        PingPongConfiguration pingPongConfig = Configuration.GetSection("PingPong").Get<PingPongConfiguration>();
+        PongConfiguration pongConfig = Configuration.GetSection("Pong").Get<PongConfiguration>();
 
         // Dependency injection
         var services = new ServiceCollection();
@@ -27,11 +27,11 @@ public class Program
         services.AddSingleton(rendererConfig);
         services.AddSingleton(gamepadConfig);
         services.AddSingleton(gameloopConfig);
-        services.AddSingleton(pingPongConfig);
+        services.AddSingleton(pongConfig);
 
         services.AddSingleton<PixelFlutGamepad>();
         services.AddSingleton<IPixelFlutInput>(s => s.GetRequiredService<PixelFlutGamepad>());
-        services.AddSingleton<PingPongGame>();
+        services.AddSingleton<PongGame>();
         services.AddSingleton<GameLoop>();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
         services.AddTransient<PixelFlutScreenRenderer>();

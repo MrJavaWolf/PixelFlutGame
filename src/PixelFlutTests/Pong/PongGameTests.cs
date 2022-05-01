@@ -4,21 +4,21 @@ using Moq;
 using PixelFlut.Core;
 using System;
 
-namespace PixelFlut.PingPong.Tests
+namespace PixelFlut.Pong.Tests
 {
     [TestClass()]
-    public class PingPongGameTests
+    public class PongGameTests
     {
-        PingPongConfiguration pingPongConfig = null!;
+        PongConfiguration pongConfig = null!;
         PixelFlutScreenRendererConfiguration pixelFlutRendererConfiguration = null!;
-        PingPongGameState pingPongGameState = null!;
+        PongGameState pongGameState = null!;
         Mock<IPixelFlutInput> input = null!;
-        PingPongGame pingPongGame = null!;
+        PongGame pongGame = null!;
 
         [TestInitialize]
         public void Init()
         {
-            pingPongConfig = new()
+            pongConfig = new()
             {
                 BallBorder = 3,
                 BallRadius = 3,
@@ -37,29 +37,29 @@ namespace PixelFlut.PingPong.Tests
                 ResultionY = 100,
             };
 
-            pingPongGameState = new()
+            pongGameState = new()
             {
                 BallPosition = new(
                     pixelFlutRendererConfiguration.ResultionX / 2,
                     pixelFlutRendererConfiguration.ResultionY / 2),
                 Player1Position = new(
-                    pingPongConfig.PlayerDistanceToSides,
-                    pixelFlutRendererConfiguration.ResultionY / 2 - pingPongConfig.PlayerHeight / 2),
+                    pongConfig.PlayerDistanceToSides,
+                    pixelFlutRendererConfiguration.ResultionY / 2 - pongConfig.PlayerHeight / 2),
                 Player2Position = new(
-                    pixelFlutRendererConfiguration.ResultionX - pingPongConfig.PlayerDistanceToSides - pingPongConfig.PlayerWidth,
-                    pixelFlutRendererConfiguration.ResultionY / 2 - pingPongConfig.PlayerHeight / 2),
-                CurrentGameState = PingPongGameStateType.Playing,
+                    pixelFlutRendererConfiguration.ResultionX - pongConfig.PlayerDistanceToSides - pongConfig.PlayerWidth,
+                    pixelFlutRendererConfiguration.ResultionY / 2 - pongConfig.PlayerHeight / 2),
+                CurrentGameState = PongGameStateType.Playing,
                 BallVerlocity = new(-10, 0)
             };
 
             input = new();
-            Mock<ILogger<PingPongGame>> logger = new();
-            pingPongGame = new(
-                pingPongConfig,
+            Mock<ILogger<PongGame>> logger = new();
+            pongGame = new(
+                pongConfig,
                 input.Object,
                 pixelFlutRendererConfiguration,
                 logger.Object,
-                pingPongGameState);
+                pongGameState);
         }
 
         [TestMethod()]
@@ -72,11 +72,11 @@ namespace PixelFlut.PingPong.Tests
                 TotalTime = TimeSpan.FromMilliseconds(5000),
             };
 
-            pingPongGameState.BallPosition = new(20, 50);
-            pingPongGameState.Player1Position = new (pingPongGameState.Player1Position.X, 40);
-            pingPongGameState.Player2Position = new (pingPongGameState.Player2Position.X, 40);
-            pingPongGameState.BallVerlocity = new(-10, 0);
-            pingPongGame.Loop(gameTime);
+            pongGameState.BallPosition = new(20, 50);
+            pongGameState.Player1Position = new (pongGameState.Player1Position.X, 40);
+            pongGameState.Player2Position = new (pongGameState.Player2Position.X, 40);
+            pongGameState.BallVerlocity = new(-10, 0);
+            pongGame.Loop(gameTime);
 
         }
     }

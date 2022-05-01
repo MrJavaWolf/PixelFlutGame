@@ -11,7 +11,7 @@ Requirements:
 
 1. [Install .NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) ([or later](https://dotnet.microsoft.com/en-us/download/dotnet))
 2. `cd src/PixelFlut`
-3. Edit `appsettings.json` to point to the correct IP address and port
+3. Edit `appsettings.json` to point to the Pixelflut server's IP address and port
 4. `dotnet run`
 5. Make sure the Game Controller is connected
 

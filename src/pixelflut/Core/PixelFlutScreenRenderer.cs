@@ -53,6 +53,14 @@ namespace PixelFlut.Core
         /// If the game should be scaled, default 1 (no scale)
         /// </summary>
         public int ScaleY { get; set; }
+
+        /// <summary>
+        /// Doing rendering it will select a buffer to render
+        /// This is how many of those buffers to prepare for each frame
+        /// As a rule of thumb:
+        /// [NumberOfPreparedBuffers] >= [Number of pixels per frame] / [number of pixels per buffer]
+        /// </summary>
+        public int NumberOfPreparedBuffers { get; set; }
     }
 
     public class PixelFlutScreenStats
@@ -102,17 +110,10 @@ namespace PixelFlut.Core
         private Stopwatch stopwatch = new();
         private PixelFlutScreenStats stats = new();
 
-        // Cache for the pixels in their different states
-        private List<PixelFlutPixel>? currentFrame;
-        private IEnumerable<PixelFlutPixel> scaledFrameToDraw = new List<PixelFlutPixel>();
-        private List<PixelFlutPixel> pixelsToDraw;
 
         // Buffers used for sending the bytes
-        private int sameBufferCount = 1;
-        private bool prepareBufferSelector = true;
-        private byte[] sendBuffer;
-        private readonly byte[] prepareBuffer1;
-        private readonly byte[] prepareBuffer2;
+        private readonly List<byte[]> preparedBuffers = new();
+
 
         public PixelFlutScreenRenderer(PixelFlutScreenRendererConfiguration configuration, ILogger<PixelFlutScreenRenderer> logger)
         {
@@ -126,59 +127,43 @@ namespace PixelFlut.Core
             endPoint = new IPEndPoint(serverAddr, configuration.Port);
 
             // Prepare buffers
-            sendBuffer = PixelFlutScreenProtocol1.CreateBuffer();
-            prepareBuffer1 = PixelFlutScreenProtocol1.CreateBuffer();
-            prepareBuffer2 = PixelFlutScreenProtocol1.CreateBuffer();
-
-            // Can only paint a specific number of pixels per package
-            pixelsToDraw = new List<PixelFlutPixel>(PixelFlutScreenProtocol1.MaximumNumberOfPixel);
-            for (int i = 0; i < PixelFlutScreenProtocol1.MaximumNumberOfPixel; i++) pixelsToDraw.Add(new());
+            for (int i = 0; i < configuration.NumberOfPreparedBuffers; i++) preparedBuffers.Add(PixelFlutScreenProtocol1.CreateBuffer());
 
             // Stats counter
             stopwatch.Start();
         }
 
-        public void Render(List<PixelFlutPixel> frame)
+        public void PrepareRender(List<PixelFlutPixel> frame)
         {
-            if (this.currentFrame != frame || sameBufferCount % 10 == 0)
+            // Update stats
+            stats.Frames++;
+            stats.NumberOfPixelsToDraw += frame.Count;
+
+            // Prepares the pixels
+            IEnumerable<PixelFlutPixel> scaledFrameToDraw = ScalePixels(frame);
+
+            // Selects the pixels to render
+            for (int i = 0; i < preparedBuffers.Count; i++)
             {
-                sameBufferCount = 1;
-                if (this.currentFrame != frame)
-                {
-                    // Update stats
-                    stats.Frames++;
-                    stats.NumberOfPixelsToDraw += frame.Count;
-
-                    // Prepares the pixels
-                    this.currentFrame = frame;
-                    scaledFrameToDraw = ScalePixels(frame);
-                }
-
-                // Selects the pixels to render
-                PickRandomPixels(scaledFrameToDraw, pixelsToDraw);
-
+                IEnumerable<PixelFlutPixel> pixelsToDraw = PickRandomPixels(scaledFrameToDraw, PixelFlutScreenProtocol1.MaximumNumberOfPixel);
                 // Prepares the buffer to send
-                byte[] prepare_buffer = prepareBufferSelector ? prepareBuffer1 : prepareBuffer2;
                 int pixelNumber = 0;
                 foreach (PixelFlutPixel pixel in pixelsToDraw)
                 {
-                    PixelFlutScreenProtocol1.WriteToBuffer(prepare_buffer, pixelNumber, (int)pixel.X + configuration.OffsetX, (int)pixel.Y + configuration.OffsetY, pixel.R, pixel.G, pixel.B, pixel.A);
+                    PixelFlutScreenProtocol1.WriteToBuffer(
+                        preparedBuffers[i],
+                        pixelNumber,
+                        (int)pixel.X + configuration.OffsetX,
+                        (int)pixel.Y + configuration.OffsetY,
+                        pixel.R,
+                        pixel.G,
+                        pixel.B,
+                        pixel.A);
                     pixelNumber++;
                 }
-                sendBuffer = prepare_buffer;
-                prepareBufferSelector = !prepareBufferSelector;
                 stats.NumberOfPixelsDrawn += pixelNumber;
                 stats.BuffersPrepared++;
-
             }
-            else
-            {
-                sameBufferCount++;
-            }
-
-            int bytesSent = socket.SendTo(sendBuffer, endPoint);
-            stats.BytesSent += bytesSent;
-            stats.BuffersSent++;
 
             if (stopwatch.ElapsedMilliseconds > 1000)
             {
@@ -186,6 +171,14 @@ namespace PixelFlut.Core
                 stats = new PixelFlutScreenStats();
                 stopwatch.Restart();
             }
+        }
+
+        public void Render()
+        {
+            byte[] sendBuffer = preparedBuffers[Random.Shared.Next(preparedBuffers.Count)];
+            int bytesSent = socket.SendTo(sendBuffer, endPoint);
+            stats.BytesSent += bytesSent;
+            stats.BuffersSent++;
         }
 
         private IEnumerable<PixelFlutPixel> ScalePixels(List<PixelFlutPixel> pixels)
@@ -209,13 +202,17 @@ namespace PixelFlut.Core
             return scaledPixel;
         }
 
-        private void PickRandomPixels(IEnumerable<PixelFlutPixel> pixels, List<PixelFlutPixel> pixelsToDraw)
+        private IEnumerable<PixelFlutPixel> PickRandomPixels(IEnumerable<PixelFlutPixel> pixels, int amount)
         {
-            int totalAmountOfPixels = pixels.Count();
-            for (int i = 0; i < pixelsToDraw.Count && i < totalAmountOfPixels; i++)
+            List<PixelFlutPixel> randomised = new();
+            int totalAmountOfPixels = pixels.Count(); ;
+            for (int i = 0; i < amount && i < totalAmountOfPixels; i++)
             {
-                pixelsToDraw[i] = pixels.ElementAt(Random.Shared.Next(totalAmountOfPixels));
+                randomised.Add(pixels.ElementAt(Random.Shared.Next(totalAmountOfPixels)));
             }
+            return randomised;
         }
     }
 }
+
+

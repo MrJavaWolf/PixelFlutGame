@@ -15,7 +15,6 @@ namespace PixelFlut.Core
     {
         private readonly IServiceProvider provider;
         private readonly GameLoopConfiguration configuration;
-        private List<PixelFlutPixel> pixels = new();
 
         public GameLoop(ILogger<GameLoop> logger, IServiceProvider provider, GameLoopConfiguration configuration)
         {
@@ -26,9 +25,14 @@ namespace PixelFlut.Core
 
         public void Run(CancellationToken cancellationToken)
         {
+            List<PixelFlutScreenRenderer> renderers = new List<PixelFlutScreenRenderer>();
             for (int i = 0; i < configuration.NumberOfRenderer; i++)
             {
-                new Thread(() => RendererThread(cancellationToken)).Start();
+                PixelFlutScreenRenderer renderer = provider.GetRequiredService<PixelFlutScreenRenderer>();
+                renderers.Add(renderer);
+                Thread t = new(() => RendererThread(renderer, cancellationToken));
+                t.Priority = ThreadPriority.Highest;
+                t.Start();
             }
 
             Stopwatch loopTime = new();
@@ -42,18 +46,19 @@ namespace PixelFlut.Core
                 gameTime.TotalTime = totalGameTimer.Elapsed;
                 gameTime.DeltaTime = loopTime.Elapsed;
                 loopTime.Restart();
-                pixels = Loop(pingpong, gameTime).ToList();
+                List<PixelFlutPixel> pixels = Loop(pingpong, gameTime).ToList();
+                foreach (var renderer in renderers)
+                    renderer.PrepareRender(pixels);
                 int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
                 Thread.Sleep(sleepTimeMs);
             }
         }
 
-        private void RendererThread(CancellationToken cancellationToken)
+        private void RendererThread(PixelFlutScreenRenderer renderer, CancellationToken cancellationToken)
         {
-            PixelFlutScreenRenderer renderer = provider.GetRequiredService<PixelFlutScreenRenderer>();
             while (!cancellationToken.IsCancellationRequested)
             {
-                renderer.Render(pixels);
+                renderer.Render();
             }
         }
 

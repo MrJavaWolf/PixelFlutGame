@@ -34,7 +34,7 @@ namespace PixelFlut.PingPong
                         x > pingPongConfig.BallRadius * 2 + pingPongConfig.BallBorder  ||
                         y > pingPongConfig.BallRadius * 2 + pingPongConfig.BallBorder)
                     {
-                        pixels.Add(CreatePixelWithRandomColor(ballPixelX, ballPixelY));
+                        pixels.Add(CreatePixelWithBackgroundColor(ballPixelX, ballPixelY));
                     }
                     else
                     {
@@ -63,7 +63,7 @@ namespace PixelFlut.PingPong
                         x > pingPongConfig.PlayerWidth + pingPongConfig.PlayerBorder ||
                         y > pingPongConfig.PlayerHeight + pingPongConfig.PlayerBorder)
                     {
-                        pixels.Add(CreatePixelWithRandomColor(playerPixelX, playerPixelY));
+                        pixels.Add(CreatePixelWithBackgroundColor(playerPixelX, playerPixelY));
                     }
                     else
                     {
@@ -99,7 +99,7 @@ namespace PixelFlut.PingPong
             };
         }
 
-        private static PixelFlutPixel CreatePixelWithRandomColor(int x, int y)
+        private static PixelFlutPixel CreatePixelWithBackgroundColor(int x, int y)
         {
             return new PixelFlutPixel()
             {

@@ -60,17 +60,17 @@ namespace PixelFlut.Core
         /// <summary>
         /// How many bytes is sent
         /// </summary>
-        public long BytesSentToUDPSocket { get; set; }
+        public long BytesSent { get; set; }
 
         /// <summary>
         /// How many buffers is sent
         /// </summary>
-        public long BuffersSentToUDPSocket { get; set; }
+        public long BuffersSent { get; set; }
 
         /// <summary>
         /// How many unique buffers that have been sent
         /// </summary>
-        public long UniqueBuffers { get; set; }
+        public long BuffersPrepared { get; set; }
 
         /// <summary>
         /// The number of frames recived from the game loop
@@ -90,70 +90,98 @@ namespace PixelFlut.Core
 
     public class PixelFlutScreenRenderer
     {
+        // Overall
         private readonly PixelFlutScreenRendererConfiguration configuration;
         private readonly ILogger<PixelFlutScreenRenderer> logger;
+
+        // Connection
         private Socket socket;
         private IPEndPoint endPoint;
-        private List<PixelFlutPixel>? lastRenderedPixels;
-        private int samePixelsCounter;
-        private readonly byte[] send_buffer;
-        private PixelFlutScreenStats stats = new();
+
+        // Stats
         private Stopwatch stopwatch = new();
+        private PixelFlutScreenStats stats = new();
+
+        // Cache for the pixels in their different states
+        private List<PixelFlutPixel>? currentFrame;
+        private IEnumerable<PixelFlutPixel> scaledFrameToDraw = new List<PixelFlutPixel>();
+        private List<PixelFlutPixel> pixelsToDraw; 
+
+        // Buffers used for sending the bytes
+        private bool prepareBufferSelector = true;
+        private byte[] sendBuffer;
+        private readonly byte[] prepareBuffer1;
+        private readonly byte[] prepareBuffer2;
 
         public PixelFlutScreenRenderer(PixelFlutScreenRendererConfiguration configuration, ILogger<PixelFlutScreenRenderer> logger)
         {
             this.configuration = configuration;
             this.logger = logger;
             logger.LogInformation($"PixelFlutScreen: {{@pixelFlutScreen}}", configuration);
+
+            // Connnection
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             IPAddress serverAddr = IPAddress.Parse(configuration.Ip);
             endPoint = new IPEndPoint(serverAddr, configuration.Port);
-            send_buffer = PixelFlutScreenProtocol1.CreateBuffer();
+            
+            // Prepare buffers
+            sendBuffer = PixelFlutScreenProtocol1.CreateBuffer();
+            prepareBuffer1 = PixelFlutScreenProtocol1.CreateBuffer();
+            prepareBuffer2 = PixelFlutScreenProtocol1.CreateBuffer();
 
+            // Can only paint a specific number of pixels per package
+            pixelsToDraw = new List<PixelFlutPixel>(PixelFlutScreenProtocol1.MaximumNumberOfPixel);
+            for (int i = 0; i < PixelFlutScreenProtocol1.MaximumNumberOfPixel; i++) pixelsToDraw.Add(new());
+
+            // Stats counter
             stopwatch.Start();
         }
 
         public void Render(List<PixelFlutPixel> frame)
         {
-
-
-            if (lastRenderedPixels != frame || samePixelsCounter % 10 == 0)
+            if (this.currentFrame != frame)
             {
                 // Update stats
-                if (lastRenderedPixels != frame)
-                {
-                    stats.Frames++;
-                    stats.NumberOfPixelsToDraw += frame.Count;
-                }
+                stats.Frames++;
+                stats.NumberOfPixelsToDraw += frame.Count;
 
-                lastRenderedPixels = frame;
-                samePixelsCounter = 1;
-
-                // Prepares the actual buffer to send
-                int pixelNumber = 0;
-                IEnumerable<PixelFlutPixel> scaledPixelsToDraw = ScalePixels(frame);
-                IEnumerable<PixelFlutPixel> pixelsToDraw = PickRandomPixels(scaledPixelsToDraw, PixelFlutScreenProtocol1.MaximumNumberOfPixel);
-                foreach (PixelFlutPixel pixel in pixelsToDraw)
-                {
-                    PixelFlutScreenProtocol1.WriteToBuffer(send_buffer, pixelNumber, (int)pixel.X + configuration.OffsetX, (int)pixel.Y + configuration.OffsetY, pixel.R, pixel.G, pixel.B, pixel.A);
-                    pixelNumber++;
-                }
-                stats.NumberOfPixelsDrawn += pixelNumber;
-                stats.UniqueBuffers++;
+                // Prepares the pixels
+                this.currentFrame = frame;
+                scaledFrameToDraw = ScalePixels(frame);
             }
-            else
+
+            // Selects the pixels to render
+            PickRandomPixels(scaledFrameToDraw, pixelsToDraw);
+
+            // Prepares the buffer to send
+            byte[] prepare_buffer = prepareBufferSelector ? prepareBuffer1 : prepareBuffer2;
+            int pixelNumber = 0;
+            foreach (PixelFlutPixel pixel in pixelsToDraw)
             {
-                samePixelsCounter++;
+                PixelFlutScreenProtocol1.WriteToBuffer(prepare_buffer, pixelNumber, (int)pixel.X + configuration.OffsetX, (int)pixel.Y + configuration.OffsetY, pixel.R, pixel.G, pixel.B, pixel.A);
+                pixelNumber++;
             }
-            socket.SendTo(send_buffer, endPoint);
-            stats.BytesSentToUDPSocket += send_buffer.Length;
-            stats.BuffersSentToUDPSocket++;
+            sendBuffer = prepare_buffer;
+            prepareBufferSelector = !prepareBufferSelector;
+
+            stats.NumberOfPixelsDrawn += pixelNumber;
+            stats.BuffersPrepared++;
 
             if (stopwatch.ElapsedMilliseconds > 1000)
             {
                 logger.LogInformation("Screen: {@stats}", stats);
                 stats = new PixelFlutScreenStats();
                 stopwatch.Restart();
+            }
+        }
+
+        public void RunSender(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                int bytesSent = socket.SendTo(sendBuffer, endPoint);
+                stats.BytesSent += bytesSent;
+                stats.BuffersSent++;
             }
         }
 
@@ -178,15 +206,13 @@ namespace PixelFlut.Core
             return scaledPixel;
         }
 
-        private IEnumerable<PixelFlutPixel> PickRandomPixels(IEnumerable<PixelFlutPixel> pixels, int amount)
+        private void PickRandomPixels(IEnumerable<PixelFlutPixel> pixels, List<PixelFlutPixel> pixelsToDraw)
         {
-            List<PixelFlutPixel> randomised = new();
-            int totalAmountOfPixels = pixels.Count(); ;
-            for (int i = 0; i < amount && i < totalAmountOfPixels; i++)
+            int totalAmountOfPixels = pixels.Count();
+            for (int i = 0; i < pixelsToDraw.Count && i < totalAmountOfPixels; i++)
             {
-                randomised.Add(pixels.ElementAt(Random.Shared.Next(totalAmountOfPixels)));
+                pixelsToDraw[i] = pixels.ElementAt(Random.Shared.Next(totalAmountOfPixels));
             }
-            return randomised;
         }
     }
 }

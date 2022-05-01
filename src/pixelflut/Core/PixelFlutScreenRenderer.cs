@@ -105,9 +105,10 @@ namespace PixelFlut.Core
         // Cache for the pixels in their different states
         private List<PixelFlutPixel>? currentFrame;
         private IEnumerable<PixelFlutPixel> scaledFrameToDraw = new List<PixelFlutPixel>();
-        private List<PixelFlutPixel> pixelsToDraw; 
+        private List<PixelFlutPixel> pixelsToDraw;
 
         // Buffers used for sending the bytes
+        private int sameBufferCount = 1;
         private bool prepareBufferSelector = true;
         private byte[] sendBuffer;
         private readonly byte[] prepareBuffer1;
@@ -123,7 +124,7 @@ namespace PixelFlut.Core
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             IPAddress serverAddr = IPAddress.Parse(configuration.Ip);
             endPoint = new IPEndPoint(serverAddr, configuration.Port);
-            
+
             // Prepare buffers
             sendBuffer = PixelFlutScreenProtocol1.CreateBuffer();
             prepareBuffer1 = PixelFlutScreenProtocol1.CreateBuffer();
@@ -139,49 +140,51 @@ namespace PixelFlut.Core
 
         public void Render(List<PixelFlutPixel> frame)
         {
-            if (this.currentFrame != frame)
+            if (this.currentFrame != frame || sameBufferCount % 10 == 0)
             {
-                // Update stats
-                stats.Frames++;
-                stats.NumberOfPixelsToDraw += frame.Count;
+                sameBufferCount = 1;
+                if (this.currentFrame != frame)
+                {
+                    // Update stats
+                    stats.Frames++;
+                    stats.NumberOfPixelsToDraw += frame.Count;
 
-                // Prepares the pixels
-                this.currentFrame = frame;
-                scaledFrameToDraw = ScalePixels(frame);
+                    // Prepares the pixels
+                    this.currentFrame = frame;
+                    scaledFrameToDraw = ScalePixels(frame);
+                }
+
+                // Selects the pixels to render
+                PickRandomPixels(scaledFrameToDraw, pixelsToDraw);
+
+                // Prepares the buffer to send
+                byte[] prepare_buffer = prepareBufferSelector ? prepareBuffer1 : prepareBuffer2;
+                int pixelNumber = 0;
+                foreach (PixelFlutPixel pixel in pixelsToDraw)
+                {
+                    PixelFlutScreenProtocol1.WriteToBuffer(prepare_buffer, pixelNumber, (int)pixel.X + configuration.OffsetX, (int)pixel.Y + configuration.OffsetY, pixel.R, pixel.G, pixel.B, pixel.A);
+                    pixelNumber++;
+                }
+                sendBuffer = prepare_buffer;
+                prepareBufferSelector = !prepareBufferSelector;
+                stats.NumberOfPixelsDrawn += pixelNumber;
+                stats.BuffersPrepared++;
+
+            }
+            else
+            {
+                sameBufferCount++;
             }
 
-            // Selects the pixels to render
-            PickRandomPixels(scaledFrameToDraw, pixelsToDraw);
-
-            // Prepares the buffer to send
-            byte[] prepare_buffer = prepareBufferSelector ? prepareBuffer1 : prepareBuffer2;
-            int pixelNumber = 0;
-            foreach (PixelFlutPixel pixel in pixelsToDraw)
-            {
-                PixelFlutScreenProtocol1.WriteToBuffer(prepare_buffer, pixelNumber, (int)pixel.X + configuration.OffsetX, (int)pixel.Y + configuration.OffsetY, pixel.R, pixel.G, pixel.B, pixel.A);
-                pixelNumber++;
-            }
-            sendBuffer = prepare_buffer;
-            prepareBufferSelector = !prepareBufferSelector;
-
-            stats.NumberOfPixelsDrawn += pixelNumber;
-            stats.BuffersPrepared++;
+            int bytesSent = socket.SendTo(sendBuffer, endPoint);
+            stats.BytesSent += bytesSent;
+            stats.BuffersSent++;
 
             if (stopwatch.ElapsedMilliseconds > 1000)
             {
                 logger.LogInformation("Screen: {@stats}", stats);
                 stats = new PixelFlutScreenStats();
                 stopwatch.Restart();
-            }
-        }
-
-        public void RunSender(CancellationToken cancellationToken)
-        {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                int bytesSent = socket.SendTo(sendBuffer, endPoint);
-                stats.BytesSent += bytesSent;
-                stats.BuffersSent++;
             }
         }
 

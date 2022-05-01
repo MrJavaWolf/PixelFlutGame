@@ -12,7 +12,7 @@ Requirements:
 1. [Install .NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) ([or later](https://dotnet.microsoft.com/en-us/download/dotnet))
 2. `cd src/PixelFlut`
 3. Edit `appsettings.json` to point to the Pixelflut server's IP address and port
-4. `dotnet run`
+4. `dotnet run` (may require `sudo`)
 5. Make sure the Game Controller is connected
 
 You can now control the 2 players with the Game Controller.

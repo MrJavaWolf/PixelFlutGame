@@ -67,16 +67,14 @@ public static class PongFrameRenderer
     {
         int numberOfPixels = 0;
 
-        for (int x = 0; x < pongConfig.PlayerWidth + pongConfig.PlayerBorder * 2; x++)
+        for (int x = 0; x < pongConfig.PlayerWidth; x++)
         {
             for (int y = 0; y < pongConfig.PlayerHeight + pongConfig.PlayerBorder * 2; y++)
             {
-                int playerPixelX = playerPositionX - pongConfig.PlayerBorder + x;
+                int playerPixelX = playerPositionX + x;
                 int playerPixelY = playerPositionY - pongConfig.PlayerBorder + y;
-                if (playerPixelX < 0 || playerPixelY < 0) continue;
-                if (x < pongConfig.PlayerBorder ||
-                    y < pongConfig.PlayerBorder ||
-                    x > pongConfig.PlayerWidth + pongConfig.PlayerBorder ||
+                if (playerPixelY < 0) continue;
+                if (y < pongConfig.PlayerBorder ||
                     y > pongConfig.PlayerHeight + pongConfig.PlayerBorder)
                 {
                     DrawPixelWithBackgroundColor(

@@ -1,4 +1,4 @@
-﻿using PixelFlut.Core;
+﻿    using PixelFlut.Core;
 
 namespace PixelFlut.Pong;
 public static class PongFrameRenderer
@@ -18,8 +18,6 @@ public static class PongFrameRenderer
 
         return frameIndexOffset;
     }
-
-
 
     private static int DrawBall(
         PongConfiguration pongConfig,

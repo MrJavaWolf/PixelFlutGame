@@ -9,7 +9,7 @@ public class PongConfiguration
     /// How big is the ball in pixel
     /// </summary>
     public int BallRadius { get; set; }
-    
+
     /// <summary>
     /// How big is the border of the ball
     /// Used for rendering only this helps better see where the ball is
@@ -188,7 +188,7 @@ public class PongGame
         gameState.Player2Position = CalculateNewPlayerPosition(gameState.Player2Position, GetPlayer2Input(), time);
 
         // Update ball
-        UpdateBallPosition(time);
+        UpdateBall(time);
 
         // Renderer
         int numberOfPixels = PongFrameRenderer.DrawFrame(pongConfig, gameState, frame);
@@ -206,32 +206,15 @@ public class PongGame
             return 0.5;
     }
 
-    private void UpdateBallPosition(GameTime time)
+    private void UpdateBall(GameTime time)
     {
-        // Calculate next ball position
-        float wantedNewBallPositionX = gameState.BallPosition.X + gameState.BallVerlocity.X * (float)time.DeltaTime.TotalSeconds;
-        float wantedNewBallPositionY = gameState.BallPosition.Y + gameState.BallVerlocity.Y * (float)time.DeltaTime.TotalSeconds;
+        Vector2 previousBallPosition = gameState.BallPosition;
 
-        // Bounce top/bottom
-        if (wantedNewBallPositionY > screenConfig.ResultionY ||
-            wantedNewBallPositionY < 0)
-        {
-            gameState.BallVerlocity = new(gameState.BallVerlocity.X, -gameState.BallVerlocity.Y);
-            wantedNewBallPositionY = gameState.BallPosition.Y + gameState.BallVerlocity.Y * (float)time.DeltaTime.TotalSeconds;
-            logger.LogInformation("Ball bounced against top/bottom");
-        }
-
-        // Set the ball position
-        gameState.BallPosition = new(wantedNewBallPositionX, wantedNewBallPositionY);
-
-        // TODO: If the balls moves very fast, it will pass through the player
+        // Move the ball
+        UpdateBallPosition(time);
 
         // Handle if the ball was hit by a player
-        if (IntersectsPlayerWithBall(gameState.Player1Position))
-            HandlePlayerBounce(gameState.Player1Position, 1);
-
-        if (IntersectsPlayerWithBall(gameState.Player2Position))
-            HandlePlayerBounce(gameState.Player2Position, -1);
+        HandlePlayerHit(previousBallPosition);
 
         // Goal by player 1
         if (gameState.BallPosition.X > screenConfig.ResultionX)
@@ -249,6 +232,74 @@ public class PongGame
             logger.LogInformation("GOAL - Player 2 scores");
             logger.LogInformation($"Player 1: {gameState.Player1Score} VS Player 2: {gameState.Player2Score}");
             ResetBall();
+        }
+    }
+
+    private void UpdateBallPosition(GameTime time)
+    {
+        // Calculate next ball position
+        float wantedNewBallPositionX = gameState.BallPosition.X + gameState.BallVerlocity.X * (float)time.DeltaTime.TotalSeconds;
+        float wantedNewBallPositionY = gameState.BallPosition.Y + gameState.BallVerlocity.Y * (float)time.DeltaTime.TotalSeconds;
+
+        // Bounce top/bottom
+        if (wantedNewBallPositionY > screenConfig.ResultionY ||
+            wantedNewBallPositionY < 0)
+        {
+            gameState.BallVerlocity = new(gameState.BallVerlocity.X, -gameState.BallVerlocity.Y);
+            wantedNewBallPositionY = Math.Clamp(wantedNewBallPositionY, 0, screenConfig.ResultionY);
+            logger.LogInformation("Ball bounced against top/bottom");
+        }
+
+        // Set the ball position
+        gameState.BallPosition = new(wantedNewBallPositionX, wantedNewBallPositionY);
+    }
+
+    private void HandlePlayerHit(Vector2 previousBallPosition)
+    {
+        // Check if the ball was hit by Player 1 
+        if (IntersectsPlayerWithBall(gameState.Player1Position))
+        {
+            HandlePlayerBounce(gameState.Player1Position, 1);
+            return;
+        }
+
+        // Check if the ball was so fast it went though Player 1 
+        var intersectionPlayer1 = IntersectionCalculator.GetIntersectionVector2(
+            previousBallPosition,
+            gameState.BallPosition,
+            gameState.Player1Position.X,
+            gameState.Player1Position.Y,
+            pongConfig.PlayerWidth,
+            pongConfig.PlayerHeight);
+        if (intersectionPlayer1.lineStatus == IntersectionCalculator.Line.Entry ||
+            intersectionPlayer1.lineStatus == IntersectionCalculator.Line.EntryExit)
+        {
+            gameState.BallPosition = new(intersectionPlayer1.EntryPoint.X, intersectionPlayer1.EntryPoint.Y);
+            HandlePlayerBounce(gameState.Player1Position, 1);
+            return;
+        }
+
+        // Check if the ball was hit by Player 2
+        if (IntersectsPlayerWithBall(gameState.Player2Position))
+        {
+            HandlePlayerBounce(gameState.Player2Position, -1);
+            return;
+        }
+
+        // Check if the ball was so fast it went though Player 2
+        var intersectionPlayer2 = IntersectionCalculator.GetIntersectionVector2(
+            previousBallPosition,
+            gameState.BallPosition,
+            gameState.Player2Position.X,
+            gameState.Player2Position.Y,
+            pongConfig.PlayerWidth,
+            pongConfig.PlayerHeight);
+        if (intersectionPlayer2.lineStatus == IntersectionCalculator.Line.Entry ||
+            intersectionPlayer2.lineStatus == IntersectionCalculator.Line.EntryExit)
+        {
+            gameState.BallPosition = new(intersectionPlayer2.EntryPoint.X, intersectionPlayer2.EntryPoint.Y);
+            HandlePlayerBounce(gameState.Player2Position, -1);
+            return;
         }
     }
 
@@ -305,7 +356,7 @@ public class PongGame
     }
 
     bool IntersectsPlayerWithBall(Vector2 playerPosition)
-        => Intersects(
+        => IntersectionCalculator.DoesCirlceAndRectangleIntersects(
             gameState.BallPosition.X,
             gameState.BallPosition.Y,
             pongConfig.BallRadius,
@@ -315,25 +366,6 @@ public class PongGame
             pongConfig.PlayerHeight);
 
 
-    bool Intersects(
-        double circleX,
-        double circleY,
-        double circleR,
-        double rectX,
-        double rectY,
-        double rectWidth,
-        double rectHeight)
-    {
-        // Src: https://stackoverflow.com/a/402010
-        double circleDistanceX = Math.Abs(circleX - rectX);
-        double circleDistanceY = Math.Abs(circleY - rectY);
-        if (circleDistanceX > (rectWidth / 2 + circleR)) { return false; }
-        if (circleDistanceY > (rectHeight / 2 + circleR)) { return false; }
-        if (circleDistanceX <= (rectWidth / 2)) { return true; }
-        if (circleDistanceY <= (rectHeight / 2)) { return true; }
-        double cornerDistance_sq = Math.Pow(circleDistanceX - rectWidth / 2, 2) + Math.Pow(circleDistanceY - rectHeight / 2, 2);
-        return (cornerDistance_sq <= Math.Pow(circleR, 2));
-    }
 
     private Vector2 CalculateNewPlayerPosition(Vector2 currentPosition, double yInput, GameTime time)
     {

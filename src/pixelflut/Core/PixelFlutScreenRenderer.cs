@@ -139,7 +139,7 @@ namespace PixelFlut.Core
 
             for (int i = 0; i < preparedBuffers.Count; i++)
             {
-                for (int pixelNumber = 0; pixelNumber < screenProtocol.PixelsPerBuffer; i++)
+                for (int pixelNumber = 0; pixelNumber < screenProtocol.PixelsPerBuffer; pixelNumber++)
                 {
                     // Selects the pixels to render
                     PixelFlutPixel randomPixel = PickRandomPixel(

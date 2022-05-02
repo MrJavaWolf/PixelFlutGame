@@ -168,7 +168,7 @@ public class PongGame
         bool upDown = Random.Shared.NextDouble() < 0.5;
 
         //// Debug values
-        //startXYBallVerlocitySplit = 0.09;
+        //startXYBallVerlocitySplit = 0.5;
         //leftRight = true;
         //upDown = true;
 
@@ -314,7 +314,7 @@ public class PongGame
             (float)(xDirectionModifier * newballSpeed * direction.X),
             (float)newballSpeed * direction.Y);
         gameState.BallPosition = new(
-            playerPosition.X + xDirectionModifier * (pongConfig.PlayerWidth + pongConfig.BallRadius),
+            playerPosition.X + xDirectionModifier * (pongConfig.PlayerWidth + pongConfig.BallRadius + 1),
             gameState.BallPosition.Y);
     }
 

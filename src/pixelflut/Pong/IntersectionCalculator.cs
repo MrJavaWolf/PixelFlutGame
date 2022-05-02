@@ -139,7 +139,7 @@ public static class IntersectionCalculator
     // rect.Contains(Vector2) is not working properly in some cases.
     // So here I created my own method
     private static bool IsWithinRectangle(
-        Vector2 a, 
+        Vector2 a,
         float rectX,
         float rectY,
         float rectWidth,
@@ -176,36 +176,36 @@ public static class IntersectionCalculator
             bool entryVector2Found = false;
 
             // Top Line of Chart Area
-            if (LineIntersectsLine(a, b, new Vector2(0, 0), new Vector2(rectWidth, 0)))
+            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY), new Vector2(rectX + rectWidth, rectY)))
             {
-                entryVector2 = GetVector2FromYValue(a, b, 0);
+                entryVector2 = GetVector2FromYValue(a, b, rectY);
                 entryVector2Found = true;
             }
             // Right Line of Chart Area
-            if (LineIntersectsLine(a, b, new Vector2(rectWidth, 0), new Vector2(rectWidth, rectHeight)))
+            if (LineIntersectsLine(a, b, new Vector2(rectX + rectWidth, rectY), new Vector2(rectX + rectWidth, rectY + rectHeight)))
             {
                 if (entryVector2Found)
-                    exitVector2 = GetVector2FromXValue(a, b, rectWidth);
+                    exitVector2 = GetVector2FromXValue(a, b, rectX + rectWidth);
                 else
                 {
-                    entryVector2 = GetVector2FromXValue(a, b, rectWidth);
+                    entryVector2 = GetVector2FromXValue(a, b, rectX + rectWidth);
                     entryVector2Found = true;
                 }
             }
             // Bottom Line of Chart
-            if (LineIntersectsLine(a, b, new Vector2(0, rectHeight), new Vector2(rectWidth, rectHeight)))
+            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY + rectHeight), new Vector2(rectX + rectWidth, rectY + rectHeight)))
             {
                 if (entryVector2Found)
-                    exitVector2 = GetVector2FromYValue(a, b, rectHeight);
+                    exitVector2 = GetVector2FromYValue(a, b, rectY + rectHeight);
                 else
                 {
-                    entryVector2 = GetVector2FromYValue(a, b, rectHeight);
+                    entryVector2 = GetVector2FromYValue(a, b, rectY + rectHeight);
                 }
             }
             // Left Line of Chart
-            if (LineIntersectsLine(a, b, new Vector2(0, 0), new Vector2(0, rectHeight)))
+            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY), new Vector2(rectX, rectY + rectHeight)))
             {
-                exitVector2 = GetVector2FromXValue(a, b, 0);
+                exitVector2 = GetVector2FromXValue(a, b, rectX);
             }
 
             return (entryVector2, exitVector2, Line.EntryExit);

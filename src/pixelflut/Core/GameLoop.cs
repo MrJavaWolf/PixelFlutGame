@@ -7,7 +7,14 @@ namespace PixelFlut.Core
 {
     public class GameLoopConfiguration
     {
+        /// <summary>
+        /// How many time a second the game loop will run
+        /// </summary>
         public double TargetGameLoopFPS { get; set; }
+
+        /// <summary>
+        /// How many renderer threads there will be created
+        /// </summary>
         public int NumberOfRenderer { get; set; }
     }
 
@@ -20,11 +27,14 @@ namespace PixelFlut.Core
 
     public class GameLoop
     {
+        // Generel
         private readonly ILogger<GameLoop> logger;
         private readonly IServiceProvider provider;
         private readonly GameLoopConfiguration configuration;
+
+        // Stats
         private GameLoopStats stats = new();
-        private Stopwatch stopwatch = new();
+        private Stopwatch statsPrinterStopwatch = new();
 
         public GameLoop(ILogger<GameLoop> logger, IServiceProvider provider, GameLoopConfiguration configuration)
         {
@@ -32,48 +42,61 @@ namespace PixelFlut.Core
             this.provider = provider;
             this.configuration = configuration;
             logger.LogInformation($"GameLoop: {{@configuration}}", configuration);
-            stopwatch.Start();
+            statsPrinterStopwatch.Start();
         }
 
         public void Run(CancellationToken cancellationToken)
         {
+            // Start the renderers
             List<PixelFlutScreenRenderer> renderers = new List<PixelFlutScreenRenderer>();
             for (int i = 0; i < configuration.NumberOfRenderer; i++)
             {
                 PixelFlutScreenRenderer renderer = provider.GetRequiredService<PixelFlutScreenRenderer>();
                 renderers.Add(renderer);
                 Thread t = new(() => RendererThread(renderer, cancellationToken));
-                t.Priority = ThreadPriority.Highest;
+                // t.Priority = ThreadPriority.Highest;
                 t.Start();
             }
 
+            // Setup the game
             Stopwatch loopTime = new();
             Stopwatch totalGameTimer = new();
             GameTime gameTime = new();
             totalGameTimer.Start();
             PongGame pong = provider.GetRequiredService<PongGame>();
             pong.Startup();
+
+            // RUn the game loop
             while (!cancellationToken.IsCancellationRequested)
             {
+                // Update the times
                 gameTime.TotalTime = totalGameTimer.Elapsed;
                 gameTime.DeltaTime = loopTime.Elapsed;
                 loopTime.Restart();
+
+                // Iterate the gameloop
                 (int numberOfPixels, List<PixelFlutPixel> frame) = Loop(pong, gameTime);
+                
+                // Render the resulting pixels
                 foreach (var renderer in renderers)
                     renderer.PrepareRender(numberOfPixels, frame);
+
+                // Calculate how much to sleep to hit our targeted FPS
                 int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
+                
+                //Stats
                 stats.Frames++;
-                if (stopwatch.ElapsedMilliseconds > 1000)
+                if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)
                 {
                     stats.SleepTime = sleepTimeMs;
                     stats.Time = gameTime;
                     logger.LogInformation("Gameloop: {@stats}", stats);
                     stats = new GameLoopStats();
-                    stopwatch.Restart();
+                    statsPrinterStopwatch.Restart();
                 }
 
+                // Sleep to hit our targeted FPS
                 Thread.Sleep(sleepTimeMs);
-
             }
         }
 

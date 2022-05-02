@@ -2,13 +2,13 @@
 {
     public class PixelFlutScreenProtocol1 : IPixelFlutScreenProtocol
     {
-        public int PixelPerBuffer { get; } = 140;
+        public int PixelsPerBuffer { get; } = 140;
         public const int BytesPerPixel = 8;
         public const int HeaderSize = 2;
 
         public byte[] CreateBuffer()
         {
-            byte[] send_buffer = new byte[HeaderSize + PixelPerBuffer * BytesPerPixel];
+            byte[] send_buffer = new byte[HeaderSize + PixelsPerBuffer * BytesPerPixel];
             send_buffer[0] = 0x01; // Protocol 1
             send_buffer[1] = 0x00; // Not used
             return send_buffer;

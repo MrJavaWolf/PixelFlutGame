@@ -11,8 +11,8 @@ Requirements:
 
 1. [Install .NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) ([or later](https://dotnet.microsoft.com/en-us/download/dotnet))
 2. `cd src/PixelFlut`
-3. Edit `appsettings.json` to point to the Pixelflut server's IP address and port
-4. `dotnet run` (may require `sudo`)
+3. Edit `src/PixelFlut/appsettings.json` to point to the Pixelflut server's IP address and port
+4. `sudo dotnet run`
 5. Make sure the Game Controller is connected
 
 You can now control the 2 players with the Game Controller.
@@ -38,6 +38,13 @@ You can now control the 2 players with the Game Controller.
 ## Configuration
 
 The configurations are stored in `src/PixelFlut/appsettings.json`.
+
+You can change a range of different settings like:
+
+- The size and offset of the play area
+- The size of the player / ball
+- The speed of the player / ball
+- Number of threads that will be spamming the Pixelflut and other tweeking values
 
 ## Links
 - Official wiki: https://labitat.dk/wiki/Pixelflut 

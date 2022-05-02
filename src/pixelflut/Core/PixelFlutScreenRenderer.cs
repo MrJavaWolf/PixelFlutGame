@@ -14,7 +14,7 @@ namespace PixelFlut.Core
         public string Ip { get; set; } = null!;
 
         /// <summary>
-        ///  The Port of the Pixelflut
+        /// The Port of the Pixelflut
         /// </summary>
         public int Port { get; set; }
 
@@ -39,8 +39,11 @@ namespace PixelFlut.Core
         public int ResultionY { get; set; }
 
         /// <summary>
-        /// Doing rendering it will select a buffer to render
-        /// This is how many of those buffers to prepare for each frame
+        /// How many of send buffers will be prepared for each frame
+        /// Doing rendering it will select a buffer and send it the pixelflut
+        /// Generally the more buffers, the better picture quiality (bigger pixel coverage), 
+        /// but at the cost of more CPU usage
+        /// 
         /// As a rule of thumb:
         /// [NumberOfPreparedBuffers] >= [Number of pixels per frame] / [number of pixels per buffer]
         /// </summary>

@@ -261,7 +261,7 @@ public class PongGame
     private void HandlePlayerHit(Vector2 previousBallPosition)
     {
         // Check if the ball was hit by Player 1 
-        if (IntersectsPlayerWithBall(gameState.Player1Position))
+        if (IntersectsPlayerWithBall(gameState.Player1Position, 1))
         {
             HandlePlayerBounce(gameState.Player1Position, 1);
             return;
@@ -284,7 +284,7 @@ public class PongGame
         }
 
         // Check if the ball was hit by Player 2
-        if (IntersectsPlayerWithBall(gameState.Player2Position))
+        if (IntersectsPlayerWithBall(gameState.Player2Position, -1))
         {
             HandlePlayerBounce(gameState.Player2Position, -1);
             return;
@@ -359,12 +359,12 @@ public class PongGame
         return to;
     }
 
-    bool IntersectsPlayerWithBall(Vector2 playerPosition)
+    bool IntersectsPlayerWithBall(Vector2 playerPosition, int xDirectionModifier)
         => IntersectionCalculator.DoesCirlceAndRectangleIntersects(
             gameState.BallPosition.X,
             gameState.BallPosition.Y,
             pongConfig.BallRadius,
-            playerPosition.X - pongConfig.PlayerWidth / 2,
+            playerPosition.X + pongConfig.PlayerWidth / 2 * xDirectionModifier,
             playerPosition.Y + pongConfig.PlayerHeight / 2,
             pongConfig.PlayerWidth,
             pongConfig.PlayerHeight);

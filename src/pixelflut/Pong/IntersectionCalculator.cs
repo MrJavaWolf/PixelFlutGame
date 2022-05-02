@@ -42,6 +42,75 @@ public static class IntersectionCalculator
     #endregion
 
     #region https://stackoverflow.com/a/67662332
+    // Tuple<entryVector2, exitVector2, lineStatus>
+    public static (Vector2 EntryPoint, Vector2 ExitPoint, Line lineStatus) GetIntersectionVector2(
+        Vector2 a,
+        Vector2 b,
+        float rectX,
+        float rectY,
+        float rectWidth,
+        float rectHeight)
+    {
+        if (IsWithinRectangle(a, rectX, rectY, rectWidth, rectHeight) && IsWithinRectangle(b, rectX, rectY, rectWidth, rectHeight))
+        {
+            // Can't set null to Vector2 that's why I am returning just empty object
+            return (new Vector2(), new Vector2(), Line.InsideTheRectangle);
+        }
+        else if (!IsWithinRectangle(a, rectX, rectY, rectWidth, rectHeight) && !IsWithinRectangle(b, rectX, rectY, rectWidth, rectHeight))
+        {
+            if (!LineIntersectsRectangle(a, b, rectX, rectY, rectWidth, rectHeight))
+            {
+                // Can't set null to Vector2 that's why I am returning just empty object
+                return (new Vector2(), new Vector2(), Line.NoIntersection);
+            }
+
+            Vector2 entryVector2 = new Vector2();
+            Vector2 exitVector2 = new Vector2();
+
+            bool entryVector2Found = false;
+
+            // Top Line of Chart Area
+            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY), new Vector2(rectX + rectWidth, rectY)))
+            {
+                entryVector2 = GetVector2FromYValue(a, b, rectY);
+                entryVector2Found = true;
+            }
+            // Right Line of Chart Area
+            if (LineIntersectsLine(a, b, new Vector2(rectX + rectWidth, rectY), new Vector2(rectX + rectWidth, rectY + rectHeight)))
+            {
+                if (entryVector2Found)
+                    exitVector2 = GetVector2FromXValue(a, b, rectX + rectWidth);
+                else
+                {
+                    entryVector2 = GetVector2FromXValue(a, b, rectX + rectWidth);
+                    entryVector2Found = true;
+                }
+            }
+            // Bottom Line of Chart
+            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY + rectHeight), new Vector2(rectX + rectWidth, rectY + rectHeight)))
+            {
+                if (entryVector2Found)
+                    exitVector2 = GetVector2FromYValue(a, b, rectY + rectHeight);
+                else
+                {
+                    entryVector2 = GetVector2FromYValue(a, b, rectY + rectHeight);
+                }
+            }
+            // Left Line of Chart
+            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY), new Vector2(rectX, rectY + rectHeight)))
+            {
+                exitVector2 = GetVector2FromXValue(a, b, rectX);
+            }
+
+            return (entryVector2, exitVector2, Line.EntryExit);
+        }
+        else
+        {
+            Vector2 entryVector2 = GetEntryIntersectionVector2(rectX, rectY, rectWidth, rectHeight, a, b);
+            return (entryVector2, new Vector2(), Line.Entry);
+        }
+    }
+
     public enum Line
     {
         // Inside the Rectangle so No Intersection Vector2(Both Entry Vector2 and Exit Vector2 will be Null)
@@ -57,27 +126,33 @@ public static class IntersectionCalculator
         NoIntersection
     }
 
-    private static Vector2 GetEntryIntersectionVector2(float rectWidth, float rectHeight, Vector2 a, Vector2 b)
+    private static Vector2 GetEntryIntersectionVector2(
+        float rectX,
+        float rectY,
+        float rectWidth,
+        float rectHeight,
+        Vector2 a,
+        Vector2 b)
     {
         // For top line of the rectangle
-        if (LineIntersectsLine(new Vector2(0, 0), new Vector2(rectWidth, 0), a, b))
+        if (LineIntersectsLine(new Vector2(rectX, rectY), new Vector2(rectX + rectWidth, rectY), a, b))
         {
-            return GetVector2FromYValue(a, b, 0);
+            return GetVector2FromYValue(a, b, rectY);
         }
         // For right side line of the rectangle
-        else if (LineIntersectsLine(new Vector2(rectWidth, 0), new Vector2(rectWidth, rectHeight), a, b))
+        else if (LineIntersectsLine(new Vector2(rectX + rectWidth, rectY), new Vector2(rectX + rectWidth, rectY + rectHeight), a, b))
         {
-            return GetVector2FromXValue(a, b, rectWidth);
+            return GetVector2FromXValue(a, b, rectX + rectWidth);
         }
         // For bottom line of the rectangle
-        else if (LineIntersectsLine(new Vector2(0, rectHeight), new Vector2(rectWidth, rectHeight), a, b))
+        else if (LineIntersectsLine(new Vector2(rectX, rectY + rectHeight), new Vector2(rectX + rectWidth, rectY + rectHeight), a, b))
         {
-            return GetVector2FromYValue(a, b, rectHeight);
+            return GetVector2FromYValue(a, b, rectY + rectHeight);
         }
         // For left side line of the rectangle
         else
         {
-            return GetVector2FromXValue(a, b, 0);
+            return GetVector2FromXValue(a, b, rectX);
         }
     }
 
@@ -148,73 +223,6 @@ public static class IntersectionCalculator
         return a.X >= rectX && a.X <= rectX + rectWidth && a.Y >= rectY && a.Y <= rectY + rectHeight;
     }
 
-    // Tuple<entryVector2, exitVector2, lineStatus>
-    public static (Vector2 EntryPoint, Vector2 ExitPoint, Line lineStatus) GetIntersectionVector2(
-        Vector2 a,
-        Vector2 b,
-        float rectX,
-        float rectY,
-        float rectWidth,
-        float rectHeight)
-    {
-        if (IsWithinRectangle(a, rectX, rectY, rectWidth, rectHeight) && IsWithinRectangle(b, rectX, rectY, rectWidth, rectHeight))
-        {
-            // Can't set null to Vector2 that's why I am returning just empty object
-            return (new Vector2(), new Vector2(), Line.InsideTheRectangle);
-        }
-        else if (!IsWithinRectangle(a, rectX, rectY, rectWidth, rectHeight) && !IsWithinRectangle(b, rectX, rectY, rectWidth, rectHeight))
-        {
-            if (!LineIntersectsRectangle(a, b, rectX, rectY, rectWidth, rectHeight))
-            {
-                // Can't set null to Vector2 that's why I am returning just empty object
-                return (new Vector2(), new Vector2(), Line.NoIntersection);
-            }
 
-            Vector2 entryVector2 = new Vector2();
-            Vector2 exitVector2 = new Vector2();
-
-            bool entryVector2Found = false;
-
-            // Top Line of Chart Area
-            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY), new Vector2(rectX + rectWidth, rectY)))
-            {
-                entryVector2 = GetVector2FromYValue(a, b, rectY);
-                entryVector2Found = true;
-            }
-            // Right Line of Chart Area
-            if (LineIntersectsLine(a, b, new Vector2(rectX + rectWidth, rectY), new Vector2(rectX + rectWidth, rectY + rectHeight)))
-            {
-                if (entryVector2Found)
-                    exitVector2 = GetVector2FromXValue(a, b, rectX + rectWidth);
-                else
-                {
-                    entryVector2 = GetVector2FromXValue(a, b, rectX + rectWidth);
-                    entryVector2Found = true;
-                }
-            }
-            // Bottom Line of Chart
-            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY + rectHeight), new Vector2(rectX + rectWidth, rectY + rectHeight)))
-            {
-                if (entryVector2Found)
-                    exitVector2 = GetVector2FromYValue(a, b, rectY + rectHeight);
-                else
-                {
-                    entryVector2 = GetVector2FromYValue(a, b, rectY + rectHeight);
-                }
-            }
-            // Left Line of Chart
-            if (LineIntersectsLine(a, b, new Vector2(rectX, rectY), new Vector2(rectX, rectY + rectHeight)))
-            {
-                exitVector2 = GetVector2FromXValue(a, b, rectX);
-            }
-
-            return (entryVector2, exitVector2, Line.EntryExit);
-        }
-        else
-        {
-            Vector2 entryVector2 = GetEntryIntersectionVector2(rectWidth, rectHeight, a, b);
-            return (entryVector2, new Vector2(), Line.Entry);
-        }
-    }
     #endregion
 }

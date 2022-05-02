@@ -166,15 +166,19 @@ public class PongGame
         double startXYBallVerlocitySplit = Math.Min(0.7, Random.Shared.NextDouble());
         bool leftRight = Random.Shared.NextDouble() < 0.5;
         bool upDown = Random.Shared.NextDouble() < 0.5;
+        float debugOffsetX = 0;
+        float debugOffsetY = 0;
 
         //// Debug values
         //startXYBallVerlocitySplit = 0.5;
         //leftRight = true;
-        //upDown = true;
+        //upDown = false;
+        //debugOffsetX = -750;
+        //debugOffsetY = -200;
 
         gameState.BallPosition = new Vector2(
-            screenConfig.ResultionX / 2,
-            screenConfig.ResultionY / 2);
+            screenConfig.ResultionX / 2 + debugOffsetX,
+            screenConfig.ResultionY / 2 + debugOffsetY);
         gameState.BallVerlocity = new Vector2(
             (float)((leftRight ? -1 : 1) * pongConfig.BallStartSpeed * (1 - startXYBallVerlocitySplit)),
             (float)((upDown ? -1 : 1) * pongConfig.BallStartSpeed * startXYBallVerlocitySplit));

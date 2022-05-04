@@ -67,6 +67,12 @@ namespace PixelFlut.Core
         /// </summary>
         public long BuffersSent { get; set; }
 
+
+        /// <summary>
+        /// How many buffers is sent
+        /// </summary>
+        public long TotalBuffersSent { get; set; }
+
         /// <summary>
         /// How many unique buffers that have been sent
         /// </summary>
@@ -173,35 +179,17 @@ namespace PixelFlut.Core
             if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)
             {
                 logger.LogInformation("Screen: {@stats}", stats);
+                long totalBuffers = stats.TotalBuffersSent;
                 stats = new PixelFlutScreenStats();
+                stats.TotalBuffersSent += totalBuffers;
                 statsPrinterStopwatch.Restart();
             }
         }
 
-        public void Render()
-        {
-            // Pick a buffer to render
-            byte[] sendBuffer = preparedBuffers[Random.Shared.Next(preparedBuffers.Count)];
-
-            // Send 
-            int bytesSent = socket.SendTo(sendBuffer, endPoint);
-
-            // Update stats
-            stats.BytesSent += bytesSent;
-            stats.BuffersSent++;
-
-            // Wait if requested, usefull on slower single core CPU's
-            if (configuration.SleepTimeBetweenFrames != -1)
-            {
-                Thread.Sleep(configuration.SleepTimeBetweenFrames);
-            }
-        }
-
         private PixelFlutPixel PickRandomPixel(
-           IEnumerable<PixelFlutPixel> frame,
-           int numberOfPixelsInFrame)
+            IEnumerable<PixelFlutPixel> frame,
+            int numberOfPixelsInFrame)
         {
-            List<PixelFlutPixel> randomised = new();
             int totalAmountOfPixels = Math.Min(numberOfPixelsInFrame, frame.Count());
             return frame.ElementAt(Random.Shared.Next(totalAmountOfPixels));
         }
@@ -213,6 +201,40 @@ namespace PixelFlut.Core
         {
             int index = (int)(framePixelNumber % numberOfPixelsInFrame);
             return frame.ElementAt(index);
+        }
+
+
+
+        public void Render()
+        {
+            // Pick a buffer to render
+            byte[] sendBuffer = SelectNextBuffer();
+
+            // Send 
+            int bytesSent = socket.SendTo(sendBuffer, endPoint);
+
+            // Update stats
+            stats.BytesSent += bytesSent;
+            stats.BuffersSent++;
+            stats.TotalBuffersSent++;
+
+            // Wait if requested, usefull on slower single core CPU's
+            if (configuration.SleepTimeBetweenFrames != -1)
+            {
+                Thread.Sleep(configuration.SleepTimeBetweenFrames);
+            }
+        }
+
+        private byte[] SelectRandomBuffer()
+        {
+            byte[] sendBuffer = preparedBuffers[Random.Shared.Next(preparedBuffers.Count)];
+            return sendBuffer;
+        }
+
+        private byte[] SelectNextBuffer()
+        {
+            byte[] sendBuffer = preparedBuffers[(int)(stats.TotalBuffersSent % preparedBuffers.Count)];
+            return sendBuffer;
         }
     }
 }

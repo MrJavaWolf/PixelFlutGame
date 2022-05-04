@@ -16,6 +16,16 @@ namespace PixelFlut.Core
         /// How many renderer threads there will be created
         /// </summary>
         public int NumberOfRenderer { get; set; }
+
+        /// <summary>
+        /// Whether it should render a test image insteed of playing a game
+        /// </summary>
+        public bool EnableTestImage { get; set; }
+
+        /// <summary>
+        /// The test image offset
+        /// </summary>
+        public double TestImageOffset { get; set; }
     }
 
     public class GameLoopStats
@@ -30,16 +40,22 @@ namespace PixelFlut.Core
         // Generel
         private readonly ILogger<GameLoop> logger;
         private readonly IServiceProvider provider;
+        private readonly PixelFlutScreenRendererConfiguration screenConfiguration;
         private readonly GameLoopConfiguration configuration;
 
         // Stats
         private GameLoopStats stats = new();
         private Stopwatch statsPrinterStopwatch = new();
 
-        public GameLoop(ILogger<GameLoop> logger, IServiceProvider provider, GameLoopConfiguration configuration)
+        public GameLoop(
+            ILogger<GameLoop> logger,
+            IServiceProvider provider,
+            PixelFlutScreenRendererConfiguration screenConfiguration,
+            GameLoopConfiguration configuration)
         {
             this.logger = logger;
             this.provider = provider;
+            this.screenConfiguration = screenConfiguration;
             this.configuration = configuration;
             logger.LogInformation($"GameLoop: {{@configuration}}", configuration);
             statsPrinterStopwatch.Start();
@@ -58,11 +74,29 @@ namespace PixelFlut.Core
                 t.Start();
             }
 
-            // Setup the game
+            // Setup the timers
             Stopwatch loopTime = new();
             Stopwatch totalGameTimer = new();
             GameTime gameTime = new();
             totalGameTimer.Start();
+
+            if (configuration.EnableTestImage)
+            {
+                var testImage = TestImageGenerator.Generate(new GameTime()
+                {
+                    TotalTime = TimeSpan.FromSeconds(configuration.TestImageOffset),
+                }, screenConfiguration);
+                // Render the test frame
+                foreach (var renderer in renderers)
+                    renderer.PrepareRender(testImage.numberOfPixels, testImage.frame);
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    Thread.Sleep(1000);
+                }
+                return;
+            }
+
+            // Setup the game
             PongGame pong = provider.GetRequiredService<PongGame>();
             pong.Startup();
 
@@ -76,14 +110,14 @@ namespace PixelFlut.Core
 
                 // Iterate the gameloop
                 (int numberOfPixels, List<PixelFlutPixel> frame) = Loop(pong, gameTime);
-                
+
                 // Render the resulting pixels
                 foreach (var renderer in renderers)
                     renderer.PrepareRender(numberOfPixels, frame);
 
                 // Calculate how much to sleep to hit our targeted FPS
                 int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
-                
+
                 //Stats
                 stats.Frames++;
                 if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)
@@ -112,5 +146,7 @@ namespace PixelFlut.Core
         {
             return pong.Loop(time);
         }
+
+
     }
 }

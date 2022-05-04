@@ -160,12 +160,13 @@ public static class PongFrameRenderer
     {
         if (frame.Count > index)
         {
-            frame[index].X = X;
-            frame[index].Y = Y;
-            frame[index].R = R;
-            frame[index].G = G;
-            frame[index].B = B;
-            frame[index].A = A;
+            PixelFlutPixel pixel = frame[index];
+            pixel.X = X;
+            pixel.Y = Y;
+            pixel.R = R;
+            pixel.G = G;
+            pixel.B = B;
+            pixel.A = A;
         }
         else
         {

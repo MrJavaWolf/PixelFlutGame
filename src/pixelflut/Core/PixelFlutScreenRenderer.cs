@@ -162,7 +162,11 @@ namespace PixelFlut.Core
                 stats.NumberOfPixelsDrawn += screenProtocol.PixelsPerBuffer;
                 stats.BuffersPrepared++;
             }
+            PrintAndResetStats();
+        }
 
+        public void PrintAndResetStats()
+        {
             if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)
             {
                 logger.LogInformation("Screen: {@stats}", stats);
@@ -175,10 +179,10 @@ namespace PixelFlut.Core
         {
             // Pick a buffer to render
             byte[] sendBuffer = preparedBuffers[Random.Shared.Next(preparedBuffers.Count)];
-            
+
             // Send 
             int bytesSent = socket.SendTo(sendBuffer, endPoint);
-            
+
             // Update stats
             stats.BytesSent += bytesSent;
             stats.BuffersSent++;

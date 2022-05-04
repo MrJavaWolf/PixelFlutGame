@@ -86,12 +86,14 @@ namespace PixelFlut.Core
                 {
                     TotalTime = TimeSpan.FromSeconds(configuration.TestImageOffset),
                 }, screenConfiguration);
-                // Render the test frame
                 foreach (var renderer in renderers)
                     renderer.PrepareRender(testImage.numberOfPixels, testImage.frame);
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    Thread.Sleep(1000);
+                    // Render the test frame
+                    foreach (var renderer in renderers)
+                        renderer.PrintAndResetStats();
+                    Thread.Sleep(50);
                 }
                 return;
             }

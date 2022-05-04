@@ -132,7 +132,7 @@ namespace PixelFlut.Core
                 }
 
                 // Sleep to hit our targeted FPS
-                //Thread.Sleep(sleepTimeMs);
+                Thread.Sleep(sleepTimeMs);
             }
         }
 

@@ -137,14 +137,16 @@ namespace PixelFlut.Core
             stats.Frames++;
             stats.NumberOfPixelsToDraw += frame.Count;
 
+            long framePixelNumber = 0;
             for (int i = 0; i < preparedBuffers.Count; i++)
             {
                 for (int pixelNumber = 0; pixelNumber < screenProtocol.PixelsPerBuffer; pixelNumber++)
                 {
                     // Selects the pixels to render
-                    PixelFlutPixel randomPixel = PickRandomPixel(
+                    PixelFlutPixel randomPixel = PickNextPixel(
                         frame,
-                        numberOfPixelsInFrame);
+                        numberOfPixelsInFrame,
+                        framePixelNumber);
 
                     // Write the pixel to the buffer
                     screenProtocol.WriteToBuffer(
@@ -156,6 +158,7 @@ namespace PixelFlut.Core
                         randomPixel.G,
                         randomPixel.B,
                         randomPixel.A);
+                    framePixelNumber++;
                 }
 
                 // Update stats
@@ -201,6 +204,15 @@ namespace PixelFlut.Core
             List<PixelFlutPixel> randomised = new();
             int totalAmountOfPixels = Math.Min(numberOfPixelsInFrame, frame.Count());
             return frame.ElementAt(Random.Shared.Next(totalAmountOfPixels));
+        }
+
+        private PixelFlutPixel PickNextPixel(
+           IEnumerable<PixelFlutPixel> frame,
+           int numberOfPixelsInFrame,
+           long framePixelNumber)
+        {
+            int index = (int)(framePixelNumber % numberOfPixelsInFrame);
+            return frame.ElementAt(index);
         }
     }
 }

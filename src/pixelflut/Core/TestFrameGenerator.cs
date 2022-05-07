@@ -2,16 +2,16 @@
 
 namespace PixelFlut.Core;
 
-public class TestFraneGenerator
+public class TestFrameGenerator
 {
     private readonly IPixelFlutScreenProtocol screenProtocol;
-    private readonly ILogger<TestFraneGenerator> logger;
+    private readonly ILogger<TestFrameGenerator> logger;
     private readonly PixelFlutScreenRendererConfiguration screenConfiguration;
     private List<PixelBuffer> frame = new();
 
-    public TestFraneGenerator(
+    public TestFrameGenerator(
         IPixelFlutScreenProtocol screenProtocol,
-        ILogger<TestFraneGenerator> logger,
+        ILogger<TestFrameGenerator> logger,
         PixelFlutScreenRendererConfiguration screenConfiguration)
     {
         this.screenProtocol = screenProtocol;

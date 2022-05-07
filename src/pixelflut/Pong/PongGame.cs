@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using PixelFlut.Core;
+﻿using PixelFlut.Core;
 using System.Numerics;
 namespace PixelFlut.Pong;
 

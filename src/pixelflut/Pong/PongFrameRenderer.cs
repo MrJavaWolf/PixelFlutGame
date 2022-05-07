@@ -1,6 +1,6 @@
-﻿    using PixelFlut.Core;
-
+﻿using PixelFlut.Core;
 namespace PixelFlut.Pong;
+
 public static class PongFrameRenderer
 {
     public static int DrawFrame(

@@ -37,9 +37,14 @@ public class PixelFlutScreenRendererConfiguration
     public int ResultionY { get; set; }
 
     /// <summary>
+    /// How many threads to be dedicated to send buffers to the pixel flut server
+    /// </summary>
+    public int SenderThreads { get; set; }
+
+    /// <summary>
     /// Sleep time between frames, set to -1 to run 100% CPU
     /// </summary>
-    public int SleepTimeBetweenFrames { get; set; }
+    public int SleepTimeBetweenSends { get; set; }
 }
 
 public class PixelFlutScreenStats
@@ -83,12 +88,7 @@ public class PixelFlutScreenStats
 public class PixelFlutScreenRenderer
 {
     // Generel
-    private readonly PixelFlutScreenRendererConfiguration configuration;
     private readonly ILogger<PixelFlutScreenRenderer> logger;
-
-    // Connection
-    private Socket socket;
-    private IPEndPoint endPoint;
 
     // Stats
     private Stopwatch statsPrinterStopwatch = new();
@@ -96,21 +96,21 @@ public class PixelFlutScreenRenderer
 
     // The buffers we are currently rendering
     private List<PixelBuffer> frame = new();
-    private int currentRenderFrameBuffer = 0;
-    private int currentRenderByteBuffer = 0;
+
+    // Senders
+    private List<PixelFlutSender> senders = new();
 
     public PixelFlutScreenRenderer(
         PixelFlutScreenRendererConfiguration configuration,
         ILogger<PixelFlutScreenRenderer> logger)
     {
-        this.configuration = configuration;
         this.logger = logger;
         logger.LogInformation($"PixelFlutScreen: {{@pixelFlutScreen}}", configuration);
 
-        // Setup connnection
-        socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        IPAddress serverAddr = IPAddress.Parse(configuration.Ip);
-        endPoint = new IPEndPoint(serverAddr, configuration.Port);
+        for (int i = 0; i < configuration.SenderThreads; i++)
+        {
+            senders.Add(new PixelFlutSender(configuration));
+        }
 
         // Stats counter
         statsPrinterStopwatch.Start();
@@ -119,6 +119,10 @@ public class PixelFlutScreenRenderer
     public void SetFrame(List<PixelBuffer> frame)
     {
         this.frame = frame;
+        for (int i = 0; i < senders.Count; i++)
+        {
+            senders[i].Reset();
+        }
         stats.FramesFromGameLoop++;
         stats.PixelBuffersFromGameLoop += frame.Count;
         stats.PixelsFromGameLoop += frame.Sum(f => f.NumberOfPixels);
@@ -129,55 +133,44 @@ public class PixelFlutScreenRenderer
     {
         if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)
         {
-            logger.LogInformation("Screen: {@stats}", stats);
+            double elasped = statsPrinterStopwatch.Elapsed.TotalSeconds;
+            PixelFlutScreenStats temp = stats;
+
+            // Reset the stats
             long totalBuffers = stats.TotalBuffersSent;
             stats = new PixelFlutScreenStats();
             stats.TotalBuffersSent += totalBuffers;
             statsPrinterStopwatch.Restart();
+
+            // Scale the stats to be per second
+            temp.BytesSent = (int)(temp.BytesSent * elasped);
+            temp.PixelsSent = (int)(temp.PixelsSent * elasped);
+            temp.BuffersSent = (int)(temp.BuffersSent * elasped);
+            temp.FramesFromGameLoop = (int)(temp.FramesFromGameLoop * elasped);
+            temp.PixelBuffersFromGameLoop = (int)(temp.PixelBuffersFromGameLoop * elasped);
+            temp.PixelsFromGameLoop = (int)(temp.PixelsFromGameLoop * elasped);
+
+            // Print
+            logger.LogInformation("Screen: {@stats}", temp);
         }
     }
 
-    public void Render()
+    public void StartRenderThreads(CancellationToken token)
     {
-        if (frame.Count == 0) return;
-
-        // Pick a buffer to render
-        (int pixels, byte[] sendBuffer) = SelectNextBuffer();
-
-        // Send 
-        int bytesSent = socket.SendTo(sendBuffer, endPoint);
-
-        // Update stats
-        stats.BytesSent += bytesSent;
-        stats.PixelsSent += pixels;
-        stats.BuffersSent++;
-        stats.TotalBuffersSent++;
-
-        // Wait if requested, usefull on slower single core CPU's
-        if (configuration.SleepTimeBetweenFrames != -1)
+        for (int i = 0; i < senders.Count; i++)
         {
-            Thread.Sleep(configuration.SleepTimeBetweenFrames);
+            PixelFlutSender sender = senders[i];
+            Thread thread = new(() => SenderThread(sender, token));
+            thread.Start();
         }
     }
 
-    private (int pixels, byte[] sendBuffer) SelectNextBuffer()
+    private void SenderThread(PixelFlutSender sender, CancellationToken token)
     {
-        PixelBuffer buffer = frame[currentRenderFrameBuffer];
-        byte[] sendBuffer = buffer.Buffers[currentRenderByteBuffer];
-        int pixelsPerBuffer = buffer.PixelsPerBuffer;
-
-        // Increment to select the next buffer
-        currentRenderByteBuffer++;
-        if (currentRenderByteBuffer >= buffer.Buffers.Count)
+        while (!token.IsCancellationRequested)
         {
-            currentRenderByteBuffer = 0;
-            currentRenderFrameBuffer++;
-            if (currentRenderFrameBuffer >= frame.Count)
-            {
-                currentRenderFrameBuffer = 0;
-            }
+            sender.Render(frame, stats);
         }
-        return (pixelsPerBuffer, sendBuffer);
     }
 }
 

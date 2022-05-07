@@ -12,11 +12,6 @@ public class GameLoopConfiguration
     public double TargetGameLoopFPS { get; set; }
 
     /// <summary>
-    /// How many renderer threads there will be created
-    /// </summary>
-    public int NumberOfRenderer { get; set; }
-
-    /// <summary>
     /// Whether it should render a test image insteed of playing a game
     /// </summary>
     public bool EnableTestImage { get; set; }
@@ -38,6 +33,7 @@ public class GameLoop
 {
     // Generel
     private readonly ILogger<GameLoop> logger;
+    private readonly PixelFlutScreenRenderer renderer;
     private readonly TestFrameGenerator testFraneGenerator;
     private readonly IServiceProvider provider;
     private readonly GameLoopConfiguration configuration;
@@ -48,11 +44,13 @@ public class GameLoop
 
     public GameLoop(
         ILogger<GameLoop> logger,
+        PixelFlutScreenRenderer renderer,
         TestFrameGenerator testFraneGenerator,
         IServiceProvider provider,
         GameLoopConfiguration configuration)
     {
         this.logger = logger;
+        this.renderer = renderer;
         this.testFraneGenerator = testFraneGenerator;
         this.provider = provider;
         this.configuration = configuration;
@@ -62,31 +60,22 @@ public class GameLoop
 
     public void Run(CancellationToken cancellationToken)
     {
-        // Start the renderers
-        List<PixelFlutScreenRenderer> renderers = new List<PixelFlutScreenRenderer>();
-        for (int i = 0; i < configuration.NumberOfRenderer; i++)
-        {
-            PixelFlutScreenRenderer renderer = provider.GetRequiredService<PixelFlutScreenRenderer>();
-            renderers.Add(renderer);
-            Thread t = new(() => RendererThread(renderer, cancellationToken));
-            // t.Priority = ThreadPriority.Highest;
-            t.Start();
-        }
-
+        // Start the renderer
+        renderer.StartRenderThreads(cancellationToken);
 
         if (configuration.EnableTestImage)
         {
             testFraneGenerator.Startup();
-            RenderStillTestImage(renderers, cancellationToken);
+            RenderStillTestImage(cancellationToken);
             //RenderMovingTestImage(renderers, cancellationToken);
         }
         else
         {
-            RunGameLoop(renderers, cancellationToken);
+            RunGameLoop(cancellationToken);
         }
     }
 
-    private void RunGameLoop(List<PixelFlutScreenRenderer> renderers, CancellationToken cancellationToken)
+    private void RunGameLoop(CancellationToken cancellationToken)
     {
         // Setup the timers
         Stopwatch loopTime = new();
@@ -110,8 +99,7 @@ public class GameLoop
             List<PixelBuffer> frame = Loop(pong, gameTime);
 
             // Render the resulting pixels
-            foreach (var renderer in renderers)
-                renderer.SetFrame(frame);
+            renderer.SetFrame(frame);
 
             // Calculate how much to sleep to hit our targeted FPS
             int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
@@ -132,24 +120,22 @@ public class GameLoop
         }
     }
 
-    private void RenderStillTestImage(List<PixelFlutScreenRenderer> renderers, CancellationToken cancellationToken)
+    private void RenderStillTestImage(CancellationToken cancellationToken)
     {
         List<PixelBuffer> testFrame = testFraneGenerator.Generate(new GameTime()
         {
             TotalTime = TimeSpan.FromSeconds(configuration.TestImageOffset),
         });
-        foreach (var renderer in renderers)
-            renderer.SetFrame(testFrame);
+        renderer.SetFrame(testFrame);
         while (!cancellationToken.IsCancellationRequested)
         {
             // Render the test frame
-            foreach (var renderer in renderers)
-                renderer.PrintAndResetStats();
+            renderer.PrintAndResetStats();
             Thread.Sleep(50);
         }
     }
 
-    private void RenderMovingTestImage(List<PixelFlutScreenRenderer> renderers, CancellationToken cancellationToken)
+    private void RenderMovingTestImage(CancellationToken cancellationToken)
     {
         Stopwatch loopTime = new();
         Stopwatch totalGameTimer = new();
@@ -168,8 +154,7 @@ public class GameLoop
             List<PixelBuffer> frame = testFraneGenerator.Generate(gameTime);
 
             // Render the resulting pixels
-            foreach (var renderer in renderers)
-                renderer.SetFrame(frame);
+            renderer.SetFrame(frame);
 
             // Calculate how much to sleep to hit our targeted FPS
             int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
@@ -187,14 +172,6 @@ public class GameLoop
 
             // Sleep to hit our targeted FPS
             Thread.Sleep(sleepTimeMs);
-        }
-    }
-
-    private void RendererThread(PixelFlutScreenRenderer renderer, CancellationToken cancellationToken)
-    {
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            renderer.Render();
         }
     }
 

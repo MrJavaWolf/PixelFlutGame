@@ -76,6 +76,7 @@ public class GameLoop
 
         if (configuration.EnableTestImage)
         {
+            testFraneGenerator.Startup();
             RenderStillTestImage(renderers, cancellationToken);
             //RenderMovingTestImage(renderers, cancellationToken);
         }

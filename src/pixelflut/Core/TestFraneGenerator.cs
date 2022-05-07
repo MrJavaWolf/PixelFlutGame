@@ -4,6 +4,8 @@ namespace PixelFlut.Core;
 
 public class TestFraneGenerator
 {
+    private readonly IPixelFlutScreenProtocol screenProtocol;
+    private readonly ILogger<TestFraneGenerator> logger;
     private readonly PixelFlutScreenRendererConfiguration screenConfiguration;
     private List<PixelBuffer> frame = new();
 
@@ -12,7 +14,13 @@ public class TestFraneGenerator
         ILogger<TestFraneGenerator> logger,
         PixelFlutScreenRendererConfiguration screenConfiguration)
     {
+        this.screenProtocol = screenProtocol;
+        this.logger = logger;
         this.screenConfiguration = screenConfiguration;
+    }
+
+    public void Startup()
+    {
         logger.LogInformation("Creates pixel buffer for the test image...");
         PixelBuffer buffer = new PixelBuffer(screenConfiguration.ResultionY * screenConfiguration.ResultionX, screenProtocol);
         frame.Add(buffer);

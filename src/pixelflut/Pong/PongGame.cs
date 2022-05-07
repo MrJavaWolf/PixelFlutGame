@@ -123,6 +123,7 @@ public class PongGame
     private readonly PongConfiguration pongConfig;
     private readonly IPixelFlutInput input;
     private readonly PixelFlutScreenRendererConfiguration screenConfig;
+    private readonly IPixelFlutScreenProtocol screenProtocol;
     private readonly ILogger<PongGame> logger;
     private PongGameState gameState = new();
     private List<PixelBuffer> frame = new();
@@ -140,20 +141,25 @@ public class PongGame
         this.pongConfig = pongConfig;
         this.input = input;
         this.screenConfig = screenConfig;
+        this.screenProtocol = screenProtocol;
         this.logger = logger;
         if (pongGameState != null)
             gameState = pongGameState;
 
-        logger.LogInformation("Creates pixelbuffer for pong game...");
-        int pixelsInFrame = PongFrameRenderer.CalculatePixelsInFrame(pongConfig, gameState);
-        PixelBuffer buffer = new PixelBuffer(pixelsInFrame, screenProtocol);
-        frame.Add(buffer);
-        logger.LogInformation("Pixel buffer for the pong game is ready");
+   
     }
 
     public void Startup()
     {
         logger.LogInformation("Initializes game: Pong");
+
+        frame = new List<PixelBuffer>();
+        logger.LogInformation("Creates pixelbuffer for pong game...");
+        int pixelsInFrame = PongFrameRenderer.CalculatePixelsInFrame(pongConfig, gameState);
+        PixelBuffer buffer = new PixelBuffer(pixelsInFrame, screenProtocol);
+        frame.Add(buffer);
+        logger.LogInformation("Pixel buffer for the pong game is ready");
+
         gameState = new();
         gameState.Player1Position = new(
             pongConfig.PlayerDistanceToSides,

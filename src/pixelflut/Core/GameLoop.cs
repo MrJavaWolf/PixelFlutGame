@@ -38,7 +38,7 @@ public class GameLoop
 {
     // Generel
     private readonly ILogger<GameLoop> logger;
-    private readonly TestFraneGenerator testFraneGenerator;
+    private readonly TestFrameGenerator testFraneGenerator;
     private readonly IServiceProvider provider;
     private readonly GameLoopConfiguration configuration;
 
@@ -48,7 +48,7 @@ public class GameLoop
 
     public GameLoop(
         ILogger<GameLoop> logger,
-        TestFraneGenerator testFraneGenerator,
+        TestFrameGenerator testFraneGenerator,
         IServiceProvider provider,
         GameLoopConfiguration configuration)
     {

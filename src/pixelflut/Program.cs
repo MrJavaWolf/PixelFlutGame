@@ -33,7 +33,7 @@ public class Program
         services.AddSingleton<IPixelFlutInput>(s => s.GetRequiredService<PixelFlutGamepad>());
         services.AddSingleton<PongGame>();
         services.AddSingleton<GameLoop>();
-        services.AddSingleton<TestFraneGenerator>();
+        services.AddSingleton<TestFrameGenerator>();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
         services.AddTransient<PixelFlutScreenRenderer>();
         ServiceProvider serviceProvider = services.BuildServiceProvider();

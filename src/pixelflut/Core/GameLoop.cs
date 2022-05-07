@@ -38,8 +38,8 @@ public class GameLoop
 {
     // Generel
     private readonly ILogger<GameLoop> logger;
+    private readonly TestFraneGenerator testFraneGenerator;
     private readonly IServiceProvider provider;
-    private readonly PixelFlutScreenRendererConfiguration screenConfiguration;
     private readonly GameLoopConfiguration configuration;
 
     // Stats
@@ -48,13 +48,13 @@ public class GameLoop
 
     public GameLoop(
         ILogger<GameLoop> logger,
+        TestFraneGenerator testFraneGenerator,
         IServiceProvider provider,
-        PixelFlutScreenRendererConfiguration screenConfiguration,
         GameLoopConfiguration configuration)
     {
         this.logger = logger;
+        this.testFraneGenerator = testFraneGenerator;
         this.provider = provider;
-        this.screenConfiguration = screenConfiguration;
         this.configuration = configuration;
         logger.LogInformation($"GameLoop: {{@configuration}}", configuration);
         statsPrinterStopwatch.Start();
@@ -81,12 +81,12 @@ public class GameLoop
 
         if (configuration.EnableTestImage)
         {
-            var testImage = TestImageGenerator.Generate(new GameTime()
+            List<PixelBuffer> testFrame = testFraneGenerator.Generate(new GameTime()
             {
                 TotalTime = TimeSpan.FromSeconds(configuration.TestImageOffset),
-            }, screenConfiguration);
+            });
             foreach (var renderer in renderers)
-                renderer.PrepareRender(testImage.numberOfPixels, testImage.frame);
+                renderer.SetFrame(testFrame);
             while (!cancellationToken.IsCancellationRequested)
             {
                 // Render the test frame
@@ -110,11 +110,11 @@ public class GameLoop
             loopTime.Restart();
 
             // Iterate the gameloop
-            (int numberOfPixels, List<PixelFlutPixel> frame) = Loop(pong, gameTime);
+            List<PixelBuffer> frame = Loop(pong, gameTime);
 
             // Render the resulting pixels
             foreach (var renderer in renderers)
-                renderer.PrepareRender(numberOfPixels, frame);
+                renderer.SetFrame(frame);
 
             // Calculate how much to sleep to hit our targeted FPS
             int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
@@ -143,7 +143,7 @@ public class GameLoop
         }
     }
 
-    public (int numberOfPixels, List<PixelFlutPixel> frame) Loop(PongGame pong, GameTime time)
+    public List<PixelBuffer> Loop(PongGame pong, GameTime time)
     {
         return pong.Loop(time);
     }

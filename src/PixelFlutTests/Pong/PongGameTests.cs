@@ -58,6 +58,7 @@ namespace PixelFlut.Pong.Tests
                 pongConfig,
                 input.Object,
                 pixelFlutRendererConfiguration,
+                new PixelFlutScreenProtocol1(),
                 logger.Object,
                 pongGameState);
         }

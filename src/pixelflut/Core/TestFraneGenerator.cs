@@ -2,13 +2,23 @@
 
 namespace PixelFlut.Core;
 
-public static class TestImageGenerator
+public class TestFraneGenerator
 {
-    public static (int numberOfPixels, List<PixelFlutPixel> frame) Generate(
-        GameTime time,
+    private readonly IPixelFlutScreenProtocol screenProtocol;
+    private readonly PixelFlutScreenRendererConfiguration screenConfiguration;
+
+    public TestFraneGenerator(
+        IPixelFlutScreenProtocol screenProtocol,
         PixelFlutScreenRendererConfiguration screenConfiguration)
     {
-        List<PixelFlutPixel> frame = new();
+        this.screenProtocol = screenProtocol;
+        this.screenConfiguration = screenConfiguration;
+    }
+
+    public List<PixelBuffer> Generate(GameTime time)
+    {
+        List<PixelBuffer> frame = new();
+        PixelBuffer buffer = new PixelBuffer(screenConfiguration.ResultionY * screenConfiguration.ResultionX, screenProtocol);
         for (int y = 0; y < screenConfiguration.ResultionY; y++)
             for (int x = 0; x < screenConfiguration.ResultionX; x++)
             {
@@ -16,17 +26,18 @@ public static class TestImageGenerator
                     (x + y + time.TotalTime.TotalSeconds * 100) * 0.3 % 360,
                     1,
                     1);
-                frame.Add(new PixelFlutPixel()
-                {
-                    X = x,
-                    Y = y,
-                    A = 255,
-                    R = c.R,
-                    G = c.G,
-                    B = c.B
-                });
+                int pixelNumber = y * x + x;
+                buffer.SetPixel(
+                    pixelNumber,
+                    x,
+                    y,
+                    c.R,
+                    c.G,
+                    c.B,
+                    255);
             }
-        return (frame.Count, frame);
+        frame.Add(buffer);
+        return frame;
     }
 
     public static Color ColorFromHSV(double hue, double saturation, double value)

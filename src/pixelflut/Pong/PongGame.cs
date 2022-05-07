@@ -125,7 +125,7 @@ public class PongGame
     private readonly PixelFlutScreenRendererConfiguration screenConfig;
     private readonly ILogger<PongGame> logger;
     private PongGameState gameState = new();
-    private List<PixelFlutPixel> frame = new();
+    private List<PixelBuffer> frame = new();
     public int MinimumYPlayerPosition { get => 0; }
     public int MaximumYPlayerPosition { get => screenConfig.ResultionY - pongConfig.PlayerHeight; }
 
@@ -133,6 +133,7 @@ public class PongGame
         PongConfiguration pongConfig,
         IPixelFlutInput input,
         PixelFlutScreenRendererConfiguration screenConfig,
+        IPixelFlutScreenProtocol screenProtocol,
         ILogger<PongGame> logger,
         PongGameState? pongGameState = null)
     {
@@ -142,6 +143,13 @@ public class PongGame
         this.logger = logger;
         if (pongGameState != null)
             gameState = pongGameState;
+
+        if (frame.Count == 0)
+        {
+            int pixelsInFrame = PongFrameRenderer.CalculatePixelsInFrame(pongConfig, gameState);
+            PixelBuffer buffer = new PixelBuffer(pixelsInFrame, screenProtocol);
+            frame.Add(buffer);
+        }
     }
 
     public void Startup()
@@ -184,7 +192,7 @@ public class PongGame
         gameState.BallBounces = 0;
     }
 
-    public (int numberOfPixels, List<PixelFlutPixel> frame) Loop(GameTime time)
+    public List<PixelBuffer> Loop(GameTime time)
     {
         // Update player position
         gameState.Player1Position = CalculateNewPlayerPosition(gameState.Player1Position, input.Y, time);
@@ -194,8 +202,8 @@ public class PongGame
         UpdateBall(time);
 
         // Renderer
-        int numberOfPixels = PongFrameRenderer.DrawFrame(pongConfig, gameState, frame);
-        return (numberOfPixels, frame);
+        PongFrameRenderer.DrawFrame(pongConfig, gameState, frame[0]);
+        return frame;
     }
 
     private double GetPlayer2Input()

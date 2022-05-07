@@ -6,7 +6,6 @@ namespace PixelFlut.Core;
 
 public class PixelFlutScreenRendererConfiguration
 {
-
     /// <summary>
     /// The IP of the Pixelflut
     /// </summary>
@@ -38,17 +37,6 @@ public class PixelFlutScreenRendererConfiguration
     public int ResultionY { get; set; }
 
     /// <summary>
-    /// How many of send buffers will be prepared for each frame
-    /// Doing rendering it will select a buffer and send it the pixelflut
-    /// Generally the more buffers, the better picture quiality (bigger pixel coverage), 
-    /// but at the cost of more CPU usage
-    /// 
-    /// As a rule of thumb:
-    /// [NumberOfPreparedBuffers] >= [Number of pixels per frame] / [number of pixels per buffer]
-    /// </summary>
-    public int NumberOfPreparedBuffers { get; set; }
-
-    /// <summary>
     /// Sleep time between frames, set to -1 to run 100% CPU
     /// </summary>
     public int SleepTimeBetweenFrames { get; set; }
@@ -66,37 +54,30 @@ public class PixelFlutScreenStats
     /// </summary>
     public long BuffersSent { get; set; }
 
-
     /// <summary>
     /// How many buffers is sent
     /// </summary>
     public long TotalBuffersSent { get; set; }
 
     /// <summary>
-    /// How many unique buffers that have been sent
+    /// The number of times we recived a new list of pixelbuffers from the game loop
     /// </summary>
-    public long BuffersPrepared { get; set; }
+    public long FramesFromGameLoop { get; set; }
 
     /// <summary>
-    /// The number of frames recived from the game loop
+    /// The number of pixelbuffers
     /// </summary>
-    public long Frames { get; set; }
+    public long PixelBuffersFromGameLoop { get; set; }
 
     /// <summary>
     /// How many pixels the gameloop have produced to be rendered
     /// </summary>
-    public long NumberOfPixelsToDraw { get; set; }
-
-    /// <summary>
-    /// Due to we select the pixels randomly, the same pixel may be drawn multiple times
-    /// </summary>
-    public long NumberOfPixelsDrawn { get; set; }
+    public long PixelsFromGameLoop { get; set; }
 }
 
 public class PixelFlutScreenRenderer
 {
     // Generel
-    private readonly IPixelFlutScreenProtocol screenProtocol;
     private readonly PixelFlutScreenRendererConfiguration configuration;
     private readonly ILogger<PixelFlutScreenRenderer> logger;
 
@@ -108,17 +89,15 @@ public class PixelFlutScreenRenderer
     private Stopwatch statsPrinterStopwatch = new();
     private PixelFlutScreenStats stats = new();
 
-
-    // Buffers used for sending the bytes
-    private readonly List<byte[]> preparedBuffers = new();
-
+    // The buffers we are currently rendering
+    private List<PixelBuffer> frame = new();
+    private int currentRenderFrameBuffer = 0;
+    private int currentRenderByteBuffer = 0;
 
     public PixelFlutScreenRenderer(
-        IPixelFlutScreenProtocol screenProtocol,
         PixelFlutScreenRendererConfiguration configuration,
         ILogger<PixelFlutScreenRenderer> logger)
     {
-        this.screenProtocol = screenProtocol;
         this.configuration = configuration;
         this.logger = logger;
         logger.LogInformation($"PixelFlutScreen: {{@pixelFlutScreen}}", configuration);
@@ -128,50 +107,16 @@ public class PixelFlutScreenRenderer
         IPAddress serverAddr = IPAddress.Parse(configuration.Ip);
         endPoint = new IPEndPoint(serverAddr, configuration.Port);
 
-        // Prepare buffers
-        for (int i = 0; i < configuration.NumberOfPreparedBuffers; i++)
-            preparedBuffers.Add(screenProtocol.CreateBuffer());
-
         // Stats counter
         statsPrinterStopwatch.Start();
     }
 
-    public void PrepareRender(int numberOfPixelsInFrame, List<PixelFlutPixel> frame)
+    public void SetFrame(List<PixelBuffer> frame)
     {
-        // Update stats
-        stats.Frames++;
-        stats.NumberOfPixelsToDraw += frame.Count;
-
-        long framePixelNumber = 0;
-
-        for (int i = 0; i < preparedBuffers.Count; i++)
-        {
-            for (int pixelNumber = 0; pixelNumber < screenProtocol.PixelsPerBuffer; pixelNumber++)
-            {
-                // Selects the pixels to render
-                PixelFlutPixel randomPixel = PickNextPixel(
-                    frame,
-                    numberOfPixelsInFrame,
-                    framePixelNumber);
-
-                // Write the pixel to the buffer
-                screenProtocol.WriteToBuffer(
-                    preparedBuffers[i],
-                    pixelNumber,
-                    (int)randomPixel.X + configuration.OffsetX,
-                    (int)randomPixel.Y + configuration.OffsetY,
-                    randomPixel.R,
-                    randomPixel.G,
-                    randomPixel.B,
-                    randomPixel.A);
-                framePixelNumber++;
-            }
-
-            // Update stats
-            stats.NumberOfPixelsDrawn += screenProtocol.PixelsPerBuffer;
-            stats.BuffersPrepared++;
-        }
-
+        this.frame = frame;
+        stats.FramesFromGameLoop++;
+        stats.PixelBuffersFromGameLoop += frame.Count;
+        stats.PixelsFromGameLoop += frame.Sum(f => f.NumberOfPixels);
         PrintAndResetStats();
     }
 
@@ -187,25 +132,10 @@ public class PixelFlutScreenRenderer
         }
     }
 
-    private PixelFlutPixel PickRandomPixel(
-        IEnumerable<PixelFlutPixel> frame,
-        int numberOfPixelsInFrame)
-    {
-        int totalAmountOfPixels = Math.Min(numberOfPixelsInFrame, frame.Count());
-        return frame.ElementAt(Random.Shared.Next(totalAmountOfPixels));
-    }
-
-    private PixelFlutPixel PickNextPixel(
-       IEnumerable<PixelFlutPixel> frame,
-       int numberOfPixelsInFrame,
-       long framePixelNumber)
-    {
-        int index = (int)(framePixelNumber % numberOfPixelsInFrame);
-        return frame.ElementAt(index);
-    }
-
     public void Render()
     {
+        if (frame.Count == 0) return;
+
         // Pick a buffer to render
         byte[] sendBuffer = SelectNextBuffer();
 
@@ -224,15 +154,22 @@ public class PixelFlutScreenRenderer
         }
     }
 
-    private byte[] SelectRandomBuffer()
-    {
-        byte[] sendBuffer = preparedBuffers[Random.Shared.Next(preparedBuffers.Count)];
-        return sendBuffer;
-    }
-
     private byte[] SelectNextBuffer()
     {
-        byte[] sendBuffer = preparedBuffers[(int)(stats.TotalBuffersSent % preparedBuffers.Count)];
+        PixelBuffer buffer = frame[currentRenderFrameBuffer];
+        byte[] sendBuffer = buffer.Buffers[currentRenderByteBuffer];
+
+        // Increment to select the next buffer
+        currentRenderByteBuffer++;
+        if (currentRenderByteBuffer >= buffer.Buffers.Count)
+        {
+            currentRenderByteBuffer = 0;
+            currentRenderFrameBuffer++;
+            if (currentRenderFrameBuffer >= frame.Count)
+            {
+                currentRenderFrameBuffer = 0;
+            }
+        }
         return sendBuffer;
     }
 }

@@ -11,15 +11,23 @@ public class GameLoopConfiguration
     /// </summary>
     public double TargetGameLoopFPS { get; set; }
 
+
     /// <summary>
     /// Whether it should render a test image insteed of playing a game
     /// </summary>
-    public bool EnableTestImage { get; set; }
+    public TestImageType TestImage { get; set; }
 
     /// <summary>
     /// The test image offset
     /// </summary>
     public double TestImageOffset { get; set; }
+
+    public enum TestImageType
+    {
+        Disable,
+        Still,
+        Moving
+    }
 }
 
 public class GameLoopStats
@@ -63,15 +71,20 @@ public class GameLoop
         // Start the renderer
         renderer.StartRenderThreads(cancellationToken);
 
-        if (configuration.EnableTestImage)
+        switch (configuration.TestImage)
         {
-            testFraneGenerator.Startup();
-            RenderStillTestImage(cancellationToken);
-            //RenderMovingTestImage(renderers, cancellationToken);
-        }
-        else
-        {
-            RunGameLoop(cancellationToken);
+            case GameLoopConfiguration.TestImageType.Disable:
+                RunGameLoop(cancellationToken);
+                break;
+            case GameLoopConfiguration.TestImageType.Still:
+                testFraneGenerator.Startup();
+                RenderStillTestImage(cancellationToken);
+                break;
+            case GameLoopConfiguration.TestImageType.Moving:
+                testFraneGenerator.Startup();
+                RenderMovingTestImage(cancellationToken);
+                break;
+
         }
     }
 

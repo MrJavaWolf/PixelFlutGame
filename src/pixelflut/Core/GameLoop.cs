@@ -73,35 +73,31 @@ public class GameLoop
             t.Start();
         }
 
+
+        if (configuration.EnableTestImage)
+        {
+            RenderStillTestImage(renderers, cancellationToken);
+            //RenderMovingTestImage(renderers, cancellationToken);
+        }
+        else
+        {
+            RunGameLoop(renderers, cancellationToken);
+        }
+    }
+
+    private void RunGameLoop(List<PixelFlutScreenRenderer> renderers, CancellationToken cancellationToken)
+    {
         // Setup the timers
         Stopwatch loopTime = new();
         Stopwatch totalGameTimer = new();
         GameTime gameTime = new();
         totalGameTimer.Start();
 
-        if (configuration.EnableTestImage)
-        {
-            List<PixelBuffer> testFrame = testFraneGenerator.Generate(new GameTime()
-            {
-                TotalTime = TimeSpan.FromSeconds(configuration.TestImageOffset),
-            });
-            foreach (var renderer in renderers)
-                renderer.SetFrame(testFrame);
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                // Render the test frame
-                foreach (var renderer in renderers)
-                    renderer.PrintAndResetStats();
-                Thread.Sleep(50);
-            }
-            return;
-        }
-
         // Setup the game
         PongGame pong = provider.GetRequiredService<PongGame>();
         pong.Startup();
 
-        // RUn the game loop
+        // Run the game loop
         while (!cancellationToken.IsCancellationRequested)
         {
             // Update the times
@@ -111,6 +107,64 @@ public class GameLoop
 
             // Iterate the gameloop
             List<PixelBuffer> frame = Loop(pong, gameTime);
+
+            // Render the resulting pixels
+            foreach (var renderer in renderers)
+                renderer.SetFrame(frame);
+
+            // Calculate how much to sleep to hit our targeted FPS
+            int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
+
+            //Stats
+            stats.Frames++;
+            if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)
+            {
+                stats.SleepTime = sleepTimeMs;
+                stats.Time = gameTime;
+                logger.LogInformation("Gameloop: {@stats}", stats);
+                stats = new GameLoopStats();
+                statsPrinterStopwatch.Restart();
+            }
+
+            // Sleep to hit our targeted FPS
+            Thread.Sleep(sleepTimeMs);
+        }
+    }
+
+    private void RenderStillTestImage(List<PixelFlutScreenRenderer> renderers, CancellationToken cancellationToken)
+    {
+        List<PixelBuffer> testFrame = testFraneGenerator.Generate(new GameTime()
+        {
+            TotalTime = TimeSpan.FromSeconds(configuration.TestImageOffset),
+        });
+        foreach (var renderer in renderers)
+            renderer.SetFrame(testFrame);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            // Render the test frame
+            foreach (var renderer in renderers)
+                renderer.PrintAndResetStats();
+            Thread.Sleep(50);
+        }
+    }
+
+    private void RenderMovingTestImage(List<PixelFlutScreenRenderer> renderers, CancellationToken cancellationToken)
+    {
+        Stopwatch loopTime = new();
+        Stopwatch totalGameTimer = new();
+        totalGameTimer.Start();
+        GameTime gameTime = new();
+
+        // Run the game loop
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            // Update the times
+            gameTime.TotalTime = totalGameTimer.Elapsed;
+            gameTime.DeltaTime = loopTime.Elapsed;
+            loopTime.Restart();
+
+            // Iterate the gameloop
+            List<PixelBuffer> frame = testFraneGenerator.Generate(gameTime);
 
             // Render the resulting pixels
             foreach (var renderer in renderers)
@@ -147,6 +201,4 @@ public class GameLoop
     {
         return pong.Loop(time);
     }
-
-
 }

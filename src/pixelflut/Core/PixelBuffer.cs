@@ -41,14 +41,18 @@ public class PixelBuffer
             buffers.Add(screenProtocol.CreateBuffer());
         }
 
-        // Create a list with all positions in a random order
+        // Create the mappings
+        List<PixelBufferPosition> temp = new List<PixelBufferPosition>();
         for (int i = 0; i < buffers.Count; i++)
         {
-            for (int j = 0; j < buffers[i].Length; j++)
+            for (int j = 0; j < screenProtocol.PixelsPerBuffer; j++)
             {
-                mappings.Insert(Random.Shared.Next(0, mappings.Count), new PixelBufferPosition(i, j));
+                temp.Add(new PixelBufferPosition(i, j));
             }
         }
+
+        // Shuffles the mappings
+        mappings = temp.OrderBy(p => Random.Shared.Next(0, temp.Count)).ToList();
     }
 
     public void SetPixel(int pixelNumber, int X, int Y, byte R, byte G, byte B, byte A)

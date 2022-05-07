@@ -9,11 +9,14 @@ public class TestFraneGenerator
 
     public TestFraneGenerator(
         IPixelFlutScreenProtocol screenProtocol,
+        ILogger<TestFraneGenerator> logger,
         PixelFlutScreenRendererConfiguration screenConfiguration)
     {
         this.screenConfiguration = screenConfiguration;
+        logger.LogInformation("Creates pixel buffer for the test image...");
         PixelBuffer buffer = new PixelBuffer(screenConfiguration.ResultionY * screenConfiguration.ResultionX, screenProtocol);
         frame.Add(buffer);
+        logger.LogInformation("Pixel buffer for the test image is ready");
     }
 
     public List<PixelBuffer> Generate(GameTime time)

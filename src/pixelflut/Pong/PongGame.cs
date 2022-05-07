@@ -144,12 +144,11 @@ public class PongGame
         if (pongGameState != null)
             gameState = pongGameState;
 
-        if (frame.Count == 0)
-        {
-            int pixelsInFrame = PongFrameRenderer.CalculatePixelsInFrame(pongConfig, gameState);
-            PixelBuffer buffer = new PixelBuffer(pixelsInFrame, screenProtocol);
-            frame.Add(buffer);
-        }
+        logger.LogInformation("Creates pixelbuffer for pong game...");
+        int pixelsInFrame = PongFrameRenderer.CalculatePixelsInFrame(pongConfig, gameState);
+        PixelBuffer buffer = new PixelBuffer(pixelsInFrame, screenProtocol);
+        frame.Add(buffer);
+        logger.LogInformation("Pixel buffer for the pong game is ready");
     }
 
     public void Startup()

@@ -27,6 +27,8 @@ public class PixelBuffer
     /// </summary>
     public IReadOnlyList<byte[]> Buffers { get => buffers; }
 
+    public int PixelsPerBuffer { get => screenProtocol.PixelsPerBuffer; }
+
     public PixelBuffer(int numberOfPixels, IPixelFlutScreenProtocol screenProtocol)
     {
         if (numberOfPixels <= 0)

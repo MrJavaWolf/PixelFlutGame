@@ -4,21 +4,23 @@ namespace PixelFlut.Core;
 
 public class TestFraneGenerator
 {
-    private readonly IPixelFlutScreenProtocol screenProtocol;
     private readonly PixelFlutScreenRendererConfiguration screenConfiguration;
+    private List<PixelBuffer> frame = new();
 
     public TestFraneGenerator(
         IPixelFlutScreenProtocol screenProtocol,
         PixelFlutScreenRendererConfiguration screenConfiguration)
     {
-        this.screenProtocol = screenProtocol;
         this.screenConfiguration = screenConfiguration;
+        PixelBuffer buffer = new PixelBuffer(screenConfiguration.ResultionY * screenConfiguration.ResultionX, screenProtocol);
+        frame.Add(buffer);
     }
 
     public List<PixelBuffer> Generate(GameTime time)
     {
-        List<PixelBuffer> frame = new();
-        PixelBuffer buffer = new PixelBuffer(screenConfiguration.ResultionY * screenConfiguration.ResultionX, screenProtocol);
+        PixelBuffer buffer = frame[0];
+        int pixelNumber = 0;
+
         for (int y = 0; y < screenConfiguration.ResultionY; y++)
             for (int x = 0; x < screenConfiguration.ResultionX; x++)
             {
@@ -26,7 +28,6 @@ public class TestFraneGenerator
                     (x + y + time.TotalTime.TotalSeconds * 100) * 0.3 % 360,
                     1,
                     1);
-                int pixelNumber = y * x + x;
                 buffer.SetPixel(
                     pixelNumber,
                     x,
@@ -35,8 +36,8 @@ public class TestFraneGenerator
                     c.G,
                     c.B,
                     255);
+                pixelNumber++;
             }
-        frame.Add(buffer);
         return frame;
     }
 

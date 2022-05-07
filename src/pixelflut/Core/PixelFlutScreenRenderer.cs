@@ -50,6 +50,11 @@ public class PixelFlutScreenStats
     public long BytesSent { get; set; }
 
     /// <summary>
+    /// How many pixels is sent
+    /// </summary>
+    public long PixelsSent { get; set; }
+
+    /// <summary>
     /// How many buffers is sent
     /// </summary>
     public long BuffersSent { get; set; }
@@ -137,13 +142,14 @@ public class PixelFlutScreenRenderer
         if (frame.Count == 0) return;
 
         // Pick a buffer to render
-        byte[] sendBuffer = SelectNextBuffer();
+        (int pixels, byte[] sendBuffer) = SelectNextBuffer();
 
         // Send 
         int bytesSent = socket.SendTo(sendBuffer, endPoint);
 
         // Update stats
         stats.BytesSent += bytesSent;
+        stats.PixelsSent += pixels;
         stats.BuffersSent++;
         stats.TotalBuffersSent++;
 
@@ -154,10 +160,11 @@ public class PixelFlutScreenRenderer
         }
     }
 
-    private byte[] SelectNextBuffer()
+    private (int pixels, byte[] sendBuffer) SelectNextBuffer()
     {
         PixelBuffer buffer = frame[currentRenderFrameBuffer];
         byte[] sendBuffer = buffer.Buffers[currentRenderByteBuffer];
+        int pixelsPerBuffer = buffer.PixelsPerBuffer;
 
         // Increment to select the next buffer
         currentRenderByteBuffer++;
@@ -170,7 +177,7 @@ public class PixelFlutScreenRenderer
                 currentRenderFrameBuffer = 0;
             }
         }
-        return sendBuffer;
+        return (pixelsPerBuffer, sendBuffer);
     }
 }
 

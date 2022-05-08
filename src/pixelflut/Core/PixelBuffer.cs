@@ -7,15 +7,13 @@ public class PixelBuffer
     // The protocol we are using
     private readonly IPixelFlutScreenProtocol screenProtocol;
 
-    // Buffers used for sending the bytes
-    private readonly List<byte[]> buffers = new();
 
     /// <summary>
     /// To make the rendering look visually more pleaseing, we use a mapping from pixel number to actual buffer and index in buffer position .
     /// Instead of map a range of pixels next to each other into the same buffer, we split pixels next to each other into different buffers. 
     /// This list is to keep track of where each pixel is places in the buffers
     /// </summary>
-    private List<PixelBufferPosition> mappings = new();
+    private PixelBufferPosition[] mappings;
 
     /// <summary>
     /// The total number of pixels in this buffer
@@ -26,6 +24,9 @@ public class PixelBuffer
     /// The buffers you can send to the pixel flut
     /// </summary>
     public IReadOnlyList<byte[]> Buffers { get => buffers; }
+
+    // Buffers used for sending the bytes
+    private readonly List<byte[]> buffers = new();
 
     public int PixelsPerBuffer { get => screenProtocol.PixelsPerBuffer; }
 
@@ -44,17 +45,36 @@ public class PixelBuffer
         }
 
         // Create the mappings
-        List<PixelBufferPosition> temp = new List<PixelBufferPosition>();
+        mappings = new PixelBufferPosition[buffers.Count * screenProtocol.PixelsPerBuffer];
         for (int i = 0; i < buffers.Count; i++)
         {
             for (int j = 0; j < screenProtocol.PixelsPerBuffer; j++)
             {
-                temp.Add(new PixelBufferPosition(i, j));
+                mappings[i * screenProtocol.PixelsPerBuffer + j] = new PixelBufferPosition(i, j);
             }
         }
 
         // Shuffles the mappings
-        mappings = temp.OrderBy(p => Random.Shared.Next(0, temp.Count)).ToList();
+        FisherYatesShuffle(mappings);
+    }
+
+    /// <summary>
+    /// Do an in-place shuffle
+    /// https://stackoverflow.com/questions/273313/randomize-a-listt
+    /// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    /// </summary>
+    /// <param name="array">The array that will be shuffles</param>
+    private void FisherYatesShuffle<T>(T[] array)
+    {
+        int n = array.Length;
+        while (n > 1)
+        {
+            n--;
+            int k = Random.Shared.Next(n + 1);
+            T value = array[k];
+            array[k] = array[n];
+            array[n] = value;
+        }
     }
 
     public void SetPixel(int pixelNumber, int X, int Y, byte R, byte G, byte B, byte A)

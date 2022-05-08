@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 
 namespace PixelFlut.Core;
 
@@ -21,10 +22,12 @@ public class TestFrameGenerator
 
     public void Startup()
     {
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         logger.LogInformation("Creates pixel buffer for the test image...");
         PixelBuffer buffer = new PixelBuffer(screenConfiguration.ResultionY * screenConfiguration.ResultionX, screenProtocol);
         frame.Add(buffer);
-        logger.LogInformation("Pixel buffer for the test image is ready");
+        logger.LogInformation($"Pixel buffer for the test image is ready, time took to create: {sw.ElapsedMilliseconds} ms");
     }
 
     public List<PixelBuffer> Generate(GameTime time)

@@ -4,7 +4,7 @@ using System.Net.Sockets;
 
 namespace PixelFlut.Core;
 
-public class PixelFlutScreenRendererConfiguration
+public class PixelFlutScreenConfiguration
 {
     /// <summary>
     /// The IP of the Pixelflut
@@ -85,10 +85,10 @@ public class PixelFlutScreenStats
     public long PixelsFromGameLoop { get; set; }
 }
 
-public class PixelFlutScreenRenderer
+public class PixelFlutScreen
 {
     // Generel
-    private readonly ILogger<PixelFlutScreenRenderer> logger;
+    private readonly ILogger<PixelFlutScreen> logger;
 
     // Stats
     private Stopwatch statsPrinterStopwatch = new();
@@ -98,18 +98,18 @@ public class PixelFlutScreenRenderer
     private List<PixelBuffer> frame = new();
 
     // Senders
-    private List<PixelFlutSender> senders = new();
+    private List<PixelFlutScreenSender> senders = new();
 
-    public PixelFlutScreenRenderer(
-        PixelFlutScreenRendererConfiguration configuration,
-        ILogger<PixelFlutScreenRenderer> logger)
+    public PixelFlutScreen(
+        PixelFlutScreenConfiguration configuration,
+        ILogger<PixelFlutScreen> logger)
     {
         this.logger = logger;
         logger.LogInformation($"PixelFlutScreen: {{@pixelFlutScreen}}", configuration);
 
         for (int i = 0; i < configuration.SenderThreads; i++)
         {
-            senders.Add(new PixelFlutSender(configuration));
+            senders.Add(new PixelFlutScreenSender(configuration));
         }
 
         // Stats counter
@@ -159,13 +159,13 @@ public class PixelFlutScreenRenderer
     {
         for (int i = 0; i < senders.Count; i++)
         {
-            PixelFlutSender sender = senders[i];
+            PixelFlutScreenSender sender = senders[i];
             Thread thread = new(() => SenderThread(sender, token));
             thread.Start();
         }
     }
 
-    private void SenderThread(PixelFlutSender sender, CancellationToken token)
+    private void SenderThread(PixelFlutScreenSender sender, CancellationToken token)
     {
         while (!token.IsCancellationRequested)
         {

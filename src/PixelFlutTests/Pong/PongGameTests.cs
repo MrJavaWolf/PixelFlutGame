@@ -10,9 +10,9 @@ namespace PixelFlut.Pong.Tests
     public class PongGameTests
     {
         PongConfiguration pongConfig = null!;
-        PixelFlutScreenRendererConfiguration pixelFlutRendererConfiguration = null!;
+        PixelFlutScreenConfiguration pixelFlutRendererConfiguration = null!;
         PongGameState pongGameState = null!;
-        Mock<IPixelFlutInput> input = null!;
+        Mock<IGamePadInput> input = null!;
         PongGame pongGame = null!;
 
         [TestInitialize]

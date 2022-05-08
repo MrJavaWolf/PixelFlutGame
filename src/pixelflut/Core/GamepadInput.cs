@@ -19,7 +19,7 @@ public class PixelFlutGamepadConfiguration
     public float DeadzoneSize { get; set; }
 }
 
-public class PixelFlutGamepad : IPixelFlutInput
+public class GamepadInput : IGamePadInput
 {
     private static class ButtonId
     {
@@ -54,12 +54,12 @@ public class PixelFlutGamepad : IPixelFlutInput
     public bool IsSelectButtonPressed { get; set; } = false;
 
     private readonly PixelFlutGamepadConfiguration configuration;
-    private ILogger<PixelFlutGamepad> logger;
+    private ILogger<GamepadInput> logger;
     private ILogger<Devices> devicesLogger;
 
-    public PixelFlutGamepad(
+    public GamepadInput(
         PixelFlutGamepadConfiguration configuration,
-        ILogger<PixelFlutGamepad> logger,
+        ILogger<GamepadInput> logger,
         ILogger<Devices> devicesLogger)
     {
         this.configuration = configuration;

@@ -41,7 +41,7 @@ public class GameLoop
 {
     // Generel
     private readonly ILogger<GameLoop> logger;
-    private readonly PixelFlutScreenRenderer renderer;
+    private readonly PixelFlutScreen renderer;
     private readonly TestFrameGenerator testFraneGenerator;
     private readonly IServiceProvider provider;
     private readonly GameLoopConfiguration configuration;
@@ -52,7 +52,7 @@ public class GameLoop
 
     public GameLoop(
         ILogger<GameLoop> logger,
-        PixelFlutScreenRenderer renderer,
+        PixelFlutScreen renderer,
         TestFrameGenerator testFraneGenerator,
         IServiceProvider provider,
         GameLoopConfiguration configuration)

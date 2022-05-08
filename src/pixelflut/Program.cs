@@ -15,7 +15,7 @@ public class Program
                         .AddEnvironmentVariables()
                         .AddCommandLine(args)
                         .Build();
-        PixelFlutScreenRendererConfiguration rendererConfig = Configuration.GetSection("Renderer").Get<PixelFlutScreenRendererConfiguration>();
+        PixelFlutScreenConfiguration rendererConfig = Configuration.GetSection("Screen").Get<PixelFlutScreenConfiguration>();
         PixelFlutGamepadConfiguration gamepadConfig = Configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>();
         GameLoopConfiguration gameloopConfig = Configuration.GetSection("GameLoop").Get<GameLoopConfiguration>();
         PongConfiguration pongConfig = Configuration.GetSection("Pong").Get<PongConfiguration>();
@@ -29,19 +29,19 @@ public class Program
         services.AddSingleton(pongConfig);
 
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
-        services.AddSingleton<PixelFlutGamepad>();
-        services.AddSingleton<IPixelFlutInput>(s => s.GetRequiredService<PixelFlutGamepad>());
+        services.AddSingleton<GamepadInput>();
+        services.AddSingleton<IGamePadInput>(s => s.GetRequiredService<GamepadInput>());
         services.AddSingleton<PongGame>();
         services.AddSingleton<GameLoop>();
         services.AddSingleton<TestFrameGenerator>();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
-        services.AddTransient<PixelFlutScreenRenderer>();
+        services.AddTransient<PixelFlutScreen>();
         ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         // Create pixel game loop
         ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
         logger.LogInformation($"- - - - - Starting pixelflut game - - - - - ");
-        PixelFlutGamepad gamepad = serviceProvider.GetRequiredService<PixelFlutGamepad>();
+        GamepadInput gamepad = serviceProvider.GetRequiredService<GamepadInput>();
         GameLoop gameLoop = serviceProvider.GetRequiredService<GameLoop>();
 
         // Setup gracefull shutdown

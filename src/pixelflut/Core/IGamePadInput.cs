@@ -1,6 +1,6 @@
 ﻿namespace PixelFlut.Core;
 
-public interface IPixelFlutInput
+public interface IGamePadInput
 {
 
     /// <summary>

@@ -7,13 +7,13 @@ public class TestFrameGenerator
 {
     private readonly IPixelFlutScreenProtocol screenProtocol;
     private readonly ILogger<TestFrameGenerator> logger;
-    private readonly PixelFlutScreenRendererConfiguration screenConfiguration;
+    private readonly PixelFlutScreenConfiguration screenConfiguration;
     private List<PixelBuffer> frame = new();
 
     public TestFrameGenerator(
         IPixelFlutScreenProtocol screenProtocol,
         ILogger<TestFrameGenerator> logger,
-        PixelFlutScreenRendererConfiguration screenConfiguration)
+        PixelFlutScreenConfiguration screenConfiguration)
     {
         this.screenProtocol = screenProtocol;
         this.logger = logger;

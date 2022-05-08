@@ -121,8 +121,8 @@ public class PongGameState
 public class PongGame
 {
     private readonly PongConfiguration pongConfig;
-    private readonly IPixelFlutInput input;
-    private readonly PixelFlutScreenRendererConfiguration screenConfig;
+    private readonly IGamePadInput input;
+    private readonly PixelFlutScreenConfiguration screenConfig;
     private readonly IPixelFlutScreenProtocol screenProtocol;
     private readonly ILogger<PongGame> logger;
     private PongGameState gameState = new();
@@ -132,8 +132,8 @@ public class PongGame
 
     public PongGame(
         PongConfiguration pongConfig,
-        IPixelFlutInput input,
-        PixelFlutScreenRendererConfiguration screenConfig,
+        IGamePadInput input,
+        PixelFlutScreenConfiguration screenConfig,
         IPixelFlutScreenProtocol screenProtocol,
         ILogger<PongGame> logger,
         PongGameState? pongGameState = null)

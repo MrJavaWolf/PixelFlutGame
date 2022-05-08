@@ -3,9 +3,9 @@ using System.Net.Sockets;
 
 namespace PixelFlut.Core
 {
-    public class PixelFlutSender
+    public class PixelFlutScreenSender
     {
-        private readonly PixelFlutScreenRendererConfiguration configuration;
+        private readonly PixelFlutScreenConfiguration configuration;
 
         // Connection
         private Socket socket;
@@ -15,7 +15,7 @@ namespace PixelFlut.Core
         private int currentRenderByteBuffer = 0;
 
 
-        public PixelFlutSender(PixelFlutScreenRendererConfiguration configuration)
+        public PixelFlutScreenSender(PixelFlutScreenConfiguration configuration)
         {
             this.configuration = configuration;
          

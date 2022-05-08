@@ -25,12 +25,6 @@ namespace PixelFlut.Core
             endPoint = new IPEndPoint(serverAddr, configuration.Port);
         }
 
-        public void Reset()
-        {
-            currentRenderFrameBuffer = 0;
-            currentRenderByteBuffer = 0;
-        }
-
         public void Render(List<PixelBuffer> frame, PixelFlutScreenStats stats)
         {
             if (frame.Count == 0) return;

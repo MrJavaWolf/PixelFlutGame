@@ -1,4 +1,6 @@
-﻿namespace PixelFlut.Core;
+﻿using System.Drawing;
+
+namespace PixelFlut.Core;
 
 record PixelBufferPosition(int buffer, int position);
 
@@ -86,6 +88,12 @@ public class PixelBuffer
 
         PixelBufferPosition position = mappings[pixelNumber];
         byte[] buffer = buffers[position.buffer];
+        if (Y < 0 || X < 0) return;
         screenProtocol.WriteToBuffer(buffer, position.position, X, Y, R, G, B, A);
+    }
+
+    public void SetPixel(int pixelNumber, int X, int Y, Color c)
+    {
+        SetPixel(pixelNumber, X, Y, c.R, c.G, c.B, c.A);
     }
 }

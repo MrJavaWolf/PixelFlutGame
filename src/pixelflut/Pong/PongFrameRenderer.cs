@@ -1,4 +1,6 @@
 ﻿using PixelFlut.Core;
+using System.Drawing;
+
 namespace PixelFlut.Pong;
 
 public class PongFrameRenderer
@@ -66,15 +68,7 @@ public class PongFrameRenderer
             {
                 int ballPixelX = (int)gameState.BallPosition.X - pongConfig.BallBorder - pongConfig.BallRadius + x;
                 int ballPixelY = (int)gameState.BallPosition.Y - pongConfig.BallBorder - pongConfig.BallRadius + y;
-                if (ballPixelX < 0 || ballPixelY < 0)
-                {
-                    DrawPixelWithBackgroundColor(
-                        buffer,
-                        pixelOffset + numberOfPixels,
-                        0,
-                        0);
-                }
-                else if (x < pongConfig.BallBorder ||
+                if (x < pongConfig.BallBorder ||
                     y < pongConfig.BallBorder ||
                     x > pongConfig.BallRadius * 2 + pongConfig.BallBorder ||
                     y > pongConfig.BallRadius * 2 + pongConfig.BallBorder)
@@ -107,37 +101,56 @@ public class PongFrameRenderer
         PixelBuffer? buffer)
     {
         int numberOfPixels = 0;
-        for (int x = 0; x < pongConfig.PlayerWidth; x++)
+
+        // Draw playerborder above the player, this will make it easiere to see the player
+        for (int x = playerPositionX; x < playerPositionX + pongConfig.PlayerWidth; x++)
         {
-            for (int y = 0; y < pongConfig.PlayerHeight + pongConfig.PlayerBorder * 2; y++)
+            for (int y = playerPositionY - pongConfig.PlayerBorder; y < playerPositionY; y++)
             {
-                int playerPixelX = playerPositionX + x;
-                int playerPixelY = playerPositionY - pongConfig.PlayerBorder + y;
-                if (playerPixelY < 0)
-                {
-                    DrawPixelWithBackgroundColor(
-                        buffer,
-                        pixelOffset + numberOfPixels,
-                        0,
-                        0);
-                }
-                else if (y < pongConfig.PlayerBorder ||
-                    y > pongConfig.PlayerHeight + pongConfig.PlayerBorder)
-                {
-                    DrawPixelWithBackgroundColor(
-                        buffer,
-                        pixelOffset + numberOfPixels,
-                        playerPixelX,
-                        playerPixelY);
-                }
+                DrawPixelWithBackgroundColor(
+                    buffer,
+                    pixelOffset + numberOfPixels,
+                    x,
+                    y);
+                numberOfPixels++;
+            }
+        }
+
+        // Draw playerborder below the player, this will make it easiere to see the player
+        for (int x = playerPositionX; x < playerPositionX + pongConfig.PlayerWidth; x++)
+        {
+            int yStart = playerPositionY + pongConfig.PlayerHeight + 1;
+            int yEnd = playerPositionY + pongConfig.PlayerHeight + 1 + pongConfig.PlayerBorder;
+            for (int y = yStart; y < yEnd; y++)
+            {
+                DrawPixelWithBackgroundColor(
+                    buffer,
+                    pixelOffset + numberOfPixels,
+                    x,
+                    y);
+                numberOfPixels++;
+            }
+        }
+
+        // Draw player
+        for (int x = playerPositionX; x < playerPositionX + pongConfig.PlayerWidth; x++)
+        {
+            for (int y = playerPositionY; y < playerPositionY + pongConfig.PlayerHeight; y++)
+            {
+                Color c;
+                if (y >= playerPositionY + 5 && y <= playerPositionY + 10)
+                    // Top stripe
+                    c = Color.Black;
+                else if (y >= playerPositionY + pongConfig.PlayerHeight - 10 && y <= playerPositionY + pongConfig.PlayerHeight - 5)
+                    // Bottom stripe
+                    c = Color.Black;
                 else
-                {
-                    DrawPixelWithPlayerColor(
-                        buffer,
-                        pixelOffset + numberOfPixels,
-                        playerPixelX,
-                        playerPixelY);
-                }
+                    c = Color.White;
+                buffer?.SetPixel(
+                      pixelOffset + numberOfPixels,
+                      x,
+                      y,
+                      c);
                 numberOfPixels++;
             }
         }

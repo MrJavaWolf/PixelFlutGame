@@ -118,11 +118,7 @@ public class PixelFlutScreen
 
     public void SetFrame(List<PixelBuffer> frame)
     {
-        this.frame = frame;
-        for (int i = 0; i < senders.Count; i++)
-        {
-            senders[i].Reset();
-        }
+        this.frame = frame.ToList(); // Make a copy to ensure the caller does not change it doing sending
         stats.FramesFromGameLoop++;
         stats.PixelBuffersFromGameLoop += frame.Count;
         stats.PixelsFromGameLoop += frame.Sum(f => f.NumberOfPixels);

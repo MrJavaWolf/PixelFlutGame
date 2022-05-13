@@ -116,6 +116,8 @@ public class PongGameState
     /// </summary>
     public int Player2Score { get; set; } = 0;
 
+
+
 }
 
 public class PongGame
@@ -129,6 +131,10 @@ public class PongGame
     private List<PixelBuffer> frame = new();
     public int MinimumYPlayerPosition { get => 0; }
     public int MaximumYPlayerPosition { get => screenConfig.ResultionY - pongConfig.PlayerHeight; }
+
+    public PongBallBounceParticalEffect ballWallBounceEffect;
+    public PongBallBounceParticalEffect ballPlayerBounceEffect;
+    public PongBallBounceParticalEffect ballGoalEffect;
 
     public PongGame(
         PongConfiguration pongConfig,
@@ -146,7 +152,9 @@ public class PongGame
         if (pongGameState != null)
             gameState = pongGameState;
 
-   
+        ballWallBounceEffect = new(PongBallBounceParticalEffect.WallBounce, screenProtocol);
+        ballPlayerBounceEffect = new(PongBallBounceParticalEffect.PlayerBounce, screenProtocol);
+        ballGoalEffect = new(PongBallBounceParticalEffect.Goal, screenProtocol);
     }
 
     public void Startup()
@@ -206,9 +214,34 @@ public class PongGame
         // Update ball
         UpdateBall(time);
 
+        // Update effects
+        UpdateEffect(ballWallBounceEffect, time);
+        UpdateEffect(ballPlayerBounceEffect, time);
+        UpdateEffect(ballGoalEffect, time);
+
         // Renderer
         PongFrameRenderer.DrawFrame(pongConfig, gameState, frame[0], time);
         return frame;
+    }
+
+    private void UpdateEffect(PongBallBounceParticalEffect effect, GameTime time)
+    {
+        if (effect.IsAlive)
+        {
+            effect.Loop(time);
+            effect.Renderer();
+            if (!frame.Contains(effect.PixelBuffer))
+            {
+                frame.Add(effect.PixelBuffer);
+            }
+        }
+        else
+        {
+            if (frame.Contains(effect.PixelBuffer))
+            {
+                frame.Remove(effect.PixelBuffer);
+            }
+        }
     }
 
     private double GetPlayer2Input()
@@ -230,7 +263,7 @@ public class PongGame
         UpdateBallPosition(time);
 
         // Handle if the ball was hit by a player
-        HandlePlayerHit(previousBallPosition);
+        HandlePlayerHit(previousBallPosition, time);
 
         // Goal by player 1
         if (gameState.BallPosition.X > screenConfig.ResultionX)
@@ -238,6 +271,7 @@ public class PongGame
             gameState.Player1Score++;
             logger.LogInformation("GOAL - Player 1 scores");
             logger.LogInformation($"Player 1: {gameState.Player1Score} VS Player 2: {gameState.Player2Score}");
+            ballGoalEffect.Start(gameState.BallPosition, new Vector2(-1, 0), time.TotalTime);
             ResetBall();
         }
 
@@ -247,6 +281,7 @@ public class PongGame
             gameState.Player2Score++;
             logger.LogInformation("GOAL - Player 2 scores");
             logger.LogInformation($"Player 1: {gameState.Player1Score} VS Player 2: {gameState.Player2Score}");
+            ballGoalEffect.Start(gameState.BallPosition, new Vector2(1, 0), time.TotalTime);
             ResetBall();
         }
     }
@@ -263,6 +298,14 @@ public class PongGame
         {
             gameState.BallVerlocity = new(gameState.BallVerlocity.X, -gameState.BallVerlocity.Y);
             wantedNewBallPositionY = Math.Clamp(wantedNewBallPositionY, 0, screenConfig.ResultionY);
+
+            Vector2 effectDirection = gameState.BallVerlocity.Y > 0 ?
+                new Vector2(0, 1):
+                new Vector2(0, -1);
+            ballWallBounceEffect.Start(
+                new Vector2(wantedNewBallPositionX, wantedNewBallPositionY),
+                effectDirection,
+                time.TotalTime);
             logger.LogInformation("Ball bounced against top/bottom");
         }
 
@@ -270,12 +313,12 @@ public class PongGame
         gameState.BallPosition = new(wantedNewBallPositionX, wantedNewBallPositionY);
     }
 
-    private void HandlePlayerHit(Vector2 previousBallPosition)
+    private void HandlePlayerHit(Vector2 previousBallPosition, GameTime time)
     {
         // Check if the ball was hit by Player 1 
         if (IntersectsPlayerWithBall(gameState.Player1Position, 1))
         {
-            HandlePlayerBounce(gameState.Player1Position, 1);
+            HandlePlayerBounce(gameState.Player1Position, 1, time);
             return;
         }
 
@@ -291,14 +334,14 @@ public class PongGame
             intersectionPlayer1.lineStatus == IntersectionCalculator.Line.EntryExit)
         {
             gameState.BallPosition = new(intersectionPlayer1.EntryPoint.X, intersectionPlayer1.EntryPoint.Y);
-            HandlePlayerBounce(gameState.Player1Position, 1);
+            HandlePlayerBounce(gameState.Player1Position, 1, time);
             return;
         }
 
         // Check if the ball was hit by Player 2
         if (IntersectsPlayerWithBall(gameState.Player2Position, -1))
         {
-            HandlePlayerBounce(gameState.Player2Position, -1);
+            HandlePlayerBounce(gameState.Player2Position, -1, time);
             return;
         }
 
@@ -314,16 +357,20 @@ public class PongGame
             intersectionPlayer2.lineStatus == IntersectionCalculator.Line.EntryExit)
         {
             gameState.BallPosition = new(intersectionPlayer2.EntryPoint.X, intersectionPlayer2.EntryPoint.Y);
-            HandlePlayerBounce(gameState.Player2Position, -1);
+            HandlePlayerBounce(gameState.Player2Position, -1, time);
             return;
         }
     }
 
-    private void HandlePlayerBounce(Vector2 playerPosition, int xDirectionModifier)
+    private void HandlePlayerBounce(
+        Vector2 playerPosition, 
+        int xDirectionModifier, 
+        GameTime time)
     {
         gameState.BallBounces++;
         double newballSpeed = pongConfig.BallStartSpeed + (pongConfig.BallSpeedIncrease * gameState.BallBounces);
         logger.LogInformation($"Player hits the ball. Number of player bounces: {gameState.BallBounces}, new ball speed: {newballSpeed}");
+
 
         Vector2 direction = CalculateRebounceDirection(playerPosition.Y, pongConfig.PlayerHeight, gameState.BallPosition.Y);
         gameState.BallVerlocity = new(
@@ -332,6 +379,10 @@ public class PongGame
         gameState.BallPosition = new(
             playerPosition.X + xDirectionModifier * (pongConfig.PlayerWidth + pongConfig.BallRadius + 1),
             gameState.BallPosition.Y);
+        ballPlayerBounceEffect.Start(
+            gameState.BallPosition, 
+            new Vector2(xDirectionModifier, 0),
+            time.TotalTime);
     }
 
     private Vector2 CalculateRebounceDirection(

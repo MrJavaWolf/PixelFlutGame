@@ -207,7 +207,7 @@ public class PongGame
         UpdateBall(time);
 
         // Renderer
-        PongFrameRenderer.DrawFrame(pongConfig, gameState, frame[0]);
+        PongFrameRenderer.DrawFrame(pongConfig, gameState, frame[0], time);
         return frame;
     }
 
@@ -342,33 +342,9 @@ public class PongGame
         float minAngleRadians = pongConfig.PlayerMaxRebounceAngle;
         float maxAngleRadians = (float)Math.PI - pongConfig.PlayerMaxRebounceAngle;
 
-        float radians = RemapRange(ballY, playerY, playerY + playerHeight, minAngleRadians, maxAngleRadians);
+        float radians = MathHelper.RemapRange(ballY, playerY, playerY + playerHeight, minAngleRadians, maxAngleRadians);
         Vector2 direction = new((float)Math.Sin(radians), -(float)Math.Cos(radians));
         return direction;
-    }
-
-    public static Vector2 Rotate(Vector2 v, double degrees)
-    {
-        return new Vector2(
-            (float)(v.X * Math.Cos(degrees) - v.Y * Math.Sin(degrees)),
-            (float)(v.X * Math.Sin(degrees) + v.Y * Math.Cos(degrees))
-        );
-    }
-
-
-    public static float RemapRange(float from, float fromMin, float fromMax, float toMin, float toMax)
-    {
-        var fromAbs = from - fromMin;
-        var fromMaxAbs = fromMax - fromMin;
-
-        var normal = fromAbs / fromMaxAbs;
-
-        var toMaxAbs = toMax - toMin;
-        var toAbs = toMaxAbs * normal;
-
-        var to = toAbs + toMin;
-
-        return to;
     }
 
     bool IntersectsPlayerWithBall(Vector2 playerPosition, int xDirectionModifier)
@@ -380,8 +356,6 @@ public class PongGame
             playerPosition.Y + pongConfig.PlayerHeight / 2,
             pongConfig.PlayerWidth,
             pongConfig.PlayerHeight);
-
-
 
     private Vector2 CalculateNewPlayerPosition(Vector2 currentPosition, double yInput, GameTime time)
     {

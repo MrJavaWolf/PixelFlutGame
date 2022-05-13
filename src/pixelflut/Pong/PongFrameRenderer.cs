@@ -126,28 +126,32 @@ public class PongFrameRenderer
             for (int y = playerPositionY; y < playerPositionY + pongConfig.PlayerHeight; y++)
             {
                 Color c;
+                // Top stripe
                 if (y >= playerPositionY + 5 && y <= playerPositionY + 10)
-                    // Top stripe
                     c = Color.Black;
+
+                // Bottom stripe
                 else if (y >= playerPositionY + pongConfig.PlayerHeight - 10 && y <= playerPositionY + pongConfig.PlayerHeight - 5)
-                    // Bottom stripe
                     c = Color.Black;
-                else if (x > playerPositionX + 2 &&
-                    x < playerPositionX + pongConfig.PlayerWidth - 2 &&
-                    y > playerPositionY + 10 &&
-                    y <= playerPositionY + pongConfig.PlayerHeight - 10)
-                {
-                    Color startColor = Color.White;
-                    Color endColor = Color.Black;
-                    int localY = (y - playerPositionY);
-                    float middlePoint = pongConfig.PlayerHeight / 2.0f;
-                    float amount = localY < middlePoint ?
-                        MathHelper.RemapRange(localY, 0, middlePoint, 0, 1) :
-                        (1 - MathHelper.RemapRange(localY, middlePoint, pongConfig.PlayerHeight, 0, 1));
-                    c = startColor.Lerp(endColor, amount);
-                }
-                else
-                    c = Color.White;
+
+                //// A center white/black gradient inside the player
+                //else if (x > playerPositionX + 2 &&
+                //    x < playerPositionX + pongConfig.PlayerWidth - 2 &&
+                //    y > playerPositionY + 10 &&
+                //    y <= playerPositionY + pongConfig.PlayerHeight - 10)
+                //{
+                //    Color startColor = Color.White;
+                //    Color endColor = Color.Black;
+                //    int localY = (y - playerPositionY);
+                //    float middlePoint = pongConfig.PlayerHeight / 2.0f;
+                //    float amount = localY < middlePoint ?
+                //        MathHelper.RemapRange(localY, 0, middlePoint, 0, 1) :
+                //        (1 - MathHelper.RemapRange(localY, middlePoint, pongConfig.PlayerHeight, 0, 1));
+                //    c = startColor.Lerp(endColor, amount);
+                //}
+
+                // Normal color
+                else c = Color.White;
 
                 buffer?.SetPixel(
                       pixelOffset + numberOfPixels,

@@ -26,7 +26,8 @@ public class GameLoopConfiguration
     {
         Disable,
         Still,
-        Moving
+        Moving,
+        Black
     }
 }
 
@@ -84,6 +85,10 @@ public class GameLoop
                 testFraneGenerator.Startup();
                 RenderMovingTestImage(cancellationToken);
                 break;
+            case GameLoopConfiguration.TestImageType.Black:
+                testFraneGenerator.Startup();
+                RenderBlackTestImage(cancellationToken);
+                break;
 
         }
     }
@@ -130,6 +135,18 @@ public class GameLoop
 
             // Sleep to hit our targeted FPS
             Thread.Sleep(sleepTimeMs);
+        }
+    }
+
+    private void RenderBlackTestImage(CancellationToken cancellationToken)
+    {
+        List<PixelBuffer> testFrame = testFraneGenerator.GenerateBlackFrame();
+        renderer.SetFrame(testFrame);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            // Render the test frame
+            renderer.PrintAndResetStats();
+            Thread.Sleep(50);
         }
     }
 

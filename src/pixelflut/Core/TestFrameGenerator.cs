@@ -55,6 +55,26 @@ public class TestFrameGenerator
         return frame;
     }
 
+    public List<PixelBuffer> GenerateBlackFrame()
+    {
+        PixelBuffer buffer = frame[0];
+        int pixelNumber = 0;
+        for (int y = 0; y < screenConfiguration.ResultionY; y++)
+            for (int x = 0; x < screenConfiguration.ResultionX; x++)
+            {
+                buffer.SetPixel(
+                    pixelNumber,
+                    x,
+                    y,
+                    0,
+                    0,
+                    0,
+                    255);
+                pixelNumber++;
+            }
+        return frame;
+    }
+
     public static Color ColorFromHSV(double hue, double saturation, double value)
     {
         int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;

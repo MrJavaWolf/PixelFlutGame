@@ -5,6 +5,8 @@ namespace PixelFlut.Pong;
 
 public class PongFrameRenderer
 {
+    private static readonly Color BallColor = Color.White;
+    private static readonly Color BackgroundColor = Color.Black;
     public static int CalculatePixelsInFrame(
         PongConfiguration pongConfig,
         PongGameState gameState)
@@ -73,19 +75,11 @@ public class PongFrameRenderer
                     x > pongConfig.BallRadius * 2 + pongConfig.BallBorder ||
                     y > pongConfig.BallRadius * 2 + pongConfig.BallBorder)
                 {
-                    DrawPixelWithBackgroundColor(
-                        buffer,
-                        pixelOffset + numberOfPixels,
-                        ballPixelX,
-                        ballPixelY);
+                    buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, BackgroundColor);
                 }
                 else
                 {
-                    DrawPixelWithBallColor(
-                        buffer,
-                        pixelOffset + numberOfPixels,
-                        ballPixelX,
-                        ballPixelY);
+                    buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, BallColor);
                 }
                 numberOfPixels++;
             }
@@ -107,11 +101,7 @@ public class PongFrameRenderer
         {
             for (int y = playerPositionY - pongConfig.PlayerBorder; y < playerPositionY; y++)
             {
-                DrawPixelWithBackgroundColor(
-                    buffer,
-                    pixelOffset + numberOfPixels,
-                    x,
-                    y);
+                buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, BackgroundColor);
                 numberOfPixels++;
             }
         }
@@ -123,11 +113,7 @@ public class PongFrameRenderer
             int yEnd = playerPositionY + pongConfig.PlayerHeight + 1 + pongConfig.PlayerBorder;
             for (int y = yStart; y < yEnd; y++)
             {
-                DrawPixelWithBackgroundColor(
-                    buffer,
-                    pixelOffset + numberOfPixels,
-                    x,
-                    y);
+                buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, BackgroundColor);
                 numberOfPixels++;
             }
         }
@@ -155,53 +141,5 @@ public class PongFrameRenderer
             }
         }
         return numberOfPixels;
-    }
-
-    private static void DrawPixelWithBallColor(
-        PixelBuffer? buffer,
-        int pixelNumber,
-        int x,
-        int y)
-    {
-        buffer?.SetPixel(
-         pixelNumber,
-         x,
-         y,
-         R: 255,
-         G: 255,
-         B: 255,
-         A: 255);
-    }
-
-    private static void DrawPixelWithPlayerColor(
-        PixelBuffer? buffer,
-        int pixelNumber,
-        int x,
-        int y)
-    {
-        buffer?.SetPixel(
-           pixelNumber,
-           x,
-           y,
-           R: 255,
-           G: 255,
-           B: 255,
-           A: 255);
-    }
-
-    private static void DrawPixelWithBackgroundColor(
-        PixelBuffer? buffer,
-        int pixelNumber,
-        int x,
-        int y)
-    {
-        buffer?.SetPixel(
-            pixelNumber,
-            x,
-            y,
-            R: 0,
-            G: 0,
-            B: 0,
-            A: 255);
     }
 }

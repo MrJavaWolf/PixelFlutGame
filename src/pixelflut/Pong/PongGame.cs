@@ -1,4 +1,6 @@
 ﻿using PixelFlut.Core;
+using PixelFlut.Effect;
+using System.Drawing;
 using System.Numerics;
 namespace PixelFlut.Pong;
 
@@ -132,9 +134,9 @@ public class PongGame
     public int MinimumYPlayerPosition { get => 0; }
     public int MaximumYPlayerPosition { get => screenConfig.ResultionY - pongConfig.PlayerHeight; }
 
-    public PongBallBounceParticalEffect ballWallBounceEffect;
-    public PongBallBounceParticalEffect ballPlayerBounceEffect;
-    public PongBallBounceParticalEffect ballGoalEffect;
+    public IndividualParticalExplosionEffect ballWallBounceEffect;
+    public SphereExplosionEffect ballPlayerBounceEffect;
+    public IndividualParticalExplosionEffect ballGoalEffect;
 
     public PongGame(
         PongConfiguration pongConfig,
@@ -152,9 +154,23 @@ public class PongGame
         if (pongGameState != null)
             gameState = pongGameState;
 
-        ballWallBounceEffect = new(PongBallBounceParticalEffect.WallBounce, screenProtocol);
-        ballPlayerBounceEffect = new(PongBallBounceParticalEffect.PlayerBounce, screenProtocol);
-        ballGoalEffect = new(PongBallBounceParticalEffect.Goal, screenProtocol);
+        ballWallBounceEffect = new(
+            new(Color.White,
+                Color.FromArgb(0, 0, 0, 0),
+                TimeSpan.FromSeconds(0.3),
+                200,
+                360,
+                15),
+        screenProtocol);
+        ballPlayerBounceEffect = new(screenProtocol.PixelsPerBuffer, screenProtocol);
+        ballGoalEffect = new(
+            new(Color.White,
+                Color.FromArgb(0, 0, 0, 0),
+                TimeSpan.FromSeconds(0.5),
+                700,
+                360,
+                50),
+            screenProtocol);
     }
 
     public void Startup()
@@ -224,7 +240,7 @@ public class PongGame
         return frame;
     }
 
-    private void UpdateEffect(PongBallBounceParticalEffect effect, GameTime time)
+    private void UpdateEffect(IEffect effect, GameTime time)
     {
         if (effect.IsAlive)
         {
@@ -300,7 +316,7 @@ public class PongGame
             wantedNewBallPositionY = Math.Clamp(wantedNewBallPositionY, 0, screenConfig.ResultionY);
 
             Vector2 effectDirection = gameState.BallVerlocity.Y > 0 ?
-                new Vector2(0, 1):
+                new Vector2(0, 1) :
                 new Vector2(0, -1);
             ballWallBounceEffect.Start(
                 new Vector2(wantedNewBallPositionX, wantedNewBallPositionY),
@@ -363,8 +379,8 @@ public class PongGame
     }
 
     private void HandlePlayerBounce(
-        Vector2 playerPosition, 
-        int xDirectionModifier, 
+        Vector2 playerPosition,
+        int xDirectionModifier,
         GameTime time)
     {
         gameState.BallBounces++;
@@ -380,9 +396,13 @@ public class PongGame
             playerPosition.X + xDirectionModifier * (pongConfig.PlayerWidth + pongConfig.BallRadius + 1),
             gameState.BallPosition.Y);
         ballPlayerBounceEffect.Start(
-            gameState.BallPosition, 
-            new Vector2(xDirectionModifier, 0),
-            time.TotalTime);
+            time,
+            gameState.BallPosition,
+            0,
+            15,
+            TimeSpan.FromMilliseconds(100),
+            Color.FromArgb(20, 20, 20, 20),
+            Color.FromArgb(255, 200, 200, 200));
     }
 
     private Vector2 CalculateRebounceDirection(

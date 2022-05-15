@@ -120,8 +120,11 @@ public class GameLoop
             renderer.SetFrame(frame);
 
             // Calculate how much to sleep to hit our targeted FPS
-            int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
-
+            int sleepTimeMs = -1;
+            if (configuration.TargetGameLoopFPS != -1)
+            {
+                sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
+            }
             //Stats
             stats.Frames++;
             if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)
@@ -134,7 +137,10 @@ public class GameLoop
             }
 
             // Sleep to hit our targeted FPS
-            Thread.Sleep(sleepTimeMs);
+            if (configuration.TargetGameLoopFPS != -1)
+            {
+                Thread.Sleep(sleepTimeMs);
+            }
         }
     }
 

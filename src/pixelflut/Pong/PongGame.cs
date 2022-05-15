@@ -93,9 +93,19 @@ public class PongGameState
     public Vector2 Player1Position { get; set; }
 
     /// <summary>
+    /// Player 1 last hit the ball
+    /// </summary>
+    public TimeSpan Player1LastHitTime { get; set; }
+
+    /// <summary>
     /// Player 2's top- and left-most position
     /// </summary>
     public Vector2 Player2Position { get; set; }
+
+    /// <summary>
+    /// Player 2 last hit the ball
+    /// </summary>
+    public TimeSpan Player2LastHitTime { get; set; }
 
     /// <summary>
     /// Number of times a player have hit the ball
@@ -335,6 +345,7 @@ public class PongGame
         if (IntersectsPlayerWithBall(gameState.Player1Position, 1))
         {
             HandlePlayerBounce(gameState.Player1Position, 1, time);
+            gameState.Player1LastHitTime = time.TotalTime;
             return;
         }
 
@@ -349,6 +360,7 @@ public class PongGame
         if (intersectionPlayer1.lineStatus == IntersectionCalculator.Line.Entry ||
             intersectionPlayer1.lineStatus == IntersectionCalculator.Line.EntryExit)
         {
+            gameState.Player1LastHitTime = time.TotalTime;
             gameState.BallPosition = new(intersectionPlayer1.EntryPoint.X, intersectionPlayer1.EntryPoint.Y);
             HandlePlayerBounce(gameState.Player1Position, 1, time);
             return;
@@ -357,6 +369,7 @@ public class PongGame
         // Check if the ball was hit by Player 2
         if (IntersectsPlayerWithBall(gameState.Player2Position, -1))
         {
+            gameState.Player2LastHitTime = time.TotalTime;
             HandlePlayerBounce(gameState.Player2Position, -1, time);
             return;
         }
@@ -372,6 +385,7 @@ public class PongGame
         if (intersectionPlayer2.lineStatus == IntersectionCalculator.Line.Entry ||
             intersectionPlayer2.lineStatus == IntersectionCalculator.Line.EntryExit)
         {
+            gameState.Player2LastHitTime = time.TotalTime;
             gameState.BallPosition = new(intersectionPlayer2.EntryPoint.X, intersectionPlayer2.EntryPoint.Y);
             HandlePlayerBounce(gameState.Player2Position, -1, time);
             return;

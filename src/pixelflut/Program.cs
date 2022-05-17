@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PixelFlut.Core;
 using PixelFlut.Pong;
@@ -30,6 +31,7 @@ public class Program
 
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
         services.AddSingleton<GamepadInput>();
+        services.AddSingleton<PixelBufferFactory>();
         services.AddSingleton<IGamePadInput>(s => s.GetRequiredService<GamepadInput>());
         services.AddSingleton<PongGame>();
         services.AddSingleton<GameLoop>();

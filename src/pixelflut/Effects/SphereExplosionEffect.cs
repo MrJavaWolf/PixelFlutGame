@@ -26,10 +26,10 @@ public class SphereExplosionEffect : IEffect
 
     public SphereExplosionEffect(
         int amountOfPixelsInEffect,
-        IPixelFlutScreenProtocol screenProtocol)
+        PixelBufferFactory bufferFactory)
     {
         this.amountOfPixelsInEffect = amountOfPixelsInEffect;
-        PixelBuffer = new PixelBuffer(this.amountOfPixelsInEffect, screenProtocol);
+        PixelBuffer = bufferFactory.Create(this.amountOfPixelsInEffect);
     }
 
     public void Start(

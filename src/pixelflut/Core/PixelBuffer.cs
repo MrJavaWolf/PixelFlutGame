@@ -9,9 +9,11 @@ public class PixelBuffer
     // The protocol we are using
     private readonly IPixelFlutScreenProtocol screenProtocol;
 
+    // Screen config
+    private readonly PixelFlutScreenConfiguration screenConfiguration;
 
     /// <summary>
-    /// To make the rendering look visually more pleaseing, we use a mapping from pixel number to actual buffer and index in buffer position .
+    /// To make the rendering look visually more humanly pleaseing, we use a mapping from pixel number to actual buffer and index in buffer position .
     /// Instead of map a range of pixels next to each other into the same buffer, we split pixels next to each other into different buffers. 
     /// This list is to keep track of where each pixel is places in the buffers
     /// </summary>
@@ -32,13 +34,17 @@ public class PixelBuffer
 
     public int PixelsPerBuffer { get => screenProtocol.PixelsPerBuffer; }
 
-    public PixelBuffer(int numberOfPixels, IPixelFlutScreenProtocol screenProtocol)
+    public PixelBuffer(
+        int numberOfPixels, 
+        IPixelFlutScreenProtocol screenProtocol, 
+        PixelFlutScreenConfiguration screenConfiguration)
     {
         if (numberOfPixels <= 0)
             throw new ArgumentException($"You cannot have {numberOfPixels} pixels in a framebuffer. " +
                 $"The minimum number of allowed pixels is 1.");
         NumberOfPixels = numberOfPixels;
         this.screenProtocol = screenProtocol;
+        this.screenConfiguration = screenConfiguration;
 
         // Create the buffers
         while (numberOfPixels > buffers.Count * screenProtocol.PixelsPerBuffer)
@@ -88,8 +94,15 @@ public class PixelBuffer
 
         PixelBufferPosition position = mappings[pixelNumber];
         byte[] buffer = buffers[position.buffer];
-        if (Y < 0 || X < 0) return;
-        screenProtocol.WriteToBuffer(buffer, position.position, X, Y, R, G, B, A);
+        screenProtocol.WriteToBuffer(
+            buffer, 
+            position.position, 
+            X + screenConfiguration.OffsetX, 
+            Y + screenConfiguration.OffsetY, 
+            R, 
+            G, 
+            B, 
+            A);
     }
 
     public void SetPixel(int pixelNumber, int X, int Y, Color c)

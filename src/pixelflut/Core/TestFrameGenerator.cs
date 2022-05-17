@@ -5,27 +5,27 @@ namespace PixelFlut.Core;
 
 public class TestFrameGenerator
 {
-    private readonly IPixelFlutScreenProtocol screenProtocol;
+    private readonly PixelBufferFactory bufferFactory;
     private readonly ILogger<TestFrameGenerator> logger;
     private readonly PixelFlutScreenConfiguration screenConfiguration;
     private List<PixelBuffer> frame = new();
 
     public TestFrameGenerator(
-        IPixelFlutScreenProtocol screenProtocol,
+        PixelBufferFactory bufferFactory,
         ILogger<TestFrameGenerator> logger,
         PixelFlutScreenConfiguration screenConfiguration)
     {
-        this.screenProtocol = screenProtocol;
+        this.bufferFactory = bufferFactory;
         this.logger = logger;
         this.screenConfiguration = screenConfiguration;
     }
 
     public void Startup()
     {
-        Stopwatch sw = new Stopwatch();
+        Stopwatch sw = new();
         sw.Start();
         logger.LogInformation("Creates pixel buffer for the test image...");
-        PixelBuffer buffer = new PixelBuffer(screenConfiguration.ResultionY * screenConfiguration.ResultionX, screenProtocol);
+        PixelBuffer buffer = bufferFactory.Create(screenConfiguration.ResultionY * screenConfiguration.ResultionX);
         frame.Add(buffer);
         logger.LogInformation($"Pixel buffer for the test image is ready, time took to create: {sw.ElapsedMilliseconds} ms");
     }

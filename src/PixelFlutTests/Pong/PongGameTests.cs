@@ -10,7 +10,7 @@ namespace PixelFlut.Pong.Tests
     public class PongGameTests
     {
         PongConfiguration pongConfig = null!;
-        PixelFlutScreenConfiguration pixelFlutRendererConfiguration = null!;
+        PixelFlutScreenConfiguration screenConfiguration = null!;
         PongGameState pongGameState = null!;
         Mock<IGamePadInput> input = null!;
         PongGame pongGame = null!;
@@ -31,7 +31,7 @@ namespace PixelFlut.Pong.Tests
                 PlayerSpeed = 5,
                 PlayerWidth = 4,
             };
-            pixelFlutRendererConfiguration = new()
+            screenConfiguration = new()
             {
                 ResultionX = 100,
                 ResultionY = 100,
@@ -40,26 +40,28 @@ namespace PixelFlut.Pong.Tests
             pongGameState = new()
             {
                 BallPosition = new(
-                    pixelFlutRendererConfiguration.ResultionX / 2,
-                    pixelFlutRendererConfiguration.ResultionY / 2),
+                    screenConfiguration.ResultionX / 2,
+                    screenConfiguration.ResultionY / 2),
                 Player1Position = new(
                     pongConfig.PlayerDistanceToSides,
-                    pixelFlutRendererConfiguration.ResultionY / 2 - pongConfig.PlayerHeight / 2),
+                    screenConfiguration.ResultionY / 2 - pongConfig.PlayerHeight / 2),
                 Player2Position = new(
-                    pixelFlutRendererConfiguration.ResultionX - pongConfig.PlayerDistanceToSides - pongConfig.PlayerWidth,
-                    pixelFlutRendererConfiguration.ResultionY / 2 - pongConfig.PlayerHeight / 2),
+                    screenConfiguration.ResultionX - pongConfig.PlayerDistanceToSides - pongConfig.PlayerWidth,
+                    screenConfiguration.ResultionY / 2 - pongConfig.PlayerHeight / 2),
                 CurrentGameState = PongGameStateType.Playing,
                 BallVerlocity = new(-10, 0)
             };
 
             input = new();
+            PixelFlutScreenProtocol1 screenProtocol = new PixelFlutScreenProtocol1(screenConfiguration);
             Mock<ILogger<PongGame>> logger = new();
             pongGame = new(
                 pongConfig,
                 input.Object,
-                pixelFlutRendererConfiguration,
-                new PixelFlutScreenProtocol1(),
+                screenConfiguration,
+                new (screenProtocol, screenConfiguration),
                 logger.Object,
+                screenProtocol,
                 pongGameState);
         }
 

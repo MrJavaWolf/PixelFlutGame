@@ -31,9 +31,9 @@ public class IndividualParticalExplosionEffect : IEffect
 
     public IndividualParticalExplosionEffect(
         EffectData effectType,
-        IPixelFlutScreenProtocol screenProtocol)
+        PixelBufferFactory bufferFactory)
     {
-        PixelBuffer = new PixelBuffer(effectType.numberOfParticals, screenProtocol);
+        PixelBuffer = bufferFactory.Create(effectType.numberOfParticals);
         for (int i = 0; i < effectType.numberOfParticals; i++)
         {
             particals.Add(new SinglePartical()

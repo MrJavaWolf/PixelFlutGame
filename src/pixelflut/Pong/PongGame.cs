@@ -137,7 +137,7 @@ public class PongGame
     private readonly PongConfiguration pongConfig;
     private readonly IGamePadInput input;
     private readonly PixelFlutScreenConfiguration screenConfig;
-    private readonly IPixelFlutScreenProtocol screenProtocol;
+    private readonly PixelBufferFactory bufferFactory;
     private readonly ILogger<PongGame> logger;
     private PongGameState gameState = new();
     private List<PixelBuffer> frame = new();
@@ -152,14 +152,15 @@ public class PongGame
         PongConfiguration pongConfig,
         IGamePadInput input,
         PixelFlutScreenConfiguration screenConfig,
-        IPixelFlutScreenProtocol screenProtocol,
+        PixelBufferFactory bufferFactory,
         ILogger<PongGame> logger,
+        IPixelFlutScreenProtocol screenProtocol,
         PongGameState? pongGameState = null)
     {
         this.pongConfig = pongConfig;
         this.input = input;
         this.screenConfig = screenConfig;
-        this.screenProtocol = screenProtocol;
+        this.bufferFactory = bufferFactory;
         this.logger = logger;
         if (pongGameState != null)
             gameState = pongGameState;
@@ -171,8 +172,8 @@ public class PongGame
                 200,
                 360,
                 15),
-        screenProtocol);
-        ballPlayerBounceEffect = new(screenProtocol.PixelsPerBuffer, screenProtocol);
+        bufferFactory);
+        ballPlayerBounceEffect = new(screenProtocol.PixelsPerBuffer, bufferFactory);
         ballGoalEffect = new(
             new(Color.White,
                 Color.FromArgb(0, 0, 0, 0),
@@ -180,7 +181,7 @@ public class PongGame
                 700,
                 360,
                 50),
-            screenProtocol);
+            bufferFactory);
     }
 
     public void Startup()
@@ -190,7 +191,7 @@ public class PongGame
         frame = new List<PixelBuffer>();
         logger.LogInformation("Creates pixelbuffer for pong game...");
         int pixelsInFrame = PongFrameRenderer.CalculatePixelsInFrame(pongConfig, gameState);
-        PixelBuffer buffer = new PixelBuffer(pixelsInFrame, screenProtocol);
+        PixelBuffer buffer = bufferFactory.Create(pixelsInFrame);
         frame.Add(buffer);
         logger.LogInformation("Pixel buffer for the pong game is ready");
 

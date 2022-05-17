@@ -69,7 +69,13 @@ public class PixelFlutScreenSender
         // Sends the buffer
         byte[] sendBuffer = buffer.Buffers[currentRenderByteBuffer];
         int pixelsPerBuffer = buffer.PixelsPerBuffer;
+        IncrementBufferIndex(frame, buffer);
 
+        return (pixelsPerBuffer, sendBuffer);
+    }
+
+    private void IncrementBufferIndex(List<PixelBuffer> frame, PixelBuffer buffer)
+    {
         // Increment to select the next buffer
         currentRenderByteBuffer++;
         if (currentRenderByteBuffer >= buffer.Buffers.Count)
@@ -81,6 +87,5 @@ public class PixelFlutScreenSender
                 currentRenderFrameBuffer = 0;
             }
         }
-        return (pixelsPerBuffer, sendBuffer);
     }
 }

@@ -5,12 +5,6 @@ public class PixelFlutScreenProtocol1 : IPixelFlutScreenProtocol
     public int PixelsPerBuffer { get; } = 140;
     public const int BytesPerPixel = 8;
     public const int HeaderSize = 2;
-    private readonly PixelFlutScreenConfiguration screenConfiguration;
-
-    public PixelFlutScreenProtocol1(PixelFlutScreenConfiguration screenConfiguration)
-    {
-        this.screenConfiguration = screenConfiguration;
-    }
 
     public byte[] CreateBuffer()
     {
@@ -23,8 +17,8 @@ public class PixelFlutScreenProtocol1 : IPixelFlutScreenProtocol
     public void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y, byte r, byte g, byte b, byte a)
     {
         int offset = HeaderSize + pixelNumber * BytesPerPixel;
-        byte[] xBytes = BitConverter.GetBytes(x + screenConfiguration.OffsetX);
-        byte[] yBytes = BitConverter.GetBytes(y + screenConfiguration.OffsetY);
+        byte[] xBytes = BitConverter.GetBytes(x);
+        byte[] yBytes = BitConverter.GetBytes(y);
         send_buffer[offset + 0] = xBytes[0];
         send_buffer[offset + 1] = xBytes[1];
         send_buffer[offset + 2] = yBytes[0];

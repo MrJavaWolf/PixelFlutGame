@@ -34,8 +34,8 @@ public class GameLoopConfiguration
 public class GameLoopStats
 {
     public GameTime Time { get; set; } = new();
-    public int SleepTime { get; set; }
-    public int Frames { get; set; }
+    public long SleepTime { get; set; }
+    public long Frames { get; set; }
 }
 
 public class GameLoop

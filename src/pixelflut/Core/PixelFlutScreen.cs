@@ -137,12 +137,12 @@ public class PixelFlutScreen
             statsPrinterStopwatch.Restart();
 
             // Scale the stats to be per second
-            temp.BytesSent = (int)(temp.BytesSent * elasped);
-            temp.PixelsSent = (int)(temp.PixelsSent * elasped);
-            temp.BuffersSent = (int)(temp.BuffersSent * elasped);
-            temp.FramesFromGameLoop = (int)(temp.FramesFromGameLoop * elasped);
-            temp.PixelBuffersFromGameLoop = (int)(temp.PixelBuffersFromGameLoop * elasped);
-            temp.PixelsFromGameLoop = (int)(temp.PixelsFromGameLoop * elasped);
+            temp.BytesSent = (long)(temp.BytesSent * elasped);
+            temp.PixelsSent = (long)(temp.PixelsSent * elasped);
+            temp.BuffersSent = (long)(temp.BuffersSent * elasped);
+            temp.FramesFromGameLoop = (long)(temp.FramesFromGameLoop * elasped);
+            temp.PixelBuffersFromGameLoop = (long)(temp.PixelBuffersFromGameLoop * elasped);
+            temp.PixelsFromGameLoop = (long)(temp.PixelsFromGameLoop * elasped);
 
             // Print
             logger.LogInformation("Screen: {@stats}", temp);

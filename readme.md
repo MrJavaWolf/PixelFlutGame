@@ -44,6 +44,8 @@ You can either use 1 or 2 controllers. If you use
 
 ### 2 Controllers
 
+### Nitendo like game controller
+
 | Input Id | Input  | Action |
 | - | - | - |
 | 65585 | Up | Moves left player up |

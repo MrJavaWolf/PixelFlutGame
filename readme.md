@@ -10,12 +10,19 @@ Requirements:
 ## Get started
 
 1. [Install .NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) ([or later](https://dotnet.microsoft.com/en-us/download/dotnet))
-2. `cd src/PixelFlut`
-3. Edit `src/PixelFlut/appsettings.json` to point to the Pixelflut server's IP address and port
-4. `sudo dotnet run`
-5. Make sure the Game Controller is connected
+1. `cd src/PixelFlut`
+1. Edit `src/PixelFlut/appsettings.json` to point to the Pixelflut server's IP address and port
+1. `sudo dotnet run`
+1. Make sure the Game Controller is connected
+1. Press START on the Game Controller
 
-You can now control the 2 players with the Game Controller.
+You can now control the 2 players with the Game Controller(s).
+
+## Controls
+
+You can either use 1 or 2 controllers. If you use 
+
+### 1 Controller
 
 ### Nitendo like game controller
 
@@ -34,6 +41,20 @@ You can now control the 2 players with the Game Controller.
 | 65585 | Left stick | Moves left player down |
 | 589828 | Triangle | Moves right player up |
 | 589826 | Cross | Moves right player down |
+
+### 2 Controllers
+
+| Input Id | Input  | Action |
+| - | - | - |
+| 65585 | Up | Moves left player up |
+| 65585 | Down | Moves left player down |
+
+### Playstation like game controller
+
+| Input Id | Input  | Action |
+| - | - | - |
+| 65585 | Left stick | Moves left player up |
+| 65585 | Left stick | Moves left player down |
 
 ## Configuration
 

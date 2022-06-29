@@ -89,8 +89,8 @@ public class PixelBuffer
     {
         if (pixelNumber >= NumberOfPixels)
             throw new IndexOutOfRangeException(
-                $"The {nameof(PixelBuffer)} have {NumberOfPixels} pixels, " +
-                $"you tried to set pixel {pixelNumber}");
+                $"The {nameof(PixelBuffer)} have {NumberOfPixels} pixels (0 indexed), " +
+                $"you tried to set pixel index {pixelNumber}");
 
         PixelBufferPosition position = mappings[pixelNumber];
         byte[] buffer = buffers[position.buffer];

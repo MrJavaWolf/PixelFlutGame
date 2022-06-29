@@ -46,6 +46,7 @@ public class GameLoop
     private readonly TestFrameGenerator testFraneGenerator;
     private readonly IServiceProvider provider;
     private readonly GameLoopConfiguration configuration;
+    private readonly GamePadsController gamePadsController;
 
     // Stats
     private GameLoopStats stats = new();
@@ -56,12 +57,14 @@ public class GameLoop
         PixelFlutScreen renderer,
         TestFrameGenerator testFraneGenerator,
         IServiceProvider provider,
+        GamePadsController gamePadsController,
         GameLoopConfiguration configuration)
     {
         this.logger = logger;
         this.renderer = renderer;
         this.testFraneGenerator = testFraneGenerator;
         this.provider = provider;
+        this.gamePadsController = gamePadsController;
         this.configuration = configuration;
         logger.LogInformation($"GameLoop: {{@configuration}}", configuration);
         statsPrinterStopwatch.Start();
@@ -100,6 +103,7 @@ public class GameLoop
         Stopwatch totalGameTimer = new();
         GameTime gameTime = new();
         totalGameTimer.Start();
+        gamePadsController.Update();
 
         // Setup the game
         PongGame pong = provider.GetRequiredService<PongGame>();
@@ -114,7 +118,8 @@ public class GameLoop
             loopTime.Restart();
 
             // Iterate the gameloop
-            List<PixelBuffer> frame = Loop(pong, gameTime);
+            gamePadsController.Update();
+            List<PixelBuffer> frame = Loop(pong, gameTime, gamePadsController.GamePads);
 
             // Render the resulting pixels
             renderer.SetFrame(frame);
@@ -211,8 +216,8 @@ public class GameLoop
         }
     }
 
-    public List<PixelBuffer> Loop(PongGame pong, GameTime time)
+    public List<PixelBuffer> Loop(PongGame pong, GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
     {
-        return pong.Loop(time);
+        return pong.Loop(time, gamePads);
     }
 }

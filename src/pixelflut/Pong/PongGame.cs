@@ -127,15 +127,11 @@ public class PongGameState
     /// How many times the player 2 have scored 
     /// </summary>
     public int Player2Score { get; set; } = 0;
-
-
-
 }
 
 public class PongGame
 {
     private readonly PongConfiguration pongConfig;
-    private readonly IGamePadInput input;
     private readonly PixelFlutScreenConfiguration screenConfig;
     private readonly PixelBufferFactory bufferFactory;
     private readonly ILogger<PongGame> logger;
@@ -150,20 +146,15 @@ public class PongGame
 
     public PongGame(
         PongConfiguration pongConfig,
-        IGamePadInput input,
         PixelFlutScreenConfiguration screenConfig,
         PixelBufferFactory bufferFactory,
         ILogger<PongGame> logger,
-        IPixelFlutScreenProtocol screenProtocol,
-        PongGameState? pongGameState = null)
+        IPixelFlutScreenProtocol screenProtocol)
     {
         this.pongConfig = pongConfig;
-        this.input = input;
         this.screenConfig = screenConfig;
         this.bufferFactory = bufferFactory;
         this.logger = logger;
-        if (pongGameState != null)
-            gameState = pongGameState;
 
         ballWallBounceEffect = new(
             new(Color.White,
@@ -184,7 +175,7 @@ public class PongGame
             bufferFactory);
     }
 
-    public void Startup()
+    public void Startup(PongGameState? pongGameState = null)
     {
         logger.LogInformation("Initializes game: Pong");
 
@@ -195,16 +186,26 @@ public class PongGame
         frame.Add(buffer);
         logger.LogInformation("Pixel buffer for the pong game is ready");
 
-        gameState = new();
-        gameState.Player1Position = new(
-            pongConfig.PlayerDistanceToSides,
-            screenConfig.ResultionY / 2 - pongConfig.PlayerHeight / 2);
-        gameState.Player2Position = new(
-            screenConfig.ResultionX - pongConfig.PlayerDistanceToSides,
-            screenConfig.ResultionY / 2 - pongConfig.PlayerHeight / 2);
-        gameState.Player1Score = 0;
-        gameState.Player2Score = 0;
-        ResetBall();
+        if (pongGameState == null)
+        {
+            // Sets up a normal start game state
+            gameState = new();
+            gameState.Player1Position = new(
+                pongConfig.PlayerDistanceToSides,
+                screenConfig.ResultionY / 2 - pongConfig.PlayerHeight / 2);
+            gameState.Player2Position = new(
+                screenConfig.ResultionX - pongConfig.PlayerDistanceToSides,
+                screenConfig.ResultionY / 2 - pongConfig.PlayerHeight / 2);
+            gameState.Player1Score = 0;
+            gameState.Player2Score = 0;
+            ResetBall();
+        }
+        else
+        {
+            // Uses the provided game state
+            gameState = pongGameState;
+        }
+
     }
 
     private void ResetBall()
@@ -232,11 +233,14 @@ public class PongGame
         gameState.BallBounces = 0;
     }
 
-    public List<PixelBuffer> Loop(GameTime time)
+    public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
     {
         // Update player position
-        gameState.Player1Position = CalculateNewPlayerPosition(gameState.Player1Position, input.Y, time);
-        gameState.Player2Position = CalculateNewPlayerPosition(gameState.Player2Position, GetPlayer2Input(), time);
+        if (gamePads.Count > 0)
+        {
+            gameState.Player1Position = CalculateNewPlayerPosition(gameState.Player1Position, gamePads[0].Y, time);
+            gameState.Player2Position = CalculateNewPlayerPosition(gameState.Player2Position, GetPlayer2Input(gamePads), time);
+        }
 
         // Update ball
         UpdateBall(time);
@@ -271,15 +275,24 @@ public class PongGame
         }
     }
 
-    private double GetPlayer2Input()
+    private double GetPlayer2Input(IReadOnlyList<IGamePadDevice> gamePads)
     {
-        // Currently player 2 input is the right side of the controller
-        if (input.IsNorthButtonPressed && !input.IsSouthButtonPressed)
-            return 0;
-        else if (!input.IsNorthButtonPressed && input.IsSouthButtonPressed)
-            return 1;
-        else
-            return 0.5;
+        if (gamePads.Count >= 2)
+        {
+            var player2gamepad = gamePads[1];
+            return player2gamepad.Y;
+        }
+        else if (gamePads.Count >= 1)
+        {
+            // If only 1 controller is active, player 2 uses the right side of the controller
+            var player1gamepad = gamePads[0];
+            if (player1gamepad.NorthButton.IsPressed && !player1gamepad.SouthButton.IsPressed)
+                return 0;
+            else if (!player1gamepad.NorthButton.IsPressed && player1gamepad.SouthButton.IsPressed)
+                return 1;
+        }
+
+        return 0.5;
     }
 
     private void UpdateBall(GameTime time)

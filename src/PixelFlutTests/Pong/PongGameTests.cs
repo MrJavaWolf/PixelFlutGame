@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PixelFlut.Core;
 using System;
+using System.Collections.Generic;
 
 namespace PixelFlut.Pong.Tests
 {
@@ -12,7 +13,8 @@ namespace PixelFlut.Pong.Tests
         PongConfiguration pongConfig = null!;
         PixelFlutScreenConfiguration screenConfiguration = null!;
         PongGameState pongGameState = null!;
-        Mock<IGamePadInput> input = null!;
+        Mock<IGamePadDevice> gamePad1 = null!;
+        Mock<IGamePadDevice> gamePad2 = null!;
         PongGame pongGame = null!;
 
         [TestInitialize]
@@ -52,23 +54,25 @@ namespace PixelFlut.Pong.Tests
                 BallVerlocity = new(-10, 0)
             };
 
-            input = new();
-            PixelFlutScreenProtocol1 screenProtocol = new PixelFlutScreenProtocol1(screenConfiguration);
+            gamePad1 = new();
+            gamePad2 = new();
+            PixelFlutScreenProtocol1 screenProtocol = new PixelFlutScreenProtocol1();
             Mock<ILogger<PongGame>> logger = new();
             pongGame = new(
                 pongConfig,
-                input.Object,
                 screenConfiguration,
                 new (screenProtocol, screenConfiguration),
                 logger.Object,
-                screenProtocol,
-                pongGameState);
+                screenProtocol);
+            pongGame.Startup(pongGameState);
         }
 
         [TestMethod()]
         public void LoopTest()
         {
-            input.Setup(i => i.Y).Returns(0.5);
+            gamePad1.Setup(i => i.Y).Returns(0.5);
+            gamePad2.Setup(i => i.Y).Returns(0);
+
             GameTime gameTime = new()
             {
                 DeltaTime = TimeSpan.FromMilliseconds(1000),
@@ -79,7 +83,7 @@ namespace PixelFlut.Pong.Tests
             pongGameState.Player1Position = new (pongGameState.Player1Position.X, 40);
             pongGameState.Player2Position = new (pongGameState.Player2Position.X, 40);
             pongGameState.BallVerlocity = new(-10, 0);
-            pongGame.Loop(gameTime);
+            pongGame.Loop(gameTime, new List<IGamePadDevice>() { gamePad1.Object, gamePad2.Object });
 
         }
     }

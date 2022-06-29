@@ -30,9 +30,8 @@ public class Program
         services.AddSingleton(pongConfig);
 
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
-        services.AddSingleton<GamepadInput>();
+        services.AddSingleton<GamePadsController>();
         services.AddSingleton<PixelBufferFactory>();
-        services.AddSingleton<IGamePadInput>(s => s.GetRequiredService<GamepadInput>());
         services.AddSingleton<PongGame>();
         services.AddSingleton<GameLoop>();
         services.AddSingleton<TestFrameGenerator>();
@@ -43,7 +42,7 @@ public class Program
         // Create pixel game loop
         ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
         logger.LogInformation($"- - - - - Starting pixelflut game - - - - - ");
-        GamepadInput gamepad = serviceProvider.GetRequiredService<GamepadInput>();
+        GamePadsController gamepadsController = serviceProvider.GetRequiredService<GamePadsController>();
         GameLoop gameLoop = serviceProvider.GetRequiredService<GameLoop>();
 
         // Setup gracefull shutdown
@@ -56,7 +55,7 @@ public class Program
 
 
         // Run
-        Task t1 = Task.Run(async () => await gamepad.RunAsync(tokenSource.Token));
+        Task t1 = Task.Run(async () => await gamepadsController.RunAsync(tokenSource.Token));
         Thread gameLoopThread = new(() => gameLoop.Run(tokenSource.Token));
         gameLoopThread.Start();
         gameLoopThread.Join();

@@ -17,11 +17,6 @@ public class GameImage : IGame
         public string Image { get; set; } = "";
 
         /// <summary>
-        /// Whether the image should be scaled to the screen resolution
-        /// </summary>
-        public bool ScaleToResolution { get; set; } = true;
-
-        /// <summary>
         /// Connect a controller and move the image
         /// </summary>
         public double Speed { get; set; }
@@ -81,10 +76,8 @@ public class GameImage : IGame
         logger.LogInformation("Image format: {@1}", format);
         // Resize the image in place and return it for chaining.
         // 'x' signifies the current image processing context.
-        if (config.ScaleToResolution)
-        {
-            image.Mutate(x => x.Resize(bufferFactory.Screen.ResolutionX, bufferFactory.Screen.ResolutionY));
-        }
+        image.Mutate(x => x.Resize(bufferFactory.Screen.ResolutionX, bufferFactory.Screen.ResolutionY));
+
         if (image.Frames.Count == 0)
         {
             throw new FileNotFoundException("Corrupt image, it appears it does not contain any frames", config.Image);

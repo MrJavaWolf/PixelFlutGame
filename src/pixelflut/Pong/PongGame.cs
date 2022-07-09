@@ -4,141 +4,16 @@ using System.Drawing;
 using System.Numerics;
 namespace PixelFlut.Pong;
 
-public class PongConfiguration
-{
-    /// <summary>
-    /// How big is the ball in pixel
-    /// </summary>
-    public int BallRadius { get; set; }
 
-    /// <summary>
-    /// How big is the border of the ball
-    /// Used for rendering only this helps better see where the ball is
-    /// </summary>
-    public int BallBorder { get; set; }
-
-    /// <summary>
-    /// How fast the ball initially moves
-    /// </summary>
-    public double BallStartSpeed { get; set; }
-
-    /// <summary>
-    /// How much the balls speed will increase everytime a player hits the ball
-    /// </summary>
-    public double BallSpeedIncrease { get; set; }
-
-    /// <summary>
-    /// How tall is the player in pixels
-    /// </summary>
-    public int PlayerHeight { get; set; }
-
-    /// <summary>
-    /// How wide is the player in pixels
-    /// </summary>
-    public int PlayerWidth { get; set; }
-
-    /// <summary>
-    /// How fast can the player move [pixels/per second]
-    /// </summary>
-    public int PlayerSpeed { get; set; }
-
-    /// <summary>
-    /// How big is the border of the player
-    /// Used for rendering only this helps better see where the player is
-    /// </summary>
-    public int PlayerBorder { get; set; }
-
-    /// <summary>
-    /// How far in from the edges are the player
-    /// </summary>
-    public int PlayerDistanceToSides { get; set; }
-
-    /// <summary>
-    /// When hitting the ball on the side of the player paddle, how steep an angle (in radians) is allowed.
-    /// Lowering the value will make the ball go more at an angle
-    /// Recommended range:
-    /// - Minimum: 0.20 (~11.5 degrees)
-    /// - Maximum: 0.75 (~45 degrees)
-    /// </summary>
-    public float PlayerMaxRebounceAngle { get; set; }
-
-    /// <summary>
-    /// How many times does a player need to score to win (Not implemented yet)
-    /// </summary>
-    public int NumberOfGoalsToWin { get; set; }
-}
-
-public enum PongGameStateType
-{
-    StartScreen,
-    Playing,
-    Score,
-}
-
-public class PongGameState
-{
-    /// <summary>
-    /// Ball Center position
-    /// </summary>
-    public Vector2 BallPosition { get; set; }
-
-    /// <summary>
-    /// Ball verlocity
-    /// </summary>
-    public Vector2 BallVerlocity { get; set; }
-
-    /// <summary>
-    /// Player 1's top- and left-most position
-    /// </summary>
-    public Vector2 Player1Position { get; set; }
-
-    /// <summary>
-    /// Player 1 last hit the ball
-    /// </summary>
-    public TimeSpan Player1LastHitTime { get; set; }
-
-    /// <summary>
-    /// Player 2's top- and left-most position
-    /// </summary>
-    public Vector2 Player2Position { get; set; }
-
-    /// <summary>
-    /// Player 2 last hit the ball
-    /// </summary>
-    public TimeSpan Player2LastHitTime { get; set; }
-
-    /// <summary>
-    /// Number of times a player have hit the ball
-    /// The more times a player hits the ball the faster it goes
-    /// </summary>
-    public int BallBounces { get; set; } = 0;
-
-    public PongGameStateType CurrentGameState { get; set; } = PongGameStateType.StartScreen;
-
-
-    public int PreviousWinner { get; set; } = -1;
-
-    /// <summary>
-    /// How many times the player 1 have scored 
-    /// </summary>
-    public int Player1Score { get; set; } = 0;
-
-    /// <summary>
-    /// How many times the player 2 have scored 
-    /// </summary>
-    public int Player2Score { get; set; } = 0;
-}
-
-public class PongGame
+public class PongGame : IGame
 {
     private readonly PongConfiguration pongConfig;
-    private readonly PixelFlutScreenConfiguration screenConfig;
     private readonly PixelBufferFactory bufferFactory;
     private readonly ILogger<PongGame> logger;
     private PongGameState gameState = new();
     private List<PixelBuffer> frame = new();
     public int MinimumYPlayerPosition { get => 0; }
-    public int MaximumYPlayerPosition { get => screenConfig.ResultionY - pongConfig.PlayerHeight; }
+    public int MaximumYPlayerPosition { get => bufferFactory.Screen.ResultionY - pongConfig.PlayerHeight; }
 
     public IndividualParticalExplosionEffect ballWallBounceEffect;
     public SphereExplosionEffect ballPlayerBounceEffect;
@@ -146,13 +21,11 @@ public class PongGame
 
     public PongGame(
         PongConfiguration pongConfig,
-        PixelFlutScreenConfiguration screenConfig,
         PixelBufferFactory bufferFactory,
         ILogger<PongGame> logger,
         IPixelFlutScreenProtocol screenProtocol)
     {
         this.pongConfig = pongConfig;
-        this.screenConfig = screenConfig;
         this.bufferFactory = bufferFactory;
         this.logger = logger;
 
@@ -173,9 +46,10 @@ public class PongGame
                 360,
                 50),
             bufferFactory);
+        Initialize(null);
     }
 
-    public void Startup(PongGameState? pongGameState = null)
+    public void Initialize(PongGameState? pongGameState = null)
     {
         logger.LogInformation("Initializes game: Pong");
 
@@ -192,10 +66,10 @@ public class PongGame
             gameState = new();
             gameState.Player1Position = new(
                 pongConfig.PlayerDistanceToSides,
-                screenConfig.ResultionY / 2 - pongConfig.PlayerHeight / 2);
+                bufferFactory.Screen.ResultionY / 2 - pongConfig.PlayerHeight / 2);
             gameState.Player2Position = new(
-                screenConfig.ResultionX - pongConfig.PlayerDistanceToSides,
-                screenConfig.ResultionY / 2 - pongConfig.PlayerHeight / 2);
+                bufferFactory.Screen.ResultionX - pongConfig.PlayerDistanceToSides,
+                bufferFactory.Screen.ResultionY / 2 - pongConfig.PlayerHeight / 2);
             gameState.Player1Score = 0;
             gameState.Player2Score = 0;
             ResetBall();
@@ -205,7 +79,6 @@ public class PongGame
             // Uses the provided game state
             gameState = pongGameState;
         }
-
     }
 
     private void ResetBall()
@@ -225,8 +98,8 @@ public class PongGame
         //debugOffsetY = -200;
 
         gameState.BallPosition = new Vector2(
-            screenConfig.ResultionX / 2 + debugOffsetX,
-            screenConfig.ResultionY / 2 + debugOffsetY);
+            bufferFactory.Screen.ResultionX / 2 + debugOffsetX,
+            bufferFactory.Screen.ResultionY / 2 + debugOffsetY);
         gameState.BallVerlocity = new Vector2(
             (float)((leftRight ? -1 : 1) * pongConfig.BallStartSpeed * (1 - startXYBallVerlocitySplit)),
             (float)((upDown ? -1 : 1) * pongConfig.BallStartSpeed * startXYBallVerlocitySplit));
@@ -306,7 +179,7 @@ public class PongGame
         HandlePlayerHit(previousBallPosition, time);
 
         // Goal by player 1
-        if (gameState.BallPosition.X > screenConfig.ResultionX)
+        if (gameState.BallPosition.X > bufferFactory.Screen.ResultionX)
         {
             gameState.Player1Score++;
             logger.LogInformation("GOAL - Player 1 scores");
@@ -333,11 +206,11 @@ public class PongGame
         float wantedNewBallPositionY = gameState.BallPosition.Y + gameState.BallVerlocity.Y * (float)time.DeltaTime.TotalSeconds;
 
         // Bounce top/bottom
-        if (wantedNewBallPositionY > screenConfig.ResultionY ||
+        if (wantedNewBallPositionY > bufferFactory.Screen.ResultionY ||
             wantedNewBallPositionY < 0)
         {
             gameState.BallVerlocity = new(gameState.BallVerlocity.X, -gameState.BallVerlocity.Y);
-            wantedNewBallPositionY = Math.Clamp(wantedNewBallPositionY, 0, screenConfig.ResultionY);
+            wantedNewBallPositionY = Math.Clamp(wantedNewBallPositionY, 0, bufferFactory.Screen.ResultionY);
 
             Vector2 effectDirection = gameState.BallVerlocity.Y > 0 ?
                 new Vector2(0, 1) :

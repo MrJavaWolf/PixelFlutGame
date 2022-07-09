@@ -3,19 +3,19 @@
     public class PixelBufferFactory
     {
         private readonly IPixelFlutScreenProtocol screenProtocol;
-        private readonly PixelFlutScreenConfiguration screenConfiguration;
+        public PixelFlutScreenConfiguration Screen { get; }
 
         public PixelBufferFactory(
             IPixelFlutScreenProtocol screenProtocol,
             PixelFlutScreenConfiguration screenConfiguration)
         {
             this.screenProtocol = screenProtocol;
-            this.screenConfiguration = screenConfiguration;
+            this.Screen = screenConfiguration;
         }
 
         public PixelBuffer Create(int numberOfPixels)
         {
-            return new PixelBuffer(numberOfPixels, screenProtocol, screenConfiguration);
+            return new PixelBuffer(numberOfPixels, screenProtocol, Screen);
         }
     }
 }

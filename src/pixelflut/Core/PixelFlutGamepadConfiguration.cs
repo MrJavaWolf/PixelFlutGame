@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PixelFlut.Core
+﻿namespace PixelFlut.Core
 {
     public class PixelFlutGamepadConfiguration
     {
@@ -17,6 +11,6 @@ namespace PixelFlut.Core
         /// How big is the deadzone of the X/Y values (0 = left/up, 0.5 = middle, 1=right/down)
         /// Used for analog sticks
         /// </summary>
-        public float DeadzoneSize { get; set; }
+        public float DeadzoneRadius { get; set; }
     }
 }

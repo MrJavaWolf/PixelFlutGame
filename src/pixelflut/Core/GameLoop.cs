@@ -11,24 +11,10 @@ public class GameLoopConfiguration
     /// </summary>
     public double TargetGameLoopFPS { get; set; }
 
-
     /// <summary>
-    /// Whether it should render a test image insteed of playing a game
+    /// Which game to play
     /// </summary>
-    public TestImageType TestImage { get; set; }
-
-    /// <summary>
-    /// The test image offset
-    /// </summary>
-    public double TestImageOffset { get; set; }
-
-    public enum TestImageType
-    {
-        Disable,
-        Still,
-        Moving,
-        Black
-    }
+    public string GameToPlay { get; set; } = "";
 }
 
 public class GameLoopStats
@@ -43,7 +29,6 @@ public class GameLoop
     // Generel
     private readonly ILogger<GameLoop> logger;
     private readonly PixelFlutScreen renderer;
-    private readonly TestFrameGenerator testFraneGenerator;
     private readonly IServiceProvider provider;
     private readonly GameLoopConfiguration configuration;
     private readonly GamePadsController gamePadsController;
@@ -52,17 +37,17 @@ public class GameLoop
     private GameLoopStats stats = new();
     private Stopwatch statsPrinterStopwatch = new();
 
+    bool isInitialized = false;
+
     public GameLoop(
         ILogger<GameLoop> logger,
         PixelFlutScreen renderer,
-        TestFrameGenerator testFraneGenerator,
         IServiceProvider provider,
         GamePadsController gamePadsController,
         GameLoopConfiguration configuration)
     {
         this.logger = logger;
         this.renderer = renderer;
-        this.testFraneGenerator = testFraneGenerator;
         this.provider = provider;
         this.gamePadsController = gamePadsController;
         this.configuration = configuration;
@@ -74,26 +59,7 @@ public class GameLoop
     {
         // Start the renderer
         renderer.StartRenderThreads(cancellationToken);
-
-        switch (configuration.TestImage)
-        {
-            case GameLoopConfiguration.TestImageType.Disable:
-                RunGameLoop(cancellationToken);
-                break;
-            case GameLoopConfiguration.TestImageType.Still:
-                testFraneGenerator.Startup();
-                RenderStillTestImage(cancellationToken);
-                break;
-            case GameLoopConfiguration.TestImageType.Moving:
-                testFraneGenerator.Startup();
-                RenderMovingTestImage(cancellationToken);
-                break;
-            case GameLoopConfiguration.TestImageType.Black:
-                testFraneGenerator.Startup();
-                RenderBlackTestImage(cancellationToken);
-                break;
-
-        }
+        RunGameLoop(cancellationToken);
     }
 
     private void RunGameLoop(CancellationToken cancellationToken)
@@ -106,8 +72,7 @@ public class GameLoop
         gamePadsController.Update();
 
         // Setup the game
-        PongGame pong = provider.GetRequiredService<PongGame>();
-        pong.Startup();
+        IGame gameSelector = provider.GetRequiredService<GameSelector>();
 
         // Run the game loop
         while (!cancellationToken.IsCancellationRequested)
@@ -119,7 +84,7 @@ public class GameLoop
 
             // Iterate the gameloop
             gamePadsController.Update();
-            List<PixelBuffer> frame = Loop(pong, gameTime, gamePadsController.GamePads);
+            List<PixelBuffer> frame = gameSelector.Loop(gameTime, gamePadsController.GamePads);
 
             // Render the resulting pixels
             renderer.SetFrame(frame);
@@ -147,77 +112,5 @@ public class GameLoop
                 Thread.Sleep(sleepTimeMs);
             }
         }
-    }
-
-    private void RenderBlackTestImage(CancellationToken cancellationToken)
-    {
-        List<PixelBuffer> testFrame = testFraneGenerator.GenerateBlackFrame();
-        renderer.SetFrame(testFrame);
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            // Render the test frame
-            renderer.PrintAndResetStats();
-            Thread.Sleep(50);
-        }
-    }
-
-    private void RenderStillTestImage(CancellationToken cancellationToken)
-    {
-        List<PixelBuffer> testFrame = testFraneGenerator.Generate(new GameTime()
-        {
-            TotalTime = TimeSpan.FromSeconds(configuration.TestImageOffset),
-        });
-        renderer.SetFrame(testFrame);
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            // Render the test frame
-            renderer.PrintAndResetStats();
-            Thread.Sleep(50);
-        }
-    }
-
-    private void RenderMovingTestImage(CancellationToken cancellationToken)
-    {
-        Stopwatch loopTime = new();
-        Stopwatch totalGameTimer = new();
-        totalGameTimer.Start();
-        GameTime gameTime = new();
-
-        // Run the game loop
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            // Update the times
-            gameTime.TotalTime = totalGameTimer.Elapsed;
-            gameTime.DeltaTime = loopTime.Elapsed;
-            loopTime.Restart();
-
-            // Iterate the gameloop
-            List<PixelBuffer> frame = testFraneGenerator.Generate(gameTime);
-
-            // Render the resulting pixels
-            renderer.SetFrame(frame);
-
-            // Calculate how much to sleep to hit our targeted FPS
-            int sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
-
-            //Stats
-            stats.Frames++;
-            if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)
-            {
-                stats.SleepTime = sleepTimeMs;
-                stats.Time = gameTime;
-                logger.LogInformation("Gameloop: {@stats}", stats);
-                stats = new GameLoopStats();
-                statsPrinterStopwatch.Restart();
-            }
-
-            // Sleep to hit our targeted FPS
-            Thread.Sleep(sleepTimeMs);
-        }
-    }
-
-    public List<PixelBuffer> Loop(PongGame pong, GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
-    {
-        return pong.Loop(time, gamePads);
     }
 }

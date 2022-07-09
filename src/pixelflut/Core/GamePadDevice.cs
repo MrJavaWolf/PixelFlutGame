@@ -148,8 +148,8 @@ namespace PixelFlut.Core
             value > 0.5;
 
         private bool IsInDeadzone(double value) =>
-            value > 0.5 - configuration.DeadzoneSize &&
-            value < 0.5 + configuration.DeadzoneSize;
+            value > 0.5 - configuration.DeadzoneRadius &&
+            value < 0.5 + configuration.DeadzoneRadius;
 
     }
 }

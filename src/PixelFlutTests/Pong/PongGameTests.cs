@@ -60,11 +60,10 @@ namespace PixelFlut.Pong.Tests
             Mock<ILogger<PongGame>> logger = new();
             pongGame = new(
                 pongConfig,
-                screenConfiguration,
                 new (screenProtocol, screenConfiguration),
                 logger.Object,
                 screenProtocol);
-            pongGame.Startup(pongGameState);
+            pongGame.Initialize(pongGameState);
         }
 
         [TestMethod()]

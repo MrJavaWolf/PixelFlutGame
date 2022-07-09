@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PixelFlut.Core;
 using PixelFlut.Pong;
+using PixelFlut.TestImage;
 using Serilog;
 namespace PixelFlut;
 
@@ -19,7 +20,9 @@ public class Program
         PixelFlutScreenConfiguration rendererConfig = Configuration.GetSection("Screen").Get<PixelFlutScreenConfiguration>();
         PixelFlutGamepadConfiguration gamepadConfig = Configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>();
         GameLoopConfiguration gameloopConfig = Configuration.GetSection("GameLoop").Get<GameLoopConfiguration>();
-        PongConfiguration pongConfig = Configuration.GetSection("Pong").Get<PongConfiguration>();
+
+        
+
 
         // Dependency injection
         var services = new ServiceCollection();
@@ -27,16 +30,23 @@ public class Program
         services.AddSingleton(rendererConfig);
         services.AddSingleton(gamepadConfig);
         services.AddSingleton(gameloopConfig);
-        services.AddSingleton(pongConfig);
 
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
         services.AddSingleton<GamePadsController>();
         services.AddSingleton<PixelBufferFactory>();
-        services.AddSingleton<PongGame>();
         services.AddSingleton<GameLoop>();
-        services.AddSingleton<TestFrameGenerator>();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
         services.AddTransient<PixelFlutScreen>();
+        
+        // Add games + Add Game configurations
+        services.AddTransient<GameSelector>();
+        services.AddTransient<GameBlackTestImage>();
+        services.AddTransient<GameRainbowTestImage>();
+        services.AddSingleton(Configuration.GetSection("RainbowTestImage").Get<GameRainbowTestImage.Configuration>());
+        services.AddTransient<PongGame>();
+        services.AddSingleton(Configuration.GetSection("Pong").Get<PongConfiguration>());
+
+
         ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         // Create pixel game loop
@@ -53,7 +63,6 @@ public class Program
             tokenSource.Cancel();
         };
 
-
         // Run
         Task t1 = Task.Run(async () => await gamepadsController.RunAsync(tokenSource.Token));
         Thread gameLoopThread = new(() => gameLoop.Run(tokenSource.Token));
@@ -64,6 +73,8 @@ public class Program
         logger.LogInformation($"- - - - -  Shutdown pixelflut game - - - - - ");
     }
 
+    private static string RemoveSpaces(string s)
+        => s.Replace(" ", "");
 
 }
 

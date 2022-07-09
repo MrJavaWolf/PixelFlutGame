@@ -93,6 +93,7 @@ public class GameLoop
             {
                 sleepTimeMs = Math.Max(1, (int)(1000.0 / configuration.TargetGameLoopFPS - loopTime.Elapsed.TotalMilliseconds));
             }
+
             //Stats
             stats.Frames++;
             if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)

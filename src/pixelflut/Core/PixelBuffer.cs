@@ -85,6 +85,21 @@ public class PixelBuffer
         }
     }
 
+    public void ChangePixelPosition(int pixelNumber, int X, int Y)
+    {
+        if (pixelNumber >= NumberOfPixels)
+            throw new IndexOutOfRangeException(
+                $"The {nameof(PixelBuffer)} have {NumberOfPixels} pixels (0 indexed), " +
+                $"you tried to set pixel index {pixelNumber}");
+        PixelBufferPosition position = mappings[pixelNumber];
+        byte[] buffer = buffers[position.buffer];
+        screenProtocol.WriteToBuffer(
+            buffer,
+            position.position,
+            X + (int)screenConfiguration.OffsetX,
+            Y + (int)screenConfiguration.OffsetY);
+    }
+
     public void SetPixel(int pixelNumber, int X, int Y, byte R, byte G, byte B, byte A)
     {
         if (pixelNumber >= NumberOfPixels)
@@ -97,8 +112,8 @@ public class PixelBuffer
         screenProtocol.WriteToBuffer(
             buffer, 
             position.position, 
-            X + screenConfiguration.OffsetX, 
-            Y + screenConfiguration.OffsetY, 
+            X + (int)screenConfiguration.OffsetX, 
+            Y + (int)screenConfiguration.OffsetY, 
             R, 
             G, 
             B, 

@@ -17,12 +17,12 @@ public class PixelFlutScreenConfiguration
     /// <summary>
     /// Set the on screen offset if you want the game to not run from 0,0 (usually top left)
     /// </summary>
-    public int OffsetX { get; set; }
+    public double OffsetX { get; set; }
 
     /// <summary>
     /// Set the on screen offset if you want the game to not run from 0,0 (usually top left)
     /// </summary>
-    public int OffsetY { get; set; }
+    public double OffsetY { get; set; }
 
     /// <summary>
     /// The size of the game area

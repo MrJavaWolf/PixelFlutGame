@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace PixelFlut.Images;
 
-public class GameStaticImage : IGame
+public class GameImage : IGame
 {
 
     public class Configuration
@@ -19,43 +19,64 @@ public class GameStaticImage : IGame
         /// <summary>
         /// Whether the image should be scaled to the screen resolution
         /// </summary>
-        public bool ScaleToResolution = true;
+        public bool ScaleToResolution { get; set; } = true;
+
+        /// <summary>
+        /// Connect a controller and move the image
+        /// </summary>
+        public double Speed { get; set; }
     }
 
     private record ImageFrame(List<PixelBuffer> frame, TimeSpan delay);
 
-    private readonly ILogger<GameStaticImage> logger;
+    private readonly ILogger<GameImage> logger;
     private readonly PixelBufferFactory bufferFactory;
     private readonly Configuration config;
+    private readonly StoppingToken stoppingToken;
 
     // State
     private List<ImageFrame> imageFrames;
     private int imageFrameIndex = 0;
     private TimeSpan nextFrameTime = TimeSpan.Zero;
 
-    public GameStaticImage(
-        ILogger<GameStaticImage> logger,
+    public GameImage(
+        ILogger<GameImage> logger,
         PixelBufferFactory bufferFactory,
-        Configuration config)
+        Configuration config,
+        HttpClient httpClient,
+        StoppingToken stoppingToken)
     {
         this.logger = logger;
         this.bufferFactory = bufferFactory;
         this.config = config;
+        this.stoppingToken = stoppingToken;
 
         // Loads image
-        using Image<Rgba32> image = LoadImage();
+        using Image<Rgba32> image = LoadImage(httpClient, stoppingToken.Token);
 
         // Prepare frames
-        imageFrames = PreprareFrames(image);
+        imageFrames = PreprareFrames(image, stoppingToken.Token);
     }
 
-    private Image<Rgba32> LoadImage()
+    private Image<Rgba32> LoadImage(HttpClient httpClient, CancellationToken token)
     {
-        if (!File.Exists(config.Image))
+        byte[] imageBytes;
+        if (config.Image.ToLower().StartsWith("http://") || config.Image.ToLower().StartsWith("https://"))
+        {
+            logger.LogInformation($"Tries to download image: {config.Image}");
+            var httpResponse = httpClient.GetAsync(config.Image, token).Result; // Ugly waits for the result, should somehow be async
+            logger.LogInformation($"Response status code: {httpResponse.StatusCode}");
+            imageBytes = httpResponse.Content.ReadAsByteArrayAsync(token).Result;
+        }
+        else if (File.Exists(config.Image))
+        {
+            imageBytes = File.ReadAllBytes(config.Image);
+        }
+        else
+        {
             throw new FileNotFoundException("Could not find file to display", config.Image);
-
-        byte[] imageBytes = File.ReadAllBytes(config.Image);
-
+        }
+        logger.LogInformation($"Number of bits in the file: {imageBytes.Count()}");
         Image<Rgba32> image = Image.Load<Rgba32>(imageBytes, out IImageFormat format);
         logger.LogInformation("Image format: {@1}", format);
         // Resize the image in place and return it for chaining.
@@ -71,11 +92,12 @@ public class GameStaticImage : IGame
         return image;
     }
 
-    private List<ImageFrame> PreprareFrames(Image<Rgba32> image)
+    private List<ImageFrame> PreprareFrames(Image<Rgba32> image, CancellationToken token)
     {
         List<ImageFrame> frames = new();
         for (int i = 0; i < image.Frames.Count; i++)
         {
+            if (token.IsCancellationRequested) return frames;
             logger.LogInformation($"Preparing frame {(i + 1)}/{image.Frames.Count}...");
             ImageFrame<Rgba32> imageFrame = image.Frames[i];
             PixelBuffer buffer = bufferFactory.Create(image.Width * image.Height);
@@ -94,7 +116,8 @@ public class GameStaticImage : IGame
             // FrameDelay is 1/100 of a second, converts it to 1/1000 of a second
             return TimeSpan.FromMilliseconds(gifMetaData.FrameDelay * 10);
         }
-        return TimeSpan.Zero;
+        // Default gif speed = 100 ms
+        return TimeSpan.FromMilliseconds(100);
     }
 
     /// <summary>
@@ -102,20 +125,25 @@ public class GameStaticImage : IGame
     /// </summary>
     public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
     {
-        // Tests if it is a still image
-        if (imageFrames.Count <= 1)
-            return imageFrames[imageFrameIndex].frame;
+        // Checks if it is a GIF
+        if (imageFrames.Count > 1 && time.TotalTime > nextFrameTime)
+        {
+            // Renders next frame
+            imageFrameIndex++;
+            if (imageFrameIndex >= imageFrames.Count)
+                imageFrameIndex = 0;
+            logger.LogInformation($"Renders frame: {imageFrameIndex}");
+            nextFrameTime = time.TotalTime + imageFrames[imageFrameIndex].delay;
+        }
 
-        // Do not change frame just yet
-        if (time.TotalTime < nextFrameTime)
-            return imageFrames[imageFrameIndex].frame;
+        // Update frame position
+        if (gamePads.Count > 0)
+        {
+            bufferFactory.Screen.OffsetX += (gamePads[0].X - 0.5) * time.DeltaTime.TotalSeconds * config.Speed;
+            bufferFactory.Screen.OffsetY += (gamePads[0].Y - 0.5) * time.DeltaTime.TotalSeconds * config.Speed;
+            UpdateImagePosition(imageFrames[imageFrameIndex].frame[0]);
+        }
 
-        // Renders next frame
-        imageFrameIndex++;
-        if (imageFrameIndex >= imageFrames.Count)
-            imageFrameIndex = 0;
-        logger.LogInformation($"Renders frame: {imageFrameIndex}");
-        nextFrameTime = time.TotalTime + imageFrames[imageFrameIndex].delay;
         return imageFrames[imageFrameIndex].frame;
 
     }
@@ -129,6 +157,18 @@ public class GameStaticImage : IGame
             {
                 Rgba32 rgb = imageFrame[x, y];
                 buffer.SetPixel(pixelNumber, x, y, rgb.R, rgb.G, rgb.B, rgb.A);
+                pixelNumber++;
+            }
+        }
+    }
+    private void UpdateImagePosition(PixelBuffer buffer)
+    {
+        int pixelNumber = 0;
+        for (int y = 0; y < bufferFactory.Screen.ResolutionY; y++)
+        {
+            for (int x = 0; x < bufferFactory.Screen.ResolutionX; x++)
+            {
+                buffer.ChangePixelPosition(pixelNumber, x, y);
                 pixelNumber++;
             }
         }

@@ -14,6 +14,17 @@ public class PixelFlutScreenProtocol1 : IPixelFlutScreenProtocol
         return send_buffer;
     }
 
+    public void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y)
+    {
+        int offset = HeaderSize + pixelNumber * BytesPerPixel;
+        byte[] xBytes = BitConverter.GetBytes(x);
+        byte[] yBytes = BitConverter.GetBytes(y);
+        send_buffer[offset + 0] = xBytes[0];
+        send_buffer[offset + 1] = xBytes[1];
+        send_buffer[offset + 2] = yBytes[0];
+        send_buffer[offset + 3] = yBytes[1];
+    }
+
     public void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y, byte r, byte g, byte b, byte a)
     {
         int offset = HeaderSize + pixelNumber * BytesPerPixel;

@@ -22,23 +22,20 @@ public class Program
         PixelFlutGamepadConfiguration gamepadConfig = Configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>();
         GameLoopConfiguration gameloopConfig = Configuration.GetSection("GameLoop").Get<GameLoopConfiguration>();
 
-        
-
-
         // Dependency injection
         var services = new ServiceCollection();
+        services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
         services.AddSingleton(Configuration);
         services.AddSingleton(rendererConfig);
         services.AddSingleton(gamepadConfig);
         services.AddSingleton(gameloopConfig);
-
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
         services.AddSingleton<GamePadsController>();
         services.AddSingleton<PixelBufferFactory>();
         services.AddSingleton<GameLoop>();
-        services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
         services.AddTransient<PixelFlutScreen>();
-        
+        services.AddHttpClient();
+
         // Add games + Add Game configurations
         services.AddTransient<GameSelector>();
         services.AddTransient<GameBlackTestImage>();
@@ -46,9 +43,13 @@ public class Program
         services.AddSingleton(Configuration.GetSection("RainbowTestImage").Get<GameRainbowTestImage.Configuration>());
         services.AddTransient<PongGame>();
         services.AddSingleton(Configuration.GetSection("Pong").Get<PongConfiguration>());
-        services.AddTransient<GameStaticImage>();
-        services.AddSingleton(Configuration.GetSection("StaticImage").Get<GameStaticImage.Configuration>());
+        services.AddTransient<GameImage>();
+        services.AddSingleton(Configuration.GetSection("Image").Get<GameImage.Configuration>());
 
+        CancellationTokenSource tokenSource = new();
+        services.AddSingleton(new StoppingToken(tokenSource.Token));
+
+        // Create the service provider (dependen injection)
         ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         // Create pixel game loop
@@ -58,7 +59,6 @@ public class Program
         GameLoop gameLoop = serviceProvider.GetRequiredService<GameLoop>();
 
         // Setup gracefull shutdown
-        CancellationTokenSource tokenSource = new();
         Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e)
         {
             e.Cancel = true;

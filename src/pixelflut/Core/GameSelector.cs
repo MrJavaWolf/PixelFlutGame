@@ -34,7 +34,7 @@ namespace PixelFlut.Core
                 "Pong" => serviceProvider.GetRequiredService<PongGame>(),
                 "RainbowTestImage" => serviceProvider.GetRequiredService<GameRainbowTestImage>(),
                 "BlackTestImage" => serviceProvider.GetRequiredService<GameBlackTestImage>(),
-                "StaticImage" => serviceProvider.GetRequiredService<GameStaticImage>(),
+                "Image" => serviceProvider.GetRequiredService<GameImage>(),
                 _ => throw new NotSupportedException($"Unknown game name: '{gameName}'"),
             };
             return game;

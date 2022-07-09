@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PixelFlut.Core;
+using PixelFlut.Images;
 using PixelFlut.Pong;
 using PixelFlut.TestImage;
 using Serilog;
@@ -45,7 +46,8 @@ public class Program
         services.AddSingleton(Configuration.GetSection("RainbowTestImage").Get<GameRainbowTestImage.Configuration>());
         services.AddTransient<PongGame>();
         services.AddSingleton(Configuration.GetSection("Pong").Get<PongConfiguration>());
-
+        services.AddTransient<GameStaticImage>();
+        services.AddSingleton(Configuration.GetSection("StaticImage").Get<GameStaticImage.Configuration>());
 
         ServiceProvider serviceProvider = services.BuildServiceProvider();
 

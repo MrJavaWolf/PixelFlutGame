@@ -35,21 +35,21 @@ namespace PixelFlut.Pong.Tests
             };
             screenConfiguration = new()
             {
-                ResultionX = 100,
-                ResultionY = 100,
+                ResolutionX = 100,
+                ResolutionY = 100,
             };
 
             pongGameState = new()
             {
                 BallPosition = new(
-                    screenConfiguration.ResultionX / 2,
-                    screenConfiguration.ResultionY / 2),
+                    screenConfiguration.ResolutionX / 2,
+                    screenConfiguration.ResolutionY / 2),
                 Player1Position = new(
                     pongConfig.PlayerDistanceToSides,
-                    screenConfiguration.ResultionY / 2 - pongConfig.PlayerHeight / 2),
+                    screenConfiguration.ResolutionY / 2 - pongConfig.PlayerHeight / 2),
                 Player2Position = new(
-                    screenConfiguration.ResultionX - pongConfig.PlayerDistanceToSides - pongConfig.PlayerWidth,
-                    screenConfiguration.ResultionY / 2 - pongConfig.PlayerHeight / 2),
+                    screenConfiguration.ResolutionX - pongConfig.PlayerDistanceToSides - pongConfig.PlayerWidth,
+                    screenConfiguration.ResolutionY / 2 - pongConfig.PlayerHeight / 2),
                 CurrentGameState = PongGameStateType.Playing,
                 BallVerlocity = new(-10, 0)
             };

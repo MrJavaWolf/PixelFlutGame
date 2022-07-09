@@ -21,7 +21,7 @@
 
         public PixelBuffer CreateFullScreen()
         {
-            return new PixelBuffer(Screen.ResultionY * Screen.ResultionX, screenProtocol, Screen);
+            return new PixelBuffer(Screen.ResolutionY * Screen.ResolutionX, screenProtocol, Screen);
         }
     }
 }

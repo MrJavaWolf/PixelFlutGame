@@ -27,12 +27,12 @@ public class PixelFlutScreenConfiguration
     /// <summary>
     /// The size of the game area
     /// </summary>
-    public int ResultionX { get; set; }
+    public int ResolutionX { get; set; }
 
     /// <summary>
     /// The size of the game area
     /// </summary>
-    public int ResultionY { get; set; }
+    public int ResolutionY { get; set; }
 
     /// <summary>
     /// How many threads to be dedicated to send buffers to the pixel flut server

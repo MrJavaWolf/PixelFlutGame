@@ -13,7 +13,7 @@ public class PongGame : IGame
     private PongGameState gameState = new();
     private List<PixelBuffer> frame = new();
     public int MinimumYPlayerPosition { get => 0; }
-    public int MaximumYPlayerPosition { get => bufferFactory.Screen.ResultionY - pongConfig.PlayerHeight; }
+    public int MaximumYPlayerPosition { get => bufferFactory.Screen.ResolutionY - pongConfig.PlayerHeight; }
 
     public IndividualParticalExplosionEffect ballWallBounceEffect;
     public SphereExplosionEffect ballPlayerBounceEffect;
@@ -66,10 +66,10 @@ public class PongGame : IGame
             gameState = new();
             gameState.Player1Position = new(
                 pongConfig.PlayerDistanceToSides,
-                bufferFactory.Screen.ResultionY / 2 - pongConfig.PlayerHeight / 2);
+                bufferFactory.Screen.ResolutionY / 2 - pongConfig.PlayerHeight / 2);
             gameState.Player2Position = new(
-                bufferFactory.Screen.ResultionX - pongConfig.PlayerDistanceToSides,
-                bufferFactory.Screen.ResultionY / 2 - pongConfig.PlayerHeight / 2);
+                bufferFactory.Screen.ResolutionX - pongConfig.PlayerDistanceToSides,
+                bufferFactory.Screen.ResolutionY / 2 - pongConfig.PlayerHeight / 2);
             gameState.Player1Score = 0;
             gameState.Player2Score = 0;
             ResetBall();
@@ -98,8 +98,8 @@ public class PongGame : IGame
         //debugOffsetY = -200;
 
         gameState.BallPosition = new Vector2(
-            bufferFactory.Screen.ResultionX / 2 + debugOffsetX,
-            bufferFactory.Screen.ResultionY / 2 + debugOffsetY);
+            bufferFactory.Screen.ResolutionX / 2 + debugOffsetX,
+            bufferFactory.Screen.ResolutionY / 2 + debugOffsetY);
         gameState.BallVerlocity = new Vector2(
             (float)((leftRight ? -1 : 1) * pongConfig.BallStartSpeed * (1 - startXYBallVerlocitySplit)),
             (float)((upDown ? -1 : 1) * pongConfig.BallStartSpeed * startXYBallVerlocitySplit));
@@ -179,7 +179,7 @@ public class PongGame : IGame
         HandlePlayerHit(previousBallPosition, time);
 
         // Goal by player 1
-        if (gameState.BallPosition.X > bufferFactory.Screen.ResultionX)
+        if (gameState.BallPosition.X > bufferFactory.Screen.ResolutionX)
         {
             gameState.Player1Score++;
             logger.LogInformation("GOAL - Player 1 scores");
@@ -206,11 +206,11 @@ public class PongGame : IGame
         float wantedNewBallPositionY = gameState.BallPosition.Y + gameState.BallVerlocity.Y * (float)time.DeltaTime.TotalSeconds;
 
         // Bounce top/bottom
-        if (wantedNewBallPositionY > bufferFactory.Screen.ResultionY ||
+        if (wantedNewBallPositionY > bufferFactory.Screen.ResolutionY ||
             wantedNewBallPositionY < 0)
         {
             gameState.BallVerlocity = new(gameState.BallVerlocity.X, -gameState.BallVerlocity.Y);
-            wantedNewBallPositionY = Math.Clamp(wantedNewBallPositionY, 0, bufferFactory.Screen.ResultionY);
+            wantedNewBallPositionY = Math.Clamp(wantedNewBallPositionY, 0, bufferFactory.Screen.ResolutionY);
 
             Vector2 effectDirection = gameState.BallVerlocity.Y > 0 ?
                 new Vector2(0, 1) :

@@ -62,9 +62,9 @@ namespace PixelFlut.TestImage
         public void DrawRainBowTestImage(GameTime time, PixelBuffer buffer)
         {
             int pixelNumber = 0;
-            for (int y = 0; y < bufferFactory.Screen.ResultionY; y++)
+            for (int y = 0; y < bufferFactory.Screen.ResolutionY; y++)
             {
-                for (int x = 0; x < bufferFactory.Screen.ResultionX; x++)
+                for (int x = 0; x < bufferFactory.Screen.ResolutionX; x++)
                 {
                     double hue = (x + y + time.TotalTime.TotalSeconds * 100) * 0.3 % 360;
                     Color c = MathHelper.ColorFromHSV(hue, 1, 1);

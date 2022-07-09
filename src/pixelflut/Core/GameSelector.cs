@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PixelFlut.Images;
 using PixelFlut.Pong;
 using PixelFlut.TestImage;
 
@@ -32,7 +33,8 @@ namespace PixelFlut.Core
             {
                 "Pong" => serviceProvider.GetRequiredService<PongGame>(),
                 "RainbowTestImage" => serviceProvider.GetRequiredService<GameRainbowTestImage>(),
-                "BlackTestImage" => serviceProvider.GetRequiredService<GameRainbowTestImage>(),
+                "BlackTestImage" => serviceProvider.GetRequiredService<GameBlackTestImage>(),
+                "StaticImage" => serviceProvider.GetRequiredService<GameStaticImage>(),
                 _ => throw new NotSupportedException($"Unknown game name: '{gameName}'"),
             };
             return game;

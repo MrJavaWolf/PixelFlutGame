@@ -1,5 +1,6 @@
 ﻿using PixelFlut.Core;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace PixelFlut.TestImage
 {
@@ -32,11 +33,11 @@ namespace PixelFlut.TestImage
             this.logger = logger;
             this.bufferFactory = bufferFactory;
 
-            // Initialize
+            // Creates the pixel buffer
             Stopwatch sw = new();
             sw.Start();
             this.logger.LogInformation($"Creates pixel buffer for the {this.GetType().Name}...");
-            PixelBuffer buffer = bufferFactory.Create(bufferFactory.Screen.ResultionY * bufferFactory.Screen.ResultionX);
+            PixelBuffer buffer = bufferFactory.CreateFullScreen();
             frame = new List<PixelBuffer>() { buffer };
             this.logger.LogInformation($"Pixel buffer for the {this.GetType().Name} is ready, time took to create: {sw.ElapsedMilliseconds} ms");
 
@@ -65,18 +66,9 @@ namespace PixelFlut.TestImage
             {
                 for (int x = 0; x < bufferFactory.Screen.ResultionX; x++)
                 {
-                    var c = MathHelper.ColorFromHSV(
-                        (x + y + time.TotalTime.TotalSeconds * 100) * 0.3 % 360,
-                        1,
-                        1);
-                    buffer.SetPixel(
-                        pixelNumber,
-                        x,
-                        y,
-                        c.R,
-                        c.G,
-                        c.B,
-                        255);
+                    double hue = (x + y + time.TotalTime.TotalSeconds * 100) * 0.3 % 360;
+                    Color c = MathHelper.ColorFromHSV(hue, 1, 1);
+                    buffer.SetPixel(pixelNumber, x, y, c.R, c.G, c.B, 255);
                     pixelNumber++;
                 }
             }

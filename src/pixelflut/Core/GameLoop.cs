@@ -37,8 +37,6 @@ public class GameLoop
     private GameLoopStats stats = new();
     private Stopwatch statsPrinterStopwatch = new();
 
-    bool isInitialized = false;
-
     public GameLoop(
         ILogger<GameLoop> logger,
         PixelFlutScreen renderer,

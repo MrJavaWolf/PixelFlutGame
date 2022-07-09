@@ -17,5 +17,11 @@
         {
             return new PixelBuffer(numberOfPixels, screenProtocol, Screen);
         }
+
+
+        public PixelBuffer CreateFullScreen()
+        {
+            return new PixelBuffer(Screen.ResultionY * Screen.ResultionX, screenProtocol, Screen);
+        }
     }
 }

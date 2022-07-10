@@ -1,10 +1,9 @@
 ﻿using PixelFlut.Core;
-using System.Diagnostics;
 using System.Drawing;
 
 namespace PixelFlut.TestImage
 {
-    public class GameRainbowTestImage : IGame
+    public class RainbowTestImage : IGame
     {
         public class Configuration
         {
@@ -20,13 +19,13 @@ namespace PixelFlut.TestImage
         }
 
         private readonly Configuration config;
-        private readonly ILogger<GameRainbowTestImage> logger;
+        private readonly ILogger<RainbowTestImage> logger;
         private readonly PixelBufferFactory bufferFactory;
         private List<PixelBuffer> frame;
 
-        public GameRainbowTestImage(
+        public RainbowTestImage(
             Configuration config,
-            ILogger<GameRainbowTestImage> logger,
+            ILogger<RainbowTestImage> logger,
             PixelBufferFactory bufferFactory)
         {
             this.config = config;
@@ -34,12 +33,10 @@ namespace PixelFlut.TestImage
             this.bufferFactory = bufferFactory;
 
             // Creates the pixel buffer
-            Stopwatch sw = new();
-            sw.Start();
             this.logger.LogInformation($"Creates pixel buffer for the {this.GetType().Name}...");
             PixelBuffer buffer = bufferFactory.CreateFullScreen();
             frame = new List<PixelBuffer>() { buffer };
-            this.logger.LogInformation($"Pixel buffer for the {this.GetType().Name} is ready, time took to create: {sw.ElapsedMilliseconds} ms");
+            this.logger.LogInformation($"Pixel buffer for the {this.GetType().Name} is ready");
 
             // Initializes the test image
             DrawRainBowTestImage(

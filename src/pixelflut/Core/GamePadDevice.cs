@@ -43,22 +43,19 @@ namespace PixelFlut.Core
             });
         }
 
-        public void Update()
+        public void Loop()
         {
-            StartButton.Update(isStartButtonCurrentlyPressedDown);
-            SelectButton.Update(isSelectButtonCurrentlyPressedDown);
-            NorthButton.Update(isNorthButtonCurrentlyPressedDown);
-            EastButton.Update(isEastButtonCurrentlyPressedDown);
-            SouthButton.Update(isSouthButtonCurrentlyPressedDown);
-            WestButton.Update(isWestButtonCurrentlyPressedDown);
+            StartButton.Loop(isStartButtonCurrentlyPressedDown);
+            SelectButton.Loop(isSelectButtonCurrentlyPressedDown);
+            NorthButton.Loop(isNorthButtonCurrentlyPressedDown);
+            EastButton.Loop(isEastButtonCurrentlyPressedDown);
+            SouthButton.Loop(isSouthButtonCurrentlyPressedDown);
+            WestButton.Loop(isWestButtonCurrentlyPressedDown);
         }
 
         /// <summary>
         /// Handle game inputs
         /// </summary>
-        /// <param name="device"></param>
-        /// <param name="change"></param>
-        /// <param name="usage"></param>
         private void HandleGamepadInput(ControlChange change, Usage usage)
         {
             logger.LogInformation(
@@ -76,11 +73,11 @@ namespace PixelFlut.Core
             }
             else
             {
-                NormalController(change, usage);
+                NitendoController(change, usage);
             }
         }
 
-        private void NormalController(ControlChange change, Usage usage)
+        private void NitendoController(ControlChange change, Usage usage)
         {
             switch (usage.FullId)
             {

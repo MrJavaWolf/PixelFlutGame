@@ -10,60 +10,69 @@ namespace PixelFlut;
 
 public class Program
 {
+    /// <summary>
+    /// Register your games here
+    /// The name of your game will be the same you will be using in the configuration file
+    /// Both for your game configuration and for selecting the game in 'GameLoop --> GameToPlay'
+    /// </summary>
+    private static void AddGames(ServiceCollection services, GameFactory gameFactory)
+    {
+        // Add a game by either
+        // gameFactory.AddGame<YourGameClass>("YourGameName", services);
+        // gameFactory.AddGame<YourGameClass, YourGameConfigClass>("YourGameName", services);
+
+        gameFactory.AddGame<BlackTestImage>("BlackTestImage", services);
+        gameFactory.AddGame<RainbowTestImage, RainbowTestImage.Configuration>("RainbowTestImage", services);
+        gameFactory.AddGame<GameImage, GameImage.Configuration>("Image", services);
+        gameFactory.AddGame<PongGame, PongConfiguration>("Pong", services);
+    }
+
     public static async Task Main(string[] args)
     {
         // Configuration
-        IConfiguration Configuration = new ConfigurationBuilder()
-                        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                        .AddEnvironmentVariables()
-                        .AddCommandLine(args)
-                        .Build();
-        PixelFlutScreenConfiguration rendererConfig = Configuration.GetSection("Screen").Get<PixelFlutScreenConfiguration>();
-        PixelFlutGamepadConfiguration gamepadConfig = Configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>();
-        GameLoopConfiguration gameloopConfig = Configuration.GetSection("GameLoop").Get<GameLoopConfiguration>();
-
-        // Dependency injection
-        var services = new ServiceCollection();
-        services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(Configuration).CreateLogger()));
-        services.AddSingleton(Configuration);
-        services.AddSingleton(rendererConfig);
-        services.AddSingleton(gamepadConfig);
-        services.AddSingleton(gameloopConfig);
-        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
-        services.AddSingleton<GamePadsController>();
-        services.AddSingleton<PixelBufferFactory>();
-        services.AddSingleton<GameLoop>();
-        services.AddTransient<PixelFlutScreen>();
-        services.AddHttpClient();
-
-        // Add games + Add Game configurations
-        services.AddTransient<GameSelector>();
-        services.AddTransient<GameBlackTestImage>();
-        services.AddTransient<GameRainbowTestImage>();
-        services.AddSingleton(Configuration.GetSection("RainbowTestImage").Get<GameRainbowTestImage.Configuration>());
-        services.AddTransient<PongGame>();
-        services.AddSingleton(Configuration.GetSection("Pong").Get<PongConfiguration>());
-        services.AddTransient<GameImage>();
-        services.AddSingleton(Configuration.GetSection("Image").Get<GameImage.Configuration>());
-
-        CancellationTokenSource tokenSource = new();
-        services.AddSingleton(new StoppingToken(tokenSource.Token));
-
-        // Create the service provider (dependen injection)
-        ServiceProvider serviceProvider = services.BuildServiceProvider();
-
-        // Create pixel game loop
-        ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation($"- - - - - Starting pixelflut game - - - - - ");
-        GamePadsController gamepadsController = serviceProvider.GetRequiredService<GamePadsController>();
-        GameLoop gameLoop = serviceProvider.GetRequiredService<GameLoop>();
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables()
+            .AddCommandLine(args)
+            .Build();
 
         // Setup gracefull shutdown
+        CancellationTokenSource tokenSource = new();
         Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e)
         {
             e.Cancel = true;
             tokenSource.Cancel();
         };
+
+        // Dependency injection
+        GameFactory gameFactory = new GameFactory(configuration);
+        var services = new ServiceCollection();
+        services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger()));
+        services.AddSingleton(configuration);
+        services.AddSingleton(configuration.GetSection("Screen").Get<PixelFlutScreenConfiguration>());
+        services.AddSingleton(configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>());
+        services.AddSingleton(configuration.GetSection("GameLoop").Get<GameLoopConfiguration>());
+        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
+        services.AddSingleton<GamePadsController>();
+        services.AddSingleton<PixelBufferFactory>();
+        services.AddSingleton<GameLoop>();
+        services.AddTransient<PixelFlutScreen>();
+        services.AddTransient<GameSelector>();
+        services.AddSingleton(new StoppingToken(tokenSource.Token));
+        services.AddHttpClient();
+
+        // Add games + Add Game configurations
+        AddGames(services, gameFactory);
+
+        // Create the service provider (dependen injection)
+        services.AddSingleton(gameFactory);
+        ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+        // Create game loop
+        ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation($"- - - - - Starting pixelflut game - - - - - ");
+        GamePadsController gamepadsController = serviceProvider.GetRequiredService<GamePadsController>();
+        GameLoop gameLoop = serviceProvider.GetRequiredService<GameLoop>();
 
         // Run
         Task t1 = Task.Run(async () => await gamepadsController.RunAsync(tokenSource.Token));
@@ -74,10 +83,6 @@ public class Program
 
         logger.LogInformation($"- - - - -  Shutdown pixelflut game - - - - - ");
     }
-
-    private static string RemoveSpaces(string s)
-        => s.Replace(" ", "");
-
 }
 
 

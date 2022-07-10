@@ -1,43 +1,29 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using PixelFlut.Images;
-using PixelFlut.Pong;
-using PixelFlut.TestImage;
-
-namespace PixelFlut.Core
+﻿namespace PixelFlut.Core
 {
     public class GameSelector : IGame
     {
-        private readonly ILogger<GameSelector> logger;
+        private readonly GameLoopConfiguration config;
+        private readonly GameFactory gameFactory;
         private readonly IServiceProvider serviceProvider;
         private IGame currentGame;
 
         public GameSelector(
-            ILogger<GameSelector> logger, 
             GameLoopConfiguration config,
+            GameFactory gameFactory,
             IServiceProvider serviceProvider)
         {
-            this.logger = logger;
+            this.config = config;
+            this.gameFactory = gameFactory;
             this.serviceProvider = serviceProvider;
-            currentGame = CreateGame(config.GameToPlay);
+            currentGame = this.gameFactory.CreateGame(this.config.GameToPlay, this.serviceProvider);
         }
 
         public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
         {
+            // TODO: Implement a game selection menu
+            // TODO: Implement a way to exit one game and start another
+            //       Could be triggered by a player pressing the 'Select' button
             return currentGame.Loop(time, gamePads);
-        }
-
-        private IGame CreateGame(string gameName)
-        {
-            logger.LogInformation($"Creates now game: '{gameName}'");
-            IGame game = gameName switch
-            {
-                "Pong" => serviceProvider.GetRequiredService<PongGame>(),
-                "RainbowTestImage" => serviceProvider.GetRequiredService<GameRainbowTestImage>(),
-                "BlackTestImage" => serviceProvider.GetRequiredService<GameBlackTestImage>(),
-                "Image" => serviceProvider.GetRequiredService<GameImage>(),
-                _ => throw new NotSupportedException($"Unknown game name: '{gameName}'"),
-            };
-            return game;
         }
     }
 }

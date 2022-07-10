@@ -67,7 +67,7 @@ public class GameLoop
         Stopwatch totalGameTimer = new();
         GameTime gameTime = new();
         totalGameTimer.Start();
-        gamePadsController.Update();
+        gamePadsController.Loop();
 
         // Setup the game
         IGame gameSelector = provider.GetRequiredService<GameSelector>();
@@ -81,7 +81,7 @@ public class GameLoop
             loopTime.Restart();
 
             // Iterate the gameloop
-            gamePadsController.Update();
+            gamePadsController.Loop();
             List<PixelBuffer> frame = gameSelector.Loop(gameTime, gamePadsController.GamePads);
 
             // Render the resulting pixels

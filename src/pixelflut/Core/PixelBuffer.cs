@@ -96,8 +96,8 @@ public class PixelBuffer
         screenProtocol.WriteToBuffer(
             buffer,
             position.position,
-            X + (int)screenConfiguration.OffsetX,
-            Y + (int)screenConfiguration.OffsetY);
+            X + screenConfiguration.OffsetX,
+            Y + screenConfiguration.OffsetY);
     }
 
     public void SetPixel(int pixelNumber, int X, int Y, byte R, byte G, byte B, byte A)
@@ -112,8 +112,8 @@ public class PixelBuffer
         screenProtocol.WriteToBuffer(
             buffer, 
             position.position, 
-            X + (int)screenConfiguration.OffsetX, 
-            Y + (int)screenConfiguration.OffsetY, 
+            X + screenConfiguration.OffsetX, 
+            Y + screenConfiguration.OffsetY, 
             R, 
             G, 
             B, 

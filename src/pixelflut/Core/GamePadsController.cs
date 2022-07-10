@@ -32,17 +32,37 @@ public class GamePadsController
     {
         while (!token.IsCancellationRequested)
         {
-            await ListenForGamepadInputsAsync(token);
+            // Subscribes to all inputs from all devices 
+            // Remark:
+            // On Windows devices.Connected(...)  will automatically detect new devices, but on Linux it will not.
+            // Due to this we will re-subscribe to all inputs everytime a change of connected devices of been detected (on all platforms)
+            using var devices = new Devices(loggerFactory.CreateLogger<Devices>());
+            List<GamePadDevice> newDevices = new();
+            using var subscription =
+                devices.Connected(
+                device => device.ControlUsagesAll(GenericDesktopPage.X, GenericDesktopPage.Y))
+                .Subscribe(devices =>
+                {
+                    foreach (var device in devices)
+                    {
+                        GamePadDevice gamepadDevice = new(device.Current, configuration, loggerFactory.CreateLogger<GamePadDevice>());
+                        newDevices.Add(gamepadDevice);
+                    }
+                });
+
+            connectedDevices = newDevices;
+            activeGamePads = new List<IGamePadDevice>();
+            await WaitForDeviceChangeAsync(token);
         }
     }
 
-    public void Update()
+    public void Loop()
     {
         // Make a local reference in case the connectedDevices list changes while updating the devices
         IReadOnlyList<GamePadDevice> devices = connectedDevices;
         foreach (var device in devices)
         {
-            device.Update();
+            device.Loop();
 
             if (device.StartButton.OnPress)
             {
@@ -52,32 +72,6 @@ public class GamePadsController
                 }
             }
         }
-    }
-
-    private async Task ListenForGamepadInputsAsync(CancellationToken token)
-    {
-        // Subscribes to all inputs from all devices 
-        // Remark:
-        // On Windows devices.Connected(...)  will automatically detect new devices, but on Linux it will not.
-        // Due to this we will re-subscribe to all inputs everytime a change of connected devices of been detected (on all platforms)
-        using var devices = new Devices(loggerFactory.CreateLogger<Devices>());
-        List<GamePadDevice> newDevices = new();
-        using var subscription =
-            devices.Connected(
-            device => device.ControlUsagesAll(GenericDesktopPage.X, GenericDesktopPage.Y))
-            .Subscribe(devices =>
-            {
-                foreach (var device in devices)
-                {
-                    GamePadDevice gamepadDevice = new(device.Current, configuration, loggerFactory.CreateLogger<GamePadDevice>());
-                    newDevices.Add(gamepadDevice);
-                }
-            });
-
-
-        connectedDevices = newDevices;
-        activeGamePads = new List<IGamePadDevice>();
-        await WaitForDeviceChangeAsync(token);
     }
 
     /// <summary>

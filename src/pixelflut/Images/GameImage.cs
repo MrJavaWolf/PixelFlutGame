@@ -3,6 +3,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Numerics;
 
 namespace PixelFlut.Images;
 
@@ -33,6 +34,7 @@ public class GameImage : IGame
     private List<ImageFrame> imageFrames;
     private int imageFrameIndex = 0;
     private TimeSpan nextFrameTime = TimeSpan.Zero;
+    private Vector2 imagePosition = Vector2.Zero;
 
     public GameImage(
         ILogger<GameImage> logger,
@@ -74,8 +76,8 @@ public class GameImage : IGame
         logger.LogInformation($"Number of bits in the file: {imageBytes.Count()}");
         Image<Rgba32> image = Image.Load<Rgba32>(imageBytes, out IImageFormat format);
         logger.LogInformation("Image format: {@1}", format);
-        // Resize the image in place and return it for chaining.
-        // 'x' signifies the current image processing context.
+
+        // Resizes the image to fit the resolution
         image.Mutate(x => x.Resize(bufferFactory.Screen.ResolutionX, bufferFactory.Screen.ResolutionY));
 
         if (image.Frames.Count == 0)
@@ -96,12 +98,12 @@ public class GameImage : IGame
             PixelBuffer buffer = bufferFactory.Create(image.Width * image.Height);
             DrawImage(buffer, imageFrame);
             List<PixelBuffer> frame = new List<PixelBuffer>() { buffer };
-            frames.Add(new ImageFrame(frame, GetFrameDelay(imageFrame)));
+            frames.Add(new ImageFrame(frame, GetGifFrameDelay(imageFrame)));
         }
         return frames;
     }
 
-    private TimeSpan GetFrameDelay(ImageFrame<Rgba32> imageFrame)
+    private TimeSpan GetGifFrameDelay(ImageFrame<Rgba32> imageFrame)
     {
         var gifMetaData = imageFrame.Metadata.GetGifMetadata();
         if (gifMetaData.FrameDelay > 0)
@@ -109,7 +111,7 @@ public class GameImage : IGame
             // FrameDelay is 1/100 of a second, converts it to 1/1000 of a second
             return TimeSpan.FromMilliseconds(gifMetaData.FrameDelay * 10);
         }
-        // Default gif speed = 100 ms
+        // Default gif speed: 100 ms
         return TimeSpan.FromMilliseconds(100);
     }
 
@@ -129,11 +131,11 @@ public class GameImage : IGame
             nextFrameTime = time.TotalTime + imageFrames[imageFrameIndex].delay;
         }
 
-        // Update frame position
+        // Change image position
         if (gamePads.Count > 0)
         {
-            bufferFactory.Screen.OffsetX += (gamePads[0].X - 0.5) * time.DeltaTime.TotalSeconds * config.Speed;
-            bufferFactory.Screen.OffsetY += (gamePads[0].Y - 0.5) * time.DeltaTime.TotalSeconds * config.Speed;
+            imagePosition.X += (float)((gamePads[0].X - 0.5) * time.DeltaTime.TotalSeconds * config.Speed);
+            imagePosition.Y += (float)((gamePads[0].Y - 0.5) * time.DeltaTime.TotalSeconds * config.Speed);
             UpdateImagePosition(imageFrames[imageFrameIndex].frame[0]);
         }
 
@@ -149,7 +151,9 @@ public class GameImage : IGame
             for (int x = 0; x < bufferFactory.Screen.ResolutionX && x < imageFrame.Width; x++)
             {
                 Rgba32 rgb = imageFrame[x, y];
-                buffer.SetPixel(pixelNumber, x, y, rgb.R, rgb.G, rgb.B, rgb.A);
+                int xPos = x + (int)imagePosition.X;
+                int yPos = y + (int)imagePosition.Y;
+                buffer.SetPixel(pixelNumber, xPos, yPos, rgb.R, rgb.G, rgb.B, rgb.A);
                 pixelNumber++;
             }
         }
@@ -161,7 +165,9 @@ public class GameImage : IGame
         {
             for (int x = 0; x < bufferFactory.Screen.ResolutionX; x++)
             {
-                buffer.ChangePixelPosition(pixelNumber, x, y);
+                int xPos = x + (int)imagePosition.X;
+                int yPos = y + (int)imagePosition.Y;
+                buffer.ChangePixelPosition(pixelNumber, xPos, yPos);
                 pixelNumber++;
             }
         }

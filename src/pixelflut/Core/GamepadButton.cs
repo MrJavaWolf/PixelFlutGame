@@ -23,7 +23,7 @@
         /// Update the button to a new state
         /// </summary>
         /// <param name="isPressedDown"></param>
-        public void Update(bool isPressedDown)
+        public void Loop(bool isPressedDown)
         {
             // Was not pressed down before, is pressed down now
             if (!IsPressed && isPressedDown)

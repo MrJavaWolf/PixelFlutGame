@@ -3,25 +3,24 @@ using System.Diagnostics;
 
 namespace PixelFlut.TestImage
 {
-    public class GameBlackTestImage : IGame
+    public class BlackTestImage : IGame
     {
-        private readonly ILogger<GameBlackTestImage> logger;
+        private readonly ILogger<BlackTestImage> logger;
         private readonly PixelBufferFactory bufferFactory;
         private List<PixelBuffer> frame;
 
-        public GameBlackTestImage(
-            ILogger<GameBlackTestImage> logger,
+        public BlackTestImage(
+            ILogger<BlackTestImage> logger,
             PixelBufferFactory bufferFactory)
         {
             this.logger = logger;
             this.bufferFactory = bufferFactory;
 
             // Creates the pixel buffer
-            Stopwatch sw = Stopwatch.StartNew();
             this.logger.LogInformation($"Creates pixel buffer for the {this.GetType().Name}...");
             PixelBuffer buffer = bufferFactory.CreateFullScreen();
             frame = new List<PixelBuffer>() { buffer };
-            this.logger.LogInformation($"Pixel buffer for the {this.GetType().Name} is ready, time took to create: {sw.ElapsedMilliseconds} ms");
+            this.logger.LogInformation($"Pixel buffer for the {this.GetType().Name} is ready");
 
             // Initializes the test image
             DrawBlackTestImage(buffer);

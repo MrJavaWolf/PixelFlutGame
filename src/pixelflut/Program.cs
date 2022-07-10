@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PixelFlut.Core;
 using PixelFlut.Images;
@@ -60,12 +59,8 @@ public class Program
         services.AddTransient<GameSelector>();
         services.AddSingleton(new StoppingToken(tokenSource.Token));
         services.AddHttpClient();
-
-        // Add games + Add Game configurations
-        AddGames(services, gameFactory);
-
-        // Create the service provider (dependen injection)
         services.AddSingleton(gameFactory);
+        AddGames(services, gameFactory);
         ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         // Create game loop

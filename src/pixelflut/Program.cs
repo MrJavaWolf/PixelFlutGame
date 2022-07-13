@@ -54,6 +54,7 @@ public class Program
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
         services.AddSingleton<GamePadsController>();
         services.AddSingleton<PixelBufferFactory>();
+        services.AddSingleton<ConsoleAsGamePad>();
         services.AddSingleton<GameLoop>();
         services.AddTransient<PixelFlutScreen>();
         services.AddTransient<GameSelector>();

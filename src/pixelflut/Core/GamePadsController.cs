@@ -8,11 +8,11 @@ public class GamePadsController
     public event EventHandler? ChangeOfDevicesDetected;
 
     private readonly PixelFlutGamepadConfiguration configuration;
+    private readonly ConsoleAsGamePad consoleGamePad;
     private ILogger<GamePadsController> logger;
     private ILoggerFactory loggerFactory;
-    
     private List<IGamePadDevice> activeGamePads = new List<IGamePadDevice>();
-    private IReadOnlyList<GamePadDevice> connectedDevices = new List<GamePadDevice>();
+    private IReadOnlyList<IGamePadDevice> connectedDevices = new List<IGamePadDevice>();
 
     public IReadOnlyList<IGamePadDevice> GamePads { get => activeGamePads; }
 
@@ -20,11 +20,13 @@ public class GamePadsController
     public GamePadsController(
         PixelFlutGamepadConfiguration configuration,
         ILogger<GamePadsController> logger,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        ConsoleAsGamePad consoleGamePad)
     {
         this.configuration = configuration;
         this.logger = logger;
         this.loggerFactory = loggerFactory;
+        this.consoleGamePad = consoleGamePad;
         logger.LogInformation($"Gamepad: {{@configuration}}", configuration);
     }
 
@@ -37,7 +39,7 @@ public class GamePadsController
             // On Windows devices.Connected(...)  will automatically detect new devices, but on Linux it will not.
             // Due to this we will re-subscribe to all inputs everytime a change of connected devices of been detected (on all platforms)
             using var devices = new Devices(loggerFactory.CreateLogger<Devices>());
-            List<GamePadDevice> newDevices = new();
+            List<IGamePadDevice> newDevices = new() { consoleGamePad };
             using var subscription =
                 devices.Connected(
                 device => device.ControlUsagesAll(GenericDesktopPage.X, GenericDesktopPage.Y))
@@ -59,10 +61,14 @@ public class GamePadsController
     public void Loop()
     {
         // Make a local reference in case the connectedDevices list changes while updating the devices
-        IReadOnlyList<GamePadDevice> devices = connectedDevices;
+        IReadOnlyList<IGamePadDevice> devices = connectedDevices;
         foreach (var device in devices)
         {
-            device.Loop();
+            if (device is ConsoleAsGamePad consoleGamePad)
+                consoleGamePad.Loop();
+
+            if (device is GamePadDevice gamePadDevice)
+                gamePadDevice.Loop();
 
             if (device.StartButton.OnPress)
             {

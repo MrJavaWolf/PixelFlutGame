@@ -21,6 +21,36 @@ public class GameImage : IGame
         /// Connect a controller and move the image
         /// </summary>
         public double Speed { get; set; }
+
+        /// <summary>
+        /// Auto move configurations
+        /// </summary>
+        public AutoMove AutoMove { get; set; } = new();
+
+    }
+
+    public class AutoMove
+    {
+        /// <summary>
+        /// Should the image automatically move
+        /// </summary>
+        public bool Enable { get; set; }
+
+        /// <summary>
+        /// How fast the image should move in the X direction
+        /// </summary>
+        public double SpeedX { get; set; }
+
+        /// <summary>
+        /// How fast the image should move in the Y direction
+        /// </summary>
+        public double SpeedY { get; set; }
+
+
+        public int MinX { get; set; }
+        public int MinY { get; set; }
+        public int MaxX { get; set; }
+        public int MaxY { get; set; }
     }
 
     private record ImageFrame(List<PixelBuffer> frame, TimeSpan delay);
@@ -139,6 +169,20 @@ public class GameImage : IGame
             UpdateImagePosition(imageFrames[imageFrameIndex].frame[0]);
         }
 
+        if (config.AutoMove.Enable)
+        {
+            imagePosition.X += (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
+            imagePosition.Y += (float)(config.AutoMove.SpeedY * time.DeltaTime.TotalSeconds);
+            if (imagePosition.X > config.AutoMove.MaxX)
+                imagePosition.X = config.AutoMove.MinX;
+            else if (imagePosition.X < config.AutoMove.MinX)
+                imagePosition.X = config.AutoMove.MaxX;
+            if (imagePosition.Y > config.AutoMove.MaxY)
+                imagePosition.Y = config.AutoMove.MinY;
+            else if (imagePosition.Y < config.AutoMove.MinY)
+                imagePosition.Y = config.AutoMove.MaxY;
+            UpdateImagePosition(imageFrames[imageFrameIndex].frame[0]);
+        }
         return imageFrames[imageFrameIndex].frame;
 
     }

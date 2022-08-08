@@ -13,7 +13,7 @@ public static class PongFrameRenderer
     {
         // Draw the ball
         int pixelsDrawn = 0;
-        pixelsDrawn += DrawBall(pongConfig, gameState, pixelsDrawn, null);
+        pixelsDrawn += DrawBall(pongConfig, gameState, pixelsDrawn, null, null);
 
         // Draw the players
         pixelsDrawn += DrawPlayer(
@@ -39,7 +39,7 @@ public static class PongFrameRenderer
     {
         // Draw the ball
         int pixelsDrawn = 0;
-        pixelsDrawn += DrawBall(pongConfig, gameState, pixelsDrawn, buffer);
+        pixelsDrawn += DrawBall(pongConfig, gameState, pixelsDrawn, buffer, time);
 
         // Draw the players
         pixelsDrawn += DrawPlayer(
@@ -93,9 +93,11 @@ public static class PongFrameRenderer
         PongConfiguration pongConfig,
         PongGameState gameState,
         int pixelOffset,
-        PixelBuffer? buffer)
+        PixelBuffer? buffer,
+        GameTime? time)
     {
         int numberOfPixels = 0;
+        Color rainbowBackground = time != null ? MathHelper.ColorFromHSV(time.TotalTime.TotalSeconds, 1, 1): BackgroundColor;
         for (int x = 0; x < pongConfig.BallRadius * 2 + pongConfig.BallBorder * 2; x++)
         {
             for (int y = 0; y < pongConfig.BallRadius * 2 + pongConfig.BallBorder * 2; y++)
@@ -107,7 +109,7 @@ public static class PongFrameRenderer
                     x > pongConfig.BallRadius * 2 + pongConfig.BallBorder ||
                     y > pongConfig.BallRadius * 2 + pongConfig.BallBorder)
                 {
-                    buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, BackgroundColor);
+                    buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, rainbowBackground);
                 }
                 else
                 {

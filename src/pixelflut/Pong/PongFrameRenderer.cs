@@ -116,6 +116,13 @@ public static class PongFrameRenderer
                 {
                     buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, rainbowBackground);
                 }
+                else if (x == pongConfig.BallBorder ||
+                    y == pongConfig.BallBorder ||
+                    x == pongConfig.BallRadius * 2 + pongConfig.BallBorder ||
+                    y == pongConfig.BallRadius * 2 + pongConfig.BallBorder)
+                {
+                    buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, BackgroundColor);
+                }
                 else
                 {
                     buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, BallColor);

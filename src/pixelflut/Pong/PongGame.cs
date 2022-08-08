@@ -204,7 +204,7 @@ public class PongGame : IGame
         }
 
         // Show ball effect
-        if(gamePads.Any(g => g.EastButton.OnPress || g.WestButton.OnPress || g.X > 0.95 || g.X < 0.05))
+        if((int)time.TotalTime.TotalSeconds % 5 == 0 || gamePads.Any(g => g.EastButton.OnPress || g.WestButton.OnPress || g.X > 0.95 || g.X < 0.05))
         {
             ballPositionEffect.Start(time, gameState.BallPosition, 4, 75, TimeSpan.FromSeconds(1), Color.White, Color.White);
         }

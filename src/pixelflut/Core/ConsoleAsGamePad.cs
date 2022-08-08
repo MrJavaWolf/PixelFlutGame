@@ -94,7 +94,7 @@ namespace PixelFlut.Core
                     case ConsoleKey.D:
                     case ConsoleKey.RightArrow:
                         logger.LogInformation("Console input: X Right");
-                        X = 0;
+                        X = 1;
                         break;
                     case ConsoleKey.I:
                         logger.LogInformation("Console input: North Button");

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PixelFlut.Core;
 using PixelFlut.Images;
 using PixelFlut.Pong;
+using PixelFlut.Snake;
 using PixelFlut.TestImage;
 using Serilog;
 namespace PixelFlut;
@@ -24,6 +25,7 @@ public class Program
         gameFactory.AddGame<RainbowTestImage, RainbowTestImage.Configuration>("RainbowTestImage", services);
         gameFactory.AddGame<GameImage, GameImage.Configuration>("Image", services);
         gameFactory.AddGame<PongGame, PongConfiguration>("Pong", services);
+        gameFactory.AddGame<SnakeGame, SnakeConfiguration>("Snake", services);
     }
 
     public static async Task Main(string[] args)

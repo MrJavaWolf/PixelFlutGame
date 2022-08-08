@@ -171,20 +171,28 @@ public class GameImage : IGame
 
         if (config.AutoMove.Enable)
         {
-            imagePosition.X += (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
-            imagePosition.Y += (float)(config.AutoMove.SpeedY * time.DeltaTime.TotalSeconds);
-            if (imagePosition.X > config.AutoMove.MaxX)
-                imagePosition.X = config.AutoMove.MinX;
-            else if (imagePosition.X < config.AutoMove.MinX)
-                imagePosition.X = config.AutoMove.MaxX;
-            if (imagePosition.Y > config.AutoMove.MaxY)
-                imagePosition.Y = config.AutoMove.MinY;
-            else if (imagePosition.Y < config.AutoMove.MinY)
-                imagePosition.Y = config.AutoMove.MaxY;
-            UpdateImagePosition(imageFrames[imageFrameIndex].frame[0]);
+            AutoMoveLoop(time);
         }
         return imageFrames[imageFrameIndex].frame;
 
+    }
+
+    private void AutoMoveLoop(GameTime time)
+    {
+        imagePosition.X += (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
+        imagePosition.Y += (float)(config.AutoMove.SpeedY * time.DeltaTime.TotalSeconds);
+        if (imagePosition.X > config.AutoMove.MaxX)
+        {
+            imagePosition.X = config.AutoMove.MinX;
+            imagePosition.Y += bufferFactory.Screen.ResolutionY;
+        }
+        else if (imagePosition.X < config.AutoMove.MinX)
+            imagePosition.X = config.AutoMove.MaxX;
+        if (imagePosition.Y > config.AutoMove.MaxY)
+            imagePosition.Y = config.AutoMove.MinY;
+        else if (imagePosition.Y < config.AutoMove.MinY)
+            imagePosition.Y = config.AutoMove.MaxY;
+        UpdateImagePosition(imageFrames[imageFrameIndex].frame[0]);
     }
 
     private void DrawImage(PixelBuffer buffer, ImageFrame<Rgba32> imageFrame)

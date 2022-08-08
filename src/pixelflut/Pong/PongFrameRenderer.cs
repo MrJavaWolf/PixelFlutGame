@@ -113,11 +113,11 @@ public static class PongFrameRenderer
                     x > pongConfig.BallRadius * 2 + pongConfig.BallBorder ||
                     y > pongConfig.BallRadius * 2 + pongConfig.BallBorder)
                 {
-                    //buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, rainbowBackground);
+                    buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, rainbowBackground);
                 }
                 else
                 {
-                    buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, rainbowBackground);
+                    buffer?.SetPixel(pixelOffset + numberOfPixels, ballPixelX, ballPixelY, BallColor);
                 }
                 numberOfPixels++;
             }
@@ -136,47 +136,47 @@ public static class PongFrameRenderer
         int numberOfPixels = 0;
         Color rainbowBackground = time != null ? MathHelper.ColorFromHSV(time.TotalTime.TotalSeconds * 20, 1, 1) : BackgroundColor;
 
-        //// Draw playerborder above the player, this will make it easiere to see the player
-        //for (int x = playerPositionX; x < playerPositionX + pongConfig.PlayerWidth; x++)
-        //{
-        //    for (int y = playerPositionY - pongConfig.PlayerBorder; y < playerPositionY; y++)
-        //    {
-        //        buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, BackgroundColor);
-        //        numberOfPixels++;
-        //    }
-        //}
+        // Draw playerborder above the player, this will make it easiere to see the player
+        for (int x = playerPositionX; x < playerPositionX + pongConfig.PlayerWidth; x++)
+        {
+            for (int y = playerPositionY - pongConfig.PlayerBorder; y < playerPositionY; y++)
+            {
+                buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, rainbowBackground);
+                numberOfPixels++;
+            }
+        }
 
-        //// Draw playerborder below the player, this will make it easiere to see the player
-        //for (int x = playerPositionX; x < playerPositionX + pongConfig.PlayerWidth; x++)
-        //{
-        //    int yStart = playerPositionY + pongConfig.PlayerHeight + 1;
-        //    int yEnd = playerPositionY + pongConfig.PlayerHeight + 1 + pongConfig.PlayerBorder;
-        //    for (int y = yStart; y < yEnd; y++)
-        //    {
-        //        buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, BackgroundColor);
-        //        numberOfPixels++;
-        //    }
-        //}
+        // Draw playerborder below the player, this will make it easiere to see the player
+        for (int x = playerPositionX; x < playerPositionX + pongConfig.PlayerWidth; x++)
+        {
+            int yStart = playerPositionY + pongConfig.PlayerHeight + 1;
+            int yEnd = playerPositionY + pongConfig.PlayerHeight + 1 + pongConfig.PlayerBorder;
+            for (int y = yStart; y < yEnd; y++)
+            {
+                buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, rainbowBackground);
+                numberOfPixels++;
+            }
+        }
 
-        //// Draw playerborder to the left of the player, this will make it easiere to see the player
-        //for (int x = playerPositionX - pongConfig.PlayerBorder; x < playerPositionX; x++)
-        //{
-        //    for (int y = playerPositionY; y < playerPositionY + pongConfig.PlayerHeight; y++)
-        //    {
-        //        buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, BackgroundColor);
-        //        numberOfPixels++;
-        //    }
-        //}
+        // Draw playerborder to the left of the player, this will make it easiere to see the player
+        for (int x = playerPositionX - pongConfig.PlayerBorder; x < playerPositionX; x++)
+        {
+            for (int y = playerPositionY; y < playerPositionY + pongConfig.PlayerHeight; y++)
+            {
+                buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, rainbowBackground);
+                numberOfPixels++;
+            }
+        }
 
-        //// Draw playerborder to the right of the player, this will make it easiere to see the player
-        //for (int x = playerPositionX + pongConfig.PlayerWidth; x < playerPositionX + pongConfig.PlayerWidth + pongConfig.PlayerBorder; x++)
-        //{
-        //    for (int y = playerPositionY; y < playerPositionY + pongConfig.PlayerHeight; y++)
-        //    {
-        //        buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, BackgroundColor);
-        //        numberOfPixels++;
-        //    }
-        //}
+        // Draw playerborder to the right of the player, this will make it easiere to see the player
+        for (int x = playerPositionX + pongConfig.PlayerWidth; x < playerPositionX + pongConfig.PlayerWidth + pongConfig.PlayerBorder; x++)
+        {
+            for (int y = playerPositionY; y < playerPositionY + pongConfig.PlayerHeight; y++)
+            {
+                buffer?.SetPixel(pixelOffset + numberOfPixels, x, y, rainbowBackground);
+                numberOfPixels++;
+            }
+        }
 
         // Draw player
         for (int x = playerPositionX; x < playerPositionX + pongConfig.PlayerWidth; x++)
@@ -191,22 +191,6 @@ public static class PongFrameRenderer
                 // Bottom stripe
                 else if (y >= playerPositionY + pongConfig.PlayerHeight - 10 && y <= playerPositionY + pongConfig.PlayerHeight - 5)
                     c = Color.Black;
-
-                //// A center white/black gradient inside the player
-                //else if (x > playerPositionX + 2 &&
-                //    x < playerPositionX + pongConfig.PlayerWidth - 2 &&
-                //    y > playerPositionY + 10 &&
-                //    y <= playerPositionY + pongConfig.PlayerHeight - 10)
-                //{
-                //    Color startColor = Color.White;
-                //    Color endColor = Color.Black;
-                //    int localY = (y - playerPositionY);
-                //    float middlePoint = pongConfig.PlayerHeight / 2.0f;
-                //    float amount = localY < middlePoint ?
-                //        MathHelper.RemapRange(localY, 0, middlePoint, 0, 1) :
-                //        (1 - MathHelper.RemapRange(localY, middlePoint, pongConfig.PlayerHeight, 0, 1));
-                //    c = startColor.Lerp(endColor, amount);
-                //}
 
                 // Normal color
                 else c = rainbowBackground;

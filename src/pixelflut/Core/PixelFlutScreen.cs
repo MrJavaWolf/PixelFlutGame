@@ -12,7 +12,7 @@ public class PixelFlutScreenConfiguration
     /// <summary>
     /// The Port of the Pixelflut
     /// </summary>
-    public int Port { get; set; }
+    public string Port { get; set; }
 
     /// <summary>
     /// Set the on screen offset if you want the game to not run from 0,0 (usually top left)
@@ -107,7 +107,7 @@ public class PixelFlutScreen
 
         for (int i = 0; i < configuration.SenderThreads; i++)
         {
-            senders.Add(new PixelFlutScreenSender(configuration));
+            senders.Add(new PixelFlutScreenSender(configuration, logger));
         }
 
         // Stats counter

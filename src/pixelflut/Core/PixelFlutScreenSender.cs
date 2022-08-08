@@ -15,14 +15,42 @@ public class PixelFlutScreenSender
     private int currentRenderByteBuffer = 0;
 
 
-    public PixelFlutScreenSender(PixelFlutScreenConfiguration configuration)
+    public PixelFlutScreenSender(PixelFlutScreenConfiguration configuration, ILogger logger)
     {
         this.configuration = configuration;
 
         // Setup connnection
         socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
         IPAddress serverAddr = IPAddress.Parse(configuration.Ip);
-        endPoint = new IPEndPoint(serverAddr, configuration.Port);
+        int port = ReadPort(configuration);
+        endPoint = new IPEndPoint(serverAddr, port);
+        logger.LogInformation($"PixelFlutScreen using endpoint: {{@endPoint}}", endPoint);
+    }
+
+    private static int ReadPort(PixelFlutScreenConfiguration configuration)
+    {
+        string portErrorMessage = $"Not a valid port '{configuration.Port}', please check your configuration. A valid port is a port between 1 and 65000 (Example: 5000), or a port range (Example: 5000-5999)";
+        int port = 0;
+        if(string.IsNullOrWhiteSpace(configuration.Port))
+                throw new ArgumentException(portErrorMessage);
+        if (configuration.Port.Contains("-"))
+        {
+            string[] portRange = configuration.Port.Split('-', StringSplitOptions.RemoveEmptyEntries);
+            if(portRange.Length != 2)
+                throw new ArgumentException(portErrorMessage);
+
+            if (!int.TryParse(portRange[0], out int portMin) ||
+                !int.TryParse(portRange[1], out int portMax))
+                throw new ArgumentException(portErrorMessage);
+            port = Random.Shared.Next(portMin, portMax + 1);
+        }
+        else
+        {
+            if (!int.TryParse(configuration.Port, out port))
+                throw new ArgumentException(portErrorMessage);
+        }
+
+        return port;
     }
 
     public void Render(List<PixelBuffer> frame, PixelFlutScreenStats stats)

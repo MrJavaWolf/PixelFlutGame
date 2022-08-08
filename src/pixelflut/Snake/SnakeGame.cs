@@ -57,17 +57,17 @@ public class SnakeGame : IGame
 
     public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
     {
-        if (gamePads.Any(g => g.X > 0.8) && snakeState.Direction != SnakeState.Directions.Left)
-            snakeState.Direction = SnakeState.Directions.Right;
-        else if (gamePads.Any(g => g.X < 0.2) && snakeState.Direction != SnakeState.Directions.Right)
-            snakeState.Direction = SnakeState.Directions.Left;
-        else if (gamePads.Any(g => g.Y > 0.8) && snakeState.Direction != SnakeState.Directions.Up)
-            snakeState.Direction = SnakeState.Directions.Down;
-        else if (gamePads.Any(g => g.Y < 0.2) && snakeState.Direction != SnakeState.Directions.Down)
-            snakeState.Direction = SnakeState.Directions.Up;
-
         if (time.TotalTime - snakeState.LastMoveTime > snakeState.TimeBetweenSteps)
         {
+            if (gamePads.Any(g => g.X > 0.8) && snakeState.Direction != SnakeState.Directions.Left)
+                snakeState.Direction = SnakeState.Directions.Right;
+            else if (gamePads.Any(g => g.X < 0.2) && snakeState.Direction != SnakeState.Directions.Right)
+                snakeState.Direction = SnakeState.Directions.Left;
+            else if (gamePads.Any(g => g.Y > 0.8) && snakeState.Direction != SnakeState.Directions.Up)
+                snakeState.Direction = SnakeState.Directions.Down;
+            else if (gamePads.Any(g => g.Y < 0.2) && snakeState.Direction != SnakeState.Directions.Down)
+                snakeState.Direction = SnakeState.Directions.Up;
+
             MovePlayer();
             snakeState.LastMoveTime = time.TotalTime;
             logger.LogInformation("Snake moves");

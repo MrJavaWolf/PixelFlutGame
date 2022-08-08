@@ -207,7 +207,7 @@ public class PongGame : IGame
         if(gamePads.Any(g => g.EastButton.OnPress || g.WestButton.OnPress || g.X > 0.95 || g.X < 0.05))
         {
             Color rainbowBackground = MathHelper.ColorFromHSV(time.TotalTime.TotalSeconds * 20, 1, 1);
-            ballPositionEffect.Start(time, gameState.BallPosition, 10, 75, TimeSpan.FromMilliseconds(100), Color.Black, Color.White);
+            ballPositionEffect.Start(time, gameState.BallPosition, 10, 75, TimeSpan.FromMilliseconds(100), rainbowBackground, Color.White);
         }
     }
 

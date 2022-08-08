@@ -6,6 +6,7 @@ namespace PixelFlut.Pong;
 public static class PongFrameRenderer
 {
     private static readonly Color BallColor = Color.White;
+    private static readonly Color PlayerColor = Color.White;
     private static readonly Color BackgroundColor = Color.Black;
     public static int CalculatePixelsInFrame(
         PongConfiguration pongConfig,
@@ -193,7 +194,7 @@ public static class PongFrameRenderer
                     c = Color.Black;
 
                 // Normal color
-                else c = rainbowBackground;
+                else c = PlayerColor;
 
                 buffer?.SetPixel(
                       pixelOffset + numberOfPixels,

@@ -163,7 +163,18 @@ public class PixelFlutScreen
     {
         while (!token.IsCancellationRequested)
         {
-            sender.Render(frame, stats);
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    sender.Render(frame, stats);
+                }
+            }
+            catch(Exception e)
+            {
+                logger.LogError(e, "Failed to send udp package");
+                Thread.Sleep(5000);
+            }
         }
     }
 }

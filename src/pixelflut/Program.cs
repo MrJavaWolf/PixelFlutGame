@@ -51,7 +51,7 @@ public class Program
         services.AddSingleton(configuration.GetSection("Screen").Get<PixelFlutScreenConfiguration>());
         services.AddSingleton(configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>());
         services.AddSingleton(configuration.GetSection("GameLoop").Get<GameLoopConfiguration>());
-        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol1>();
+        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
         services.AddSingleton<GamePadsController>();
         services.AddSingleton<PixelBufferFactory>();
         services.AddSingleton<ConsoleAsGamePad>();

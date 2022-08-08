@@ -17,6 +17,8 @@ public class PongGame : IGame
 
     public IndividualParticalExplosionEffect ballWallBounceEffect;
     public SphereExplosionEffect ballPlayerBounceEffect;
+    public SphereExplosionEffect ballPositionEffect;
+
     public IndividualParticalExplosionEffect ballGoalEffect;
 
     public PongGame(
@@ -37,6 +39,7 @@ public class PongGame : IGame
                 360,
                 15),
         bufferFactory);
+        ballPositionEffect = new(1000, bufferFactory);
         ballPlayerBounceEffect = new(screenProtocol.PixelsPerBuffer, bufferFactory);
         ballGoalEffect = new(
             new(Color.White,
@@ -116,12 +119,14 @@ public class PongGame : IGame
         }
 
         // Update ball
-        UpdateBall(time);
+        UpdateBall(time, gamePads);
 
         // Update effects
         UpdateEffect(ballWallBounceEffect, time);
         UpdateEffect(ballPlayerBounceEffect, time);
         UpdateEffect(ballGoalEffect, time);
+        UpdateEffect(ballPositionEffect, time);
+        
 
         // Renderer
         PongFrameRenderer.DrawFrame(pongConfig, gameState, frame[0], time);
@@ -168,7 +173,7 @@ public class PongGame : IGame
         return 0.5;
     }
 
-    private void UpdateBall(GameTime time)
+    private void UpdateBall(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
     {
         Vector2 previousBallPosition = gameState.BallPosition;
 
@@ -196,6 +201,12 @@ public class PongGame : IGame
             logger.LogInformation($"Player 1: {gameState.Player1Score} VS Player 2: {gameState.Player2Score}");
             ballGoalEffect.Start(gameState.BallPosition, new Vector2(1, 0), time.TotalTime);
             ResetBall();
+        }
+
+        // Show ball effect
+        if(gamePads.Any(g => g.EastButton.OnPress || g.WestButton.OnPress || g.X > 0.95 || g.X < 0.05))
+        {
+            ballPositionEffect.Start(time, gameState.BallPosition, 4, 75, TimeSpan.FromSeconds(1), Color.White, Color.White);
         }
     }
 

@@ -200,6 +200,10 @@ public static class PongFrameRenderer
                 else if (y >= playerPositionY + pongConfig.PlayerHeight - 10 && y <= playerPositionY + pongConfig.PlayerHeight - 5)
                     c = Color.Black;
 
+                //1 pixel border
+                else if(y == playerPositionY || x == playerPositionX || x == playerPositionX + pongConfig.PlayerWidth - 1 || y == playerPositionY + pongConfig.PlayerHeight - 1)
+                    c = Color.Black;
+
                 // Normal color
                 else c = PlayerColor;
 

@@ -97,7 +97,7 @@ public static class PongFrameRenderer
         GameTime? time)
     {
         int numberOfPixels = 0;
-        Color rainbowBackground = time != null ? MathHelper.ColorFromHSV(time.TotalTime.TotalSeconds, 1, 1): BackgroundColor;
+        Color rainbowBackground = time != null ? MathHelper.ColorFromHSV(time.TotalTime.TotalSeconds * 20, 1, 1): BackgroundColor;
         for (int x = 0; x < pongConfig.BallRadius * 2 + pongConfig.BallBorder * 2; x++)
         {
             for (int y = 0; y < pongConfig.BallRadius * 2 + pongConfig.BallBorder * 2; y++)

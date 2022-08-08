@@ -52,7 +52,7 @@ public class SnakeGame : IGame
     {
         snakeState.Food = (
             Random.Shared.Next(snakeState.AreaSize.Width),
-            Random.Shared.Next(snakeState.AreaSize.Width));
+            Random.Shared.Next(snakeState.AreaSize.Height));
     }
 
     public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)

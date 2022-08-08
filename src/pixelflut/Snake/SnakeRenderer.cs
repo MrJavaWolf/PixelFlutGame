@@ -41,12 +41,12 @@ public static class SnakeRenderer
         SnakeState snakeState,
         Color color)
     {
-        PixelBuffer[,] buffers = new PixelBuffer[snakeState.AreaSize.Height + 1, snakeState.AreaSize.Width + 1];
+        PixelBuffer[,] buffers = new PixelBuffer[snakeState.AreaSize.Width + 1, snakeState.AreaSize.Height + 1];
         for (int y = 0; y < snakeState.AreaSize.Height + 1; y++)
         {
             for (int x = 0; x < snakeState.AreaSize.Width + 1; x++)
             {
-                buffers[y, x] = CreateBuffer(
+                buffers[x, y] = CreateBuffer(
                     bufferFactory,
                     snakeConfiguration,
                     x * snakeConfiguration.TileWidth,
@@ -92,9 +92,9 @@ public static class SnakeRenderer
         List<PixelBuffer> buffersToRender = new List<PixelBuffer>();
         foreach (var snakePart in snakeState.Snake)
         {
-            buffersToRender.Add(buffers.SnakeBuffer[snakePart.Y, snakePart.X]);
+            buffersToRender.Add(buffers.SnakeBuffer[snakePart.X, snakePart.Y]);
         }
-        buffersToRender.Add(buffers.FoodBuffers[snakeState.Food.Y, snakeState.Food.X]);
+        buffersToRender.Add(buffers.FoodBuffers[snakeState.Food.X, snakeState.Food.Y]);
         return buffersToRender;
     }
 }

@@ -34,9 +34,14 @@ public class PixelBuffer
 
     public int PixelsPerBuffer { get => screenProtocol.PixelsPerBuffer; }
 
+    public PixelBuffer(int numberOfPixels, List<byte[]> buffers)
+    {
+        this.buffers = buffers;
+    }
+
     public PixelBuffer(
-        int numberOfPixels, 
-        IPixelFlutScreenProtocol screenProtocol, 
+        int numberOfPixels,
+        IPixelFlutScreenProtocol screenProtocol,
         PixelFlutScreenConfiguration screenConfiguration)
     {
         if (numberOfPixels <= 0)
@@ -110,13 +115,13 @@ public class PixelBuffer
         PixelBufferPosition position = mappings[pixelNumber];
         byte[] buffer = buffers[position.buffer];
         screenProtocol.WriteToBuffer(
-            buffer, 
-            position.position, 
-            X + screenConfiguration.OffsetX, 
-            Y + screenConfiguration.OffsetY, 
-            R, 
-            G, 
-            B, 
+            buffer,
+            position.position,
+            X + screenConfiguration.OffsetX,
+            Y + screenConfiguration.OffsetY,
+            R,
+            G,
+            B,
             A);
     }
 

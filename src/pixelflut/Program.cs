@@ -1,11 +1,14 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PixelFlut.Core;
+using PixelFlut.Distributed;
 using PixelFlut.Images;
 using PixelFlut.Pong;
 using PixelFlut.Snake;
 using PixelFlut.TestImage;
 using Serilog;
+using static PixelFlut.Distributed.DistributedWorkerConfiguration;
+
 namespace PixelFlut;
 
 public class Program
@@ -26,6 +29,7 @@ public class Program
         gameFactory.AddGame<GameImage, GameImage.Configuration>("Image", services);
         gameFactory.AddGame<PongGame, PongConfiguration>("Pong", services);
         gameFactory.AddGame<SnakeGame, SnakeConfiguration>("Snake", services);
+        gameFactory.AddGame<DistributedWorker, DistributedWorkerConfiguration>("Distributed", services);
     }
 
     public static async Task Main(string[] args)
@@ -53,8 +57,10 @@ public class Program
         services.AddSingleton(configuration.GetSection("Screen").Get<PixelFlutScreenConfiguration>());
         services.AddSingleton(configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>());
         services.AddSingleton(configuration.GetSection("GameLoop").Get<GameLoopConfiguration>());
+        services.AddSingleton(configuration.GetSection("DistributedServer").Get<DistributedServerConfiguration>());
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
         services.AddSingleton<GamePadsController>();
+        services.AddSingleton<DistributedServer>();
         services.AddSingleton<PixelBufferFactory>();
         services.AddSingleton<ConsoleAsGamePad>();
         services.AddSingleton<GameLoop>();

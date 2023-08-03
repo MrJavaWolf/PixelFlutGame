@@ -93,7 +93,9 @@ public class PixelFlutScreen
     private PixelFlutScreenStats stats = new();
 
     // The buffers we are currently rendering
-    private List<PixelBuffer> frame = new();
+    private List<PixelBuffer> currentFrame = new();
+
+    public IReadOnlyList<PixelBuffer> CurrentFrame => currentFrame;
 
     // Senders
     private List<PixelFlutScreenSender> senders = new();
@@ -116,7 +118,7 @@ public class PixelFlutScreen
 
     public void SetFrame(List<PixelBuffer> frame)
     {
-        this.frame = frame.ToList(); // Make a copy to ensure the caller does not change it doing sending
+        this.currentFrame = frame.ToList(); // Make a copy to ensure the caller does not change it doing sending
         stats.FramesFromGameLoop++;
         stats.PixelBuffersFromGameLoop += frame.Count;
         stats.PixelsFromGameLoop += frame.Sum(f => f.NumberOfPixels);
@@ -167,10 +169,10 @@ public class PixelFlutScreen
             {
                 while (!token.IsCancellationRequested)
                 {
-                    sender.Render(frame, stats);
+                    sender.Render(currentFrame, stats);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 logger.LogError(e, "Failed to send udp package");
                 Thread.Sleep(5000);

@@ -34,7 +34,6 @@ public class DistributedWorkerConfiguration
             PixelFlutScreen = pixelFlutScreen;
             this.logger = logger;
             int localPort = Random.Shared.Next(10000, 20000);
-            //localEndpoint = new IPEndPoint(IPAddress.Any, localPort);
             localEndpoint = new IPEndPoint(IPAddress.Any, localPort);
             udpClientReciever = new UdpClient();
             udpClientReciever.ExclusiveAddressUse = false;
@@ -61,7 +60,7 @@ public class DistributedWorkerConfiguration
         public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
-            var t = Task.Run(async () => await GetBuffersFromDistributionServer(cancellationTokenSource.Token));
+            var t = Task.Run(async () => await GetBuffersFromDistributionServerAsync(cancellationTokenSource.Token));
             try
             {
                 return t.Result;
@@ -75,13 +74,12 @@ public class DistributedWorkerConfiguration
         }
 
 
-        private async Task<List<PixelBuffer>> GetBuffersFromDistributionServer(CancellationToken cancellationToken)
+        private async Task<List<PixelBuffer>> GetBuffersFromDistributionServerAsync(CancellationToken cancellationToken)
         {
             try
             {
                 Task t = Task.Run(async () =>
                 {
-                    await Task.Delay(500);
                     await SendRequestAsync(cancellationToken);
                 });
                 List<PixelBuffer> frame = await ReadResponseFromServerAsync(cancellationToken);
@@ -97,22 +95,20 @@ public class DistributedWorkerConfiguration
 
         private async Task<List<PixelBuffer>> ReadResponseFromServerAsync(CancellationToken cancellationToken)
         {
+            //logger.LogInformation($"Waiting for response, listing on '{this.localEndpoint}' ...");
             List<byte[]> bytes = new List<byte[]>();
             for (int i = 0; i < Config.NumberOfPackages; i++)
             {
-                logger.LogInformation($"Waiting for response, listing on '{this.localEndpoint}' ...");
                 UdpReceiveResult result = await udpClientReciever.ReceiveAsync(cancellationToken);
-
-                logger.LogInformation($"Received response from {result.RemoteEndPoint} - Length: {result.Buffer.Length}");
-                logger.LogInformation($"Payload: '{Encoding.ASCII.GetString(result.Buffer, 0, result.Buffer.Length)}'");
-
                 byte[] buffer = new byte[result.Buffer.Length];
                 Array.Copy(result.Buffer, buffer, result.Buffer.Length);
                 bytes.Add(buffer);
             }
+            //logger.LogInformation($"Number of buffers recived: {bytes.Count}");
+
             return new List<PixelBuffer>
             {
-                new PixelBuffer(1,screenProtocol, bytes)
+                new PixelBuffer(screenProtocol.PixelsPerBuffer * bytes.Count ,screenProtocol, bytes)
             };
         }
 
@@ -120,8 +116,6 @@ public class DistributedWorkerConfiguration
         {
             try
             {
-
-                logger.LogInformation($"Sends request to distribution server at: {this.serverEndpoint}");
                 byte[] bytes = BitConverter.GetBytes(Config.NumberOfPackages);
                 await udpClientSender.SendAsync(bytes, this.serverEndpoint, cancellationToken);
             }

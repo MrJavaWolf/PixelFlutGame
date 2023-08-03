@@ -32,7 +32,6 @@ public class DistributedServer
         this.logger = logger;
 
 
-        //localEndpoint = new IPEndPoint(IPAddress.Any, config.UdpPort);
         localEndpoint = new IPEndPoint(IPAddress.Any, config.UdpPort);
         udpClientReciever = new UdpClient();
         udpClientReciever.ExclusiveAddressUse = false;
@@ -63,13 +62,11 @@ public class DistributedServer
         logger.LogInformation($"{nameof(DistributedServer)} configuration: {{@config}}", config);
         try
         {
-
             while (true)
             {
-                logger.LogInformation($"Listing for workers on {localEndpoint}...");
+                //logger.LogInformation($"Listing for workers on {localEndpoint}...");
                 UdpReceiveResult result = await udpClientReciever.ReceiveAsync(cancellationToken);
 
-                logger.LogInformation($"Received broadcast from {result.RemoteEndPoint} - Length: {result.Buffer.Length}");
                 if (result.Buffer.Length < 4)
                     continue;
 
@@ -88,7 +85,7 @@ public class DistributedServer
     {
         try
         {
-            logger.LogInformation($"Sending {numberOfPackages} packages to {endpoint}");
+            //logger.LogInformation($"Sending {numberOfPackages} packages to {endpoint}");
             for (int i = 0; i < numberOfPackages; i++)
             {
                 var currentFrame = pixelFlutScreen.CurrentFrame;

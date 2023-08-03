@@ -13,41 +13,77 @@ public class DistributedWorkerConfiguration
 
     public class DistributedWorker : IGame
     {
+        private readonly IPixelFlutScreenProtocol screenProtocol;
         private readonly ILogger<DistributedWorker> logger;
         public DistributedWorkerConfiguration Config { get; }
         public PixelFlutScreen PixelFlutScreen { get; }
-        private IPEndPoint endpoint;
-        private UdpClient listener;
-        private IPixelFlutScreenProtocol pixelFlutScreenProtocol;
+        private IPEndPoint serverEndpoint;
+        private IPEndPoint localEndpoint;
+        private UdpClient udpClientSender;
+        private UdpClient udpClientReciever;
+        public const int SIO_UDP_CONNRESET = -1744830452;
 
         public DistributedWorker(
+            IPixelFlutScreenProtocol screenProtocol,
             DistributedWorkerConfiguration config,
             PixelFlutScreen pixelFlutScreen,
             ILogger<DistributedWorker> logger)
         {
+            this.screenProtocol = screenProtocol;
             Config = config;
             PixelFlutScreen = pixelFlutScreen;
             this.logger = logger;
-            endpoint = new IPEndPoint(IPAddress.Parse(config.Ip), config.Port);
-            listener = new UdpClient(Config.Port);
+            int localPort = Random.Shared.Next(10000, 20000);
+            //localEndpoint = new IPEndPoint(IPAddress.Any, localPort);
+            localEndpoint = new IPEndPoint(IPAddress.Any, localPort);
+            udpClientReciever = new UdpClient();
+            udpClientReciever.ExclusiveAddressUse = false;
+            udpClientReciever.Client.IOControl(
+                (IOControlCode)SIO_UDP_CONNRESET,
+                new byte[] { 0, 0, 0, 0 },
+                null
+            );
+            udpClientReciever.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            udpClientReciever.Client.Bind(localEndpoint);
+
+            udpClientSender = new UdpClient();
+            udpClientSender.ExclusiveAddressUse = false;
+            udpClientSender.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            udpClientSender.Client.Bind(localEndpoint);
+
+
+            serverEndpoint = new IPEndPoint(IPAddress.Parse(config.Ip), config.Port);
+            logger.LogInformation($"{nameof(DistributedWorker)} configuration: {{@config}}", Config);
+
         }
 
 
         public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
         {
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
-            Task t = Task.Run(async () => await StartListenerAsync(cancellationTokenSource.Token));
-            Task.WaitAll(t);
-            return new List<PixelBuffer> { };
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+            var t = Task.Run(async () => await GetBuffersFromDistributionServer(cancellationTokenSource.Token));
+            try
+            {
+                return t.Result;
+
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occoured");
+                return new List<PixelBuffer> { };
+            }
         }
 
 
-        private async Task<List<PixelBuffer>> StartListenerAsync(CancellationToken cancellationToken)
+        private async Task<List<PixelBuffer>> GetBuffersFromDistributionServer(CancellationToken cancellationToken)
         {
-            logger.LogInformation($"{nameof(DistributedWorker)} configuration: {{@config}}", Config);
             try
             {
-                await SendRequestAsync(cancellationToken);
+                Task t = Task.Run(async () =>
+                {
+                    await Task.Delay(500);
+                    await SendRequestAsync(cancellationToken);
+                });
                 List<PixelBuffer> frame = await ReadResponseFromServerAsync(cancellationToken);
                 return frame;
             }
@@ -64,11 +100,11 @@ public class DistributedWorkerConfiguration
             List<byte[]> bytes = new List<byte[]>();
             for (int i = 0; i < Config.NumberOfPackages; i++)
             {
-                logger.LogInformation("Waiting for response...");
-                UdpReceiveResult result = await listener.ReceiveAsync(cancellationToken);
+                logger.LogInformation($"Waiting for response, listing on '{this.localEndpoint}' ...");
+                UdpReceiveResult result = await udpClientReciever.ReceiveAsync(cancellationToken);
 
-                logger.LogInformation($"Received response from {result.RemoteEndPoint} :");
-                logger.LogInformation($" {Encoding.ASCII.GetString(result.Buffer, 0, result.Buffer.Length)}");
+                logger.LogInformation($"Received response from {result.RemoteEndPoint} - Length: {result.Buffer.Length}");
+                logger.LogInformation($"Payload: '{Encoding.ASCII.GetString(result.Buffer, 0, result.Buffer.Length)}'");
 
                 byte[] buffer = new byte[result.Buffer.Length];
                 Array.Copy(result.Buffer, buffer, result.Buffer.Length);
@@ -76,15 +112,23 @@ public class DistributedWorkerConfiguration
             }
             return new List<PixelBuffer>
             {
-                new PixelBuffer(1, bytes)
+                new PixelBuffer(1,screenProtocol, bytes)
             };
         }
 
         private async Task SendRequestAsync(CancellationToken cancellationToken)
         {
-            using Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            byte[] bytes = BitConverter.GetBytes(Config.NumberOfPackages);
-            await sock.SendToAsync(bytes, endpoint, cancellationToken);
+            try
+            {
+
+                logger.LogInformation($"Sends request to distribution server at: {this.serverEndpoint}");
+                byte[] bytes = BitConverter.GetBytes(Config.NumberOfPackages);
+                await udpClientSender.SendAsync(bytes, this.serverEndpoint, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Failed to send the request distribution server at: {this.serverEndpoint}");
+            }
         }
     }
 }

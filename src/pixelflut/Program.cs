@@ -64,7 +64,7 @@ public class Program
         services.AddSingleton<PixelBufferFactory>();
         services.AddSingleton<ConsoleAsGamePad>();
         services.AddSingleton<GameLoop>();
-        services.AddTransient<PixelFlutScreen>();
+        services.AddSingleton<PixelFlutScreen>();
         services.AddTransient<GameSelector>();
         services.AddSingleton(new StoppingToken(tokenSource.Token));
         services.AddHttpClient();

@@ -16,7 +16,11 @@ public class DistributedServer
     private readonly DistributedServerConfiguration config;
     private readonly PixelFlutScreen pixelFlutScreen;
     private readonly ILogger<DistributedServer> logger;
-    private const int listenPort = 11000;
+    public const int SIO_UDP_CONNRESET = -1744830452;
+
+    private IPEndPoint localEndpoint;
+    private UdpClient udpClientSender;
+    private UdpClient udpClientReciever;
 
     public DistributedServer(
         DistributedServerConfiguration config,
@@ -26,6 +30,25 @@ public class DistributedServer
         this.config = config;
         this.pixelFlutScreen = pixelFlutScreen;
         this.logger = logger;
+
+
+        //localEndpoint = new IPEndPoint(IPAddress.Any, config.UdpPort);
+        localEndpoint = new IPEndPoint(IPAddress.Any, config.UdpPort);
+        udpClientReciever = new UdpClient();
+        udpClientReciever.ExclusiveAddressUse = false;
+        udpClientReciever.Client.IOControl(
+            (IOControlCode)SIO_UDP_CONNRESET,
+            new byte[] { 0, 0, 0, 0 },
+            null
+        );
+        udpClientReciever.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        udpClientReciever.Client.Bind(localEndpoint);
+
+        udpClientSender = new UdpClient();
+        udpClientSender.ExclusiveAddressUse = false;
+        udpClientSender.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        udpClientSender.Client.Bind(localEndpoint);
+
     }
 
     public void Start(CancellationToken cancellation)
@@ -40,15 +63,14 @@ public class DistributedServer
         logger.LogInformation($"{nameof(DistributedServer)} configuration: {{@config}}", config);
         try
         {
-            using UdpClient listener = new UdpClient(config.UdpPort);
+
             while (true)
             {
-                logger.LogInformation("Waiting for broadcast...");
-                UdpReceiveResult result = await listener.ReceiveAsync(cancellationToken);
+                logger.LogInformation($"Listing for workers on {localEndpoint}...");
+                UdpReceiveResult result = await udpClientReciever.ReceiveAsync(cancellationToken);
 
-                logger.LogInformation($"Received broadcast from {result.RemoteEndPoint} :");
-                logger.LogInformation($" {Encoding.ASCII.GetString(result.Buffer, 0, result.Buffer.Length)}");
-                if (result.Buffer.Length != 4)
+                logger.LogInformation($"Received broadcast from {result.RemoteEndPoint} - Length: {result.Buffer.Length}");
+                if (result.Buffer.Length < 4)
                     continue;
 
                 int numberOfPackages = BitConverter.ToInt32(result.Buffer, 0);
@@ -64,22 +86,28 @@ public class DistributedServer
 
     private async Task SendFramesAsync(int numberOfPackages, IPEndPoint endpoint, CancellationToken cancellationToken)
     {
-        using Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-        for (int i = 0; i < numberOfPackages; i++)
+        try
         {
-            var currentFrame = pixelFlutScreen.CurrentFrame;
-            if (currentFrame.Count > 0)
+            logger.LogInformation($"Sending {numberOfPackages} packages to {endpoint}");
+            for (int i = 0; i < numberOfPackages; i++)
             {
-                int frameIndex = Random.Shared.Next(0, currentFrame.Count);
-                var pixelBuffers = currentFrame[frameIndex].Buffers;
-                if (pixelBuffers.Count > 0)
+                var currentFrame = pixelFlutScreen.CurrentFrame;
+                if (currentFrame.Count > 0)
                 {
-                    int pixelBufferIndex = Random.Shared.Next(0, pixelBuffers.Count);
-                    byte[] buffer = pixelBuffers[pixelBufferIndex];
-                    await sock.SendToAsync(buffer, endpoint, cancellationToken);
+                    int frameIndex = Random.Shared.Next(0, currentFrame.Count);
+                    var pixelBuffers = currentFrame[frameIndex].Buffers;
+                    if (pixelBuffers.Count > 0)
+                    {
+                        int pixelBufferIndex = Random.Shared.Next(0, pixelBuffers.Count);
+                        byte[] buffer = pixelBuffers[pixelBufferIndex];
+                        await udpClientSender.SendAsync(buffer, endpoint, cancellationToken);
+                    }
                 }
             }
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, $"Failed to send frames to worker at endpoint '{endpoint}'");
         }
     }
 }

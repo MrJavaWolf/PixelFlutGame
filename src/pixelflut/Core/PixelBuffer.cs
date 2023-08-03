@@ -34,8 +34,10 @@ public class PixelBuffer
 
     public int PixelsPerBuffer { get => screenProtocol.PixelsPerBuffer; }
 
-    public PixelBuffer(int numberOfPixels, List<byte[]> buffers)
+    public PixelBuffer(int numberOfPixels, IPixelFlutScreenProtocol screenProtocol, List<byte[]> buffers)
     {
+        NumberOfPixels = numberOfPixels;
+        this.screenProtocol = screenProtocol;
         this.buffers = buffers;
     }
 

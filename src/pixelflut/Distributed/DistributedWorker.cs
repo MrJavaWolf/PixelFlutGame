@@ -9,120 +9,87 @@ public class DistributedWorkerConfiguration
 {
     public string Ip { get; set; } = "127.0.0.1";
     public int Port { get; set; }
-    public int NumberOfPackages { get; set; } = 10;
+}
 
-    public class DistributedWorker : IGame
+public class DistributedWorker : IGame
+{
+    private readonly IPixelFlutScreenProtocol screenProtocol;
+    private readonly ILogger<DistributedWorker> logger;
+    public DistributedWorkerConfiguration Config { get; }
+    public PixelFlutScreen PixelFlutScreen { get; }
+    private IPEndPoint serverEndpoint;
+
+    private List<PixelBuffer> currentFrame = new List<PixelBuffer>();
+    private Task? readFromSocketAndGetFrameTask;
+
+    public DistributedWorker(
+        IPixelFlutScreenProtocol screenProtocol,
+        DistributedWorkerConfiguration config,
+        PixelFlutScreen pixelFlutScreen,
+        ILogger<DistributedWorker> logger)
     {
-        private readonly IPixelFlutScreenProtocol screenProtocol;
-        private readonly ILogger<DistributedWorker> logger;
-        public DistributedWorkerConfiguration Config { get; }
-        public PixelFlutScreen PixelFlutScreen { get; }
-        private IPEndPoint serverEndpoint;
-        private IPEndPoint localEndpoint;
-        private UdpClient udpClientSender;
-        private UdpClient udpClientReciever;
-        public const int SIO_UDP_CONNRESET = -1744830452;
+        this.screenProtocol = screenProtocol;
+        Config = config;
+        PixelFlutScreen = pixelFlutScreen;
+        this.logger = logger;
+        logger.LogInformation($"{nameof(DistributedWorker)} configuration: {{@config}}", Config);
+        serverEndpoint = new IPEndPoint(IPAddress.Parse(Config.Ip), Config.Port);
+    }
 
-        public DistributedWorker(
-            IPixelFlutScreenProtocol screenProtocol,
-            DistributedWorkerConfiguration config,
-            PixelFlutScreen pixelFlutScreen,
-            ILogger<DistributedWorker> logger)
+
+    public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
+    {
+        if (readFromSocketAndGetFrameTask == null)
         {
-            this.screenProtocol = screenProtocol;
-            Config = config;
-            PixelFlutScreen = pixelFlutScreen;
-            this.logger = logger;
-            int localPort = Random.Shared.Next(10000, 20000);
-            localEndpoint = new IPEndPoint(IPAddress.Any, localPort);
-            udpClientReciever = new UdpClient();
-            udpClientReciever.ExclusiveAddressUse = false;
-            udpClientReciever.Client.IOControl(
-                (IOControlCode)SIO_UDP_CONNRESET,
-                new byte[] { 0, 0, 0, 0 },
-                null
-            );
-            udpClientReciever.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            udpClientReciever.Client.Bind(localEndpoint);
-
-            udpClientSender = new UdpClient();
-            udpClientSender.ExclusiveAddressUse = false;
-            udpClientSender.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            udpClientSender.Client.Bind(localEndpoint);
-
-
-            serverEndpoint = new IPEndPoint(IPAddress.Parse(config.Ip), config.Port);
-            logger.LogInformation($"{nameof(DistributedWorker)} configuration: {{@config}}", Config);
-
+            readFromSocketAndGetFrameTask = Task.Run(async () => await GetBuffersFromDistributionServerAsync());
         }
+        return this.currentFrame;
+    }
 
-
-        public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
-        {
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
-            var t = Task.Run(async () => await GetBuffersFromDistributionServerAsync(cancellationTokenSource.Token));
-            try
-            {
-                return t.Result;
-
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error occoured");
-                return new List<PixelBuffer> { };
-            }
-        }
-
-
-        private async Task<List<PixelBuffer>> GetBuffersFromDistributionServerAsync(CancellationToken cancellationToken)
+    private async Task GetBuffersFromDistributionServerAsync(CancellationToken cancellationToken = default)
+    {
+        while (true)
         {
             try
             {
-                Task t = Task.Run(async () =>
+                using TcpClient client = new TcpClient();
+                await client.ConnectAsync(serverEndpoint, cancellationToken);
+                while (true)
                 {
-                    await SendRequestAsync(cancellationToken);
-                });
-                List<PixelBuffer> frame = await ReadResponseFromServerAsync(cancellationToken);
-                return frame;
+                    List<PixelBuffer> frame = await ReadResponseFromServerAsync(client, cancellationToken);
+                    this.currentFrame = frame;
+                }
             }
             catch (SocketException e)
             {
-                logger.LogError(e, "Udp client failed");
-                return new List<PixelBuffer> { };
-
-            }
-        }
-
-        private async Task<List<PixelBuffer>> ReadResponseFromServerAsync(CancellationToken cancellationToken)
-        {
-            //logger.LogInformation($"Waiting for response, listing on '{this.localEndpoint}' ...");
-            List<byte[]> bytes = new List<byte[]>();
-            for (int i = 0; i < Config.NumberOfPackages; i++)
-            {
-                UdpReceiveResult result = await udpClientReciever.ReceiveAsync(cancellationToken);
-                byte[] buffer = new byte[result.Buffer.Length];
-                Array.Copy(result.Buffer, buffer, result.Buffer.Length);
-                bytes.Add(buffer);
-            }
-            //logger.LogInformation($"Number of buffers recived: {bytes.Count}");
-
-            return new List<PixelBuffer>
-            {
-                new PixelBuffer(screenProtocol.PixelsPerBuffer * bytes.Count ,screenProtocol, bytes)
-            };
-        }
-
-        private async Task SendRequestAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                byte[] bytes = BitConverter.GetBytes(Config.NumberOfPackages);
-                await udpClientSender.SendAsync(bytes, this.serverEndpoint, cancellationToken);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, $"Failed to send the request distribution server at: {this.serverEndpoint}");
+                logger.LogError(e, "Failed to connect with Server");
+                await Task.Delay(5000);
             }
         }
     }
+
+    private async Task<List<PixelBuffer>> ReadResponseFromServerAsync(TcpClient client, CancellationToken cancellationToken)
+    {
+        List<byte[]> bytes = new List<byte[]>();
+        while (true)
+        {
+            byte[] buffer = new byte[screenProtocol.PixelsPerBuffer];
+            int bytesRead = await client.GetStream().ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+            if (bytesRead == DistributedServer.StopDelimitorBytes.Length)
+            {
+                break;
+            }
+            else if (bytesRead == screenProtocol.PixelsPerBuffer)
+            {
+                byte[] bufferCopy = new byte[screenProtocol.PixelsPerBuffer];
+                Array.Copy(buffer, bufferCopy, bufferCopy.Length);
+                bytes.Add(bufferCopy);
+            }
+        }
+        return new List<PixelBuffer>
+        {
+            new PixelBuffer(screenProtocol.PixelsPerBuffer * bytes.Count, screenProtocol, bytes)
+        };
+    }
+
 }

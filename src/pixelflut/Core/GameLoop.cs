@@ -92,6 +92,9 @@ public class GameLoop
             // Render the resulting pixels
             renderer.SetFrame(frame);
 
+            // Sync frames to connected clients
+            distributedServer.SyncFrames();
+
             // Calculate how much to sleep to hit our targeted FPS
             int sleepTimeMs = -1;
             if (configuration.TargetGameLoopFPS != -1)

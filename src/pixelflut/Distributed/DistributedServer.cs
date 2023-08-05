@@ -1,26 +1,31 @@
 ﻿using PixelFlut.Core;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Threading;
 
 namespace PixelFlut.Distributed;
 
 public class DistributedServerConfiguration
 {
     public bool Enable { get; set; }
-    public int UdpPort { get; set; }
+    public int Port { get; set; }
+
+    public int NumberOfBuffersPerFrame { get; set; } = -1;
 }
+
 
 public class DistributedServer
 {
+    public const int stopDeliminator = 1337;
+    public static byte[] StopDelimitorBytes { get; set; } = BitConverter.GetBytes(stopDeliminator);
     private readonly DistributedServerConfiguration config;
     private readonly PixelFlutScreen pixelFlutScreen;
     private readonly ILogger<DistributedServer> logger;
     public const int SIO_UDP_CONNRESET = -1744830452;
 
-    private IPEndPoint localEndpoint;
-    private UdpClient udpClientSender;
-    private UdpClient udpClientReciever;
+    private TcpListener server;
+    private List<TcpClient> clients = new List<TcpClient>();
 
     public DistributedServer(
         DistributedServerConfiguration config,
@@ -32,22 +37,8 @@ public class DistributedServer
         this.logger = logger;
 
 
-        localEndpoint = new IPEndPoint(IPAddress.Any, config.UdpPort);
-        udpClientReciever = new UdpClient();
-        udpClientReciever.ExclusiveAddressUse = false;
-        udpClientReciever.Client.IOControl(
-            (IOControlCode)SIO_UDP_CONNRESET,
-            new byte[] { 0, 0, 0, 0 },
-            null
-        );
-        udpClientReciever.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-        udpClientReciever.Client.Bind(localEndpoint);
-
-        udpClientSender = new UdpClient();
-        udpClientSender.ExclusiveAddressUse = false;
-        udpClientSender.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-        udpClientSender.Client.Bind(localEndpoint);
-
+        if (!config.Enable) return;
+        server = new TcpListener(IPAddress.Any, config.Port);
     }
 
     public void Start(CancellationToken cancellation)
@@ -60,19 +51,17 @@ public class DistributedServer
     private async Task StartListenerAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation($"{nameof(DistributedServer)} configuration: {{@config}}", config);
+
+        // Start listening for client requests.
+        server.Start();
+
         try
         {
             while (true)
             {
-                //logger.LogInformation($"Listing for workers on {localEndpoint}...");
-                UdpReceiveResult result = await udpClientReciever.ReceiveAsync(cancellationToken);
-
-                if (result.Buffer.Length < 4)
-                    continue;
-
-                int numberOfPackages = BitConverter.ToInt32(result.Buffer, 0);
-
-                _ = Task.Run(async () => await SendFramesAsync(numberOfPackages, result.RemoteEndPoint, cancellationToken));
+                TcpClient client = await server.AcceptTcpClientAsync(cancellationToken);
+                logger.LogInformation($"New client conncted from: {client.Client.RemoteEndPoint}");
+                clients.Add(client);
             }
         }
         catch (SocketException e)
@@ -81,30 +70,92 @@ public class DistributedServer
         }
     }
 
-    private async Task SendFramesAsync(int numberOfPackages, IPEndPoint endpoint, CancellationToken cancellationToken)
+
+    public void SyncFrames()
     {
-        try
+        if (!config.Enable) return;
+        ConcurrentBag<TcpClient> deadClients = new ConcurrentBag<TcpClient>();
+        Parallel.ForEach(clients, (client) =>
         {
-            //logger.LogInformation($"Sending {numberOfPackages} packages to {endpoint}");
-            for (int i = 0; i < numberOfPackages; i++)
+            bool failed = false;
+            if (!client.Connected) return;
+            if (config.NumberOfBuffersPerFrame != -1)
+            {
+                for (int i = 0; i < config.NumberOfBuffersPerFrame; i++)
+                {
+                    if (failed) break;
+                    var currentFrame = pixelFlutScreen.CurrentFrame;
+                    if (currentFrame.Count > 0)
+                    {
+                        int frameIndex = Random.Shared.Next(0, currentFrame.Count);
+                        var pixelBuffers = currentFrame[frameIndex].Buffers;
+                        if (pixelBuffers.Count > 0)
+                        {
+                            int pixelBufferIndex = Random.Shared.Next(0, pixelBuffers.Count);
+                            byte[] buffer = pixelBuffers[pixelBufferIndex];
+                            try
+                            {
+                                client.GetStream().Write(buffer, 0, buffer.Length);
+                            }
+                            catch (Exception e)
+                            {
+                                logger.LogError(e, $"Failed to sync frames to client: {client.Client.RemoteEndPoint}");
+                                deadClients.Add(client);
+                                failed = true;
+                            }
+                        }
+                    }
+                }
+            }
+            else
             {
                 var currentFrame = pixelFlutScreen.CurrentFrame;
                 if (currentFrame.Count > 0)
                 {
-                    int frameIndex = Random.Shared.Next(0, currentFrame.Count);
-                    var pixelBuffers = currentFrame[frameIndex].Buffers;
-                    if (pixelBuffers.Count > 0)
+                    foreach (var frame in currentFrame)
                     {
-                        int pixelBufferIndex = Random.Shared.Next(0, pixelBuffers.Count);
-                        byte[] buffer = pixelBuffers[pixelBufferIndex];
-                        await udpClientSender.SendAsync(buffer, endpoint, cancellationToken);
+                        if (failed) break;
+                        foreach (var buffer in frame.Buffers)
+                        {
+                            if (failed) break;
+                            try
+                            {
+                                client.GetStream().Write(buffer, 0, buffer.Length);
+                            }
+                            catch (Exception e)
+                            {
+                                logger.LogError(e, $"Failed to sync frames to client: {client.Client.RemoteEndPoint}");
+                                deadClients.Add(client);
+                                failed = true;
+                            }
+                        }
                     }
                 }
             }
-        }
-        catch (Exception e)
+
+            try
+            {
+                client.GetStream().Write(StopDelimitorBytes, 0, StopDelimitorBytes.Length);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Failed to sync frames to client: {client.Client.RemoteEndPoint}");
+                deadClients.Add(client);
+                failed = true;
+            }
+
+        });
+
+        foreach (var deadClient in deadClients)
         {
-            logger.LogError(e, $"Failed to send frames to worker at endpoint '{endpoint}'");
+            for (int i = 0; i < clients.Count; i++)
+            {
+                if (clients[i].Client.RemoteEndPoint == deadClient.Client.RemoteEndPoint)
+                {
+                    this.clients.RemoveAt(i);
+                    i--;
+                }
+            }
         }
     }
 }

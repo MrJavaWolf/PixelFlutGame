@@ -153,6 +153,7 @@ public class MqttGameChanger : IDisposable
                     {
                         WriteIndented = true,
                     });
+                    logger.LogInformation("Sends status to mqtt");
                     await mqttClient.PublishStringAsync(config.PublishStatusMqttTopic, jsonStatus);
                 }
                 catch (Exception ex)
@@ -166,13 +167,20 @@ public class MqttGameChanger : IDisposable
 
     private async Task MqttClient_DisconnectedAsync(MqttClientDisconnectedEventArgs arg)
     {
-        CreateMqttOptions();
-        TimeSpan sleepTime = TimeSpan.FromSeconds(Random.Shared.Next(5, 10));
-        logger.LogWarning($"Failed to connect to the MQTT server {{@server}} with topic: {{@topic}}, will retry in {sleepTime}...", mqttClientOptions, mqttClientSubscribeOptions);
-        await Task.Delay(sleepTime);
-        await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
-        await mqttClient.SubscribeAsync(mqttClientSubscribeOptions, CancellationToken.None);
-        logger.LogInformation($"Successfully connected to the MQTT server {{@server}} with topic: {{@topic}}", mqttClientOptions, mqttClientSubscribeOptions);
+        try
+        {
+            CreateMqttOptions();
+            TimeSpan sleepTime = TimeSpan.FromSeconds(Random.Shared.Next(5, 10));
+            logger.LogWarning($"Failed to connect to the MQTT server {{@server}} with topic: {{@topic}}, will retry in {sleepTime}...", mqttClientOptions, mqttClientSubscribeOptions);
+            await Task.Delay(sleepTime);
+            await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+            await mqttClient.SubscribeAsync(mqttClientSubscribeOptions, CancellationToken.None);
+            logger.LogInformation($"Successfully connected to the MQTT server {{@server}} with topic: {{@topic}}", mqttClientOptions, mqttClientSubscribeOptions);
+        }
+        catch (Exception e)
+        {
+
+        }
     }
 
     private async Task OnRecivedMessageAsync(MqttApplicationMessageReceivedEventArgs args)
@@ -198,17 +206,6 @@ public class MqttGameChanger : IDisposable
                     return;
                 }
 
-                if (message.Mqtt != null)
-                {
-                    this.config.Enable = message.Mqtt.Enable;
-                    this.config.MqttTopic = message.Mqtt.MqttTopic;
-                    this.config.MqttServer = message.Mqtt.MqttServer;
-                    this.config.Password = message.Mqtt.Password;
-                    this.config.User = message.Mqtt.User;
-                    MqttClientDisconnectOptionsBuilder builder = new();
-                    builder.WithReason(MqttClientDisconnectOptionsReason.NormalDisconnection);
-                    await mqttClient.DisconnectAsync(builder.Build(), CancellationToken.None);
-                }
                 this.latestMqttMessage = message;
             }
         }

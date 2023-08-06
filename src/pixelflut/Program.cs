@@ -71,7 +71,7 @@ public class Program
         services.AddHttpClient();
         services.AddSingleton(gameFactory);
         AddGames(services, gameFactory);
-        ServiceProvider serviceProvider = services.BuildServiceProvider();
+        using ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         // Create game loop
         ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();

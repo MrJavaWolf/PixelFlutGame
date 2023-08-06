@@ -7,7 +7,6 @@ using PixelFlut.Pong;
 using PixelFlut.Snake;
 using PixelFlut.TestImage;
 using Serilog;
-using static PixelFlut.Distributed.DistributedWorkerConfiguration;
 
 namespace PixelFlut;
 
@@ -54,11 +53,13 @@ public class Program
         var services = new ServiceCollection();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger()));
         services.AddSingleton(configuration);
-        services.AddSingleton(configuration.GetSection("Screen").Get<PixelFlutScreenConfiguration>());
-        services.AddSingleton(configuration.GetSection("Gamepad").Get<PixelFlutGamepadConfiguration>());
-        services.AddSingleton(configuration.GetSection("GameLoop").Get<GameLoopConfiguration>());
-        services.AddSingleton(configuration.GetSection("DistributedServer").Get<DistributedServerConfiguration>());
+        services.AddSingleton(configuration.GetRequiredSection("Screen").Get<PixelFlutScreenConfiguration>());
+        services.AddSingleton(configuration.GetRequiredSection("Gamepad").Get<PixelFlutGamepadConfiguration>());
+        services.AddSingleton(configuration.GetRequiredSection("GameLoop").Get<GameLoopConfiguration>());
+        services.AddSingleton(configuration.GetRequiredSection("DistributedServer").Get<DistributedServerConfiguration>());
+        services.AddSingleton(configuration.GetRequiredSection("Mqtt").Get<MqttGameChangerConfiguration>());
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
+        services.AddSingleton<MqttGameChanger>();
         services.AddSingleton<GamePadsController>();
         services.AddSingleton<DistributedServer>();
         services.AddSingleton<PixelBufferFactory>();

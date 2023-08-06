@@ -6,10 +6,12 @@ namespace PixelFlut.Core
     public class GameFactory
     {
         private readonly IConfiguration configuration;
+        private readonly ILogger<GameFactory> logger;
         private Dictionary<string, Type> games = new Dictionary<string, Type>();
-        public GameFactory(IConfiguration configuration)
+        public GameFactory(IConfiguration configuration, ILogger<GameFactory> logger)
         {
             this.configuration = configuration;
+            this.logger = logger;
         }
 
         public IGame CreateGame(string gameName, IServiceProvider serviceProvider)
@@ -18,7 +20,7 @@ namespace PixelFlut.Core
                 throw new NotSupportedException($"Unknown game name: '{gameName}'");
 
             IGame? game = serviceProvider.GetRequiredService(games[gameName]) as IGame;
-
+            logger.LogInformation($"Created game: {gameName}");
             if (game == null)
                 throw new NotSupportedException($"Failed to cast '{gameName}' to {nameof(IGame)}, does it not implement the {nameof(IGame)} interface?");
 

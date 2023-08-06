@@ -105,7 +105,7 @@ public class MqttGameChanger
     {
         CreateMqttOptions();
         TimeSpan sleepTime = TimeSpan.FromSeconds(Random.Shared.Next(5, 10));
-        logger.LogWarning($"Failed to connect to the MQTT server, will retry in {sleepTime}...");
+        logger.LogWarning($"Failed to connect to the MQTT server {{@server}} with topic: {{@topic}}, will retry in {sleepTime}...", mqttClientOptions, mqttClientSubscribeOptions);
         await Task.Delay(sleepTime);
         await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
         await mqttClient.SubscribeAsync(mqttClientSubscribeOptions, CancellationToken.None);

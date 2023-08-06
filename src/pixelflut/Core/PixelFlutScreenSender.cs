@@ -31,12 +31,12 @@ public class PixelFlutScreenSender
     {
         string portErrorMessage = $"Not a valid port '{configuration.Port}', please check your configuration. A valid port is a port between 1 and 65000 (Example: 5000), or a port range (Example: 5000-5999)";
         int port = 0;
-        if(string.IsNullOrWhiteSpace(configuration.Port))
-                throw new ArgumentException(portErrorMessage);
+        if (string.IsNullOrWhiteSpace(configuration.Port))
+            throw new ArgumentException(portErrorMessage);
         if (configuration.Port.Contains("-"))
         {
             string[] portRange = configuration.Port.Split('-', StringSplitOptions.RemoveEmptyEntries);
-            if(portRange.Length != 2)
+            if (portRange.Length != 2)
                 throw new ArgumentException(portErrorMessage);
 
             if (!int.TryParse(portRange[0], out int portMin) ||
@@ -56,6 +56,13 @@ public class PixelFlutScreenSender
     public void Render(List<PixelBuffer> frame, PixelFlutScreenStats stats)
     {
         if (frame.Count == 0) return;
+        int numberOfBuffers = 0;
+        foreach (var buffer in frame)
+        {
+            numberOfBuffers += buffer.Buffers.Count;
+            if (numberOfBuffers > 0) break;
+        }
+        if (numberOfBuffers == 0) return;
 
         // Pick a buffer to render
         (int pixels, byte[] sendBuffer) = SelectNextBuffer(frame);

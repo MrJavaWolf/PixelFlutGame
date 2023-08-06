@@ -3,6 +3,7 @@
 public class PixelFlutScreenProtocol1 : IPixelFlutScreenProtocol
 {
     public int PixelsPerBuffer { get; } = 140;
+    public int BufferSize { get => HeaderSize + PixelsPerBuffer * BytesPerPixel; }
     public const int BytesPerPixel = 8;
     public const int HeaderSize = 2;
 

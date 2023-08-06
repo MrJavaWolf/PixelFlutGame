@@ -19,7 +19,7 @@ public class MqttMessage
     public PongConfiguration? Pong { get; set; }
     public SnakeConfiguration? Snake { get; set; }
     public DistributedWorkerConfiguration? Distributed { get; set; }
-
+    public MqttGameChangerConfiguration? Mqtt { get; set; }
 }
 
 public class MqttGameChangerConfiguration
@@ -53,10 +53,10 @@ public class MqttGameChanger
         mqttFactory = new MqttFactory();
         mqttClient = mqttFactory.CreateMqttClient();
         if (!config.Enable) return;
-        CreateMqttOptions(config);
+        CreateMqttOptions();
     }
 
-    private void CreateMqttOptions(MqttGameChangerConfiguration config)
+    private void CreateMqttOptions()
     {
         // Connection
         var mqttClientOptionsBuilder = new MqttClientOptionsBuilder();
@@ -103,6 +103,7 @@ public class MqttGameChanger
 
     private async Task MqttClient_DisconnectedAsync(MqttClientDisconnectedEventArgs arg)
     {
+        CreateMqttOptions();
         TimeSpan sleepTime = TimeSpan.FromSeconds(Random.Shared.Next(5, 10));
         logger.LogWarning($"Failed to connect to the MQTT server, will retry in {sleepTime}...");
         await Task.Delay(sleepTime);
@@ -110,18 +111,46 @@ public class MqttGameChanger
         await mqttClient.SubscribeAsync(mqttClientSubscribeOptions, CancellationToken.None);
     }
 
-    private Task OnRecivedMessageAsync(MqttApplicationMessageReceivedEventArgs args)
+    private async Task OnRecivedMessageAsync(MqttApplicationMessageReceivedEventArgs args)
     {
         try
         {
             logger.LogInformation($"Received MQTT message: {args.ApplicationMessage}");
             string payload = args.ApplicationMessage.ConvertPayloadToString();
-            JsonSerializer.Deserialize<MqttMessage>(payload);
+            MqttMessage? message = JsonSerializer.Deserialize<MqttMessage>(payload);
+
+            if (message != null)
+            {
+                if (message.Screen == null &&
+                    message.Distributed == null &&
+                    message.DistributedServer == null &&
+                    message.Snake == null &&
+                    message.GameLoop == null &&
+                    message.Image == null &&
+                    message.Pong == null &&
+                    message.Mqtt == null &&
+                    message.RainbowTestImage == null)
+                {
+                    return;
+                }
+
+                if (message.Mqtt != null)
+                {
+                    this.config.Enable = message.Mqtt.Enable;
+                    this.config.MqttTopic = message.Mqtt.MqttTopic;
+                    this.config.MqttServer = message.Mqtt.MqttServer;
+                    this.config.Password = message.Mqtt.Password;
+                    this.config.User = message.Mqtt.User;
+                    MqttClientDisconnectOptionsBuilder builder = new();
+                    builder.WithReason(MqttClientDisconnectOptionsReason.NormalDisconnection);
+                    await mqttClient.DisconnectAsync(builder.Build(), CancellationToken.None);
+                }
+                this.latestMqttMessage = message;
+            }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to handle MQTT message");
+            logger.LogError(ex, $"Failed to handle MQTT message {args.ApplicationMessage}");
         }
-        return Task.CompletedTask;
     }
 }

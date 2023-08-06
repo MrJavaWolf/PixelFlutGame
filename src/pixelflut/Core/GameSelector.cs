@@ -20,6 +20,7 @@ namespace PixelFlut.Core
         private readonly PongConfiguration pong;
         private readonly SnakeConfiguration snake;
         private readonly DistributedWorkerConfiguration distributed;
+        private readonly ILogger<GameSelector> logger;
         private IGame currentGame;
 
         public GameSelector(
@@ -34,7 +35,8 @@ namespace PixelFlut.Core
             GameImage.Configuration image,
             PongConfiguration pong,
             SnakeConfiguration snake,
-            DistributedWorkerConfiguration distributed)
+            DistributedWorkerConfiguration distributed,
+            ILogger<GameSelector> logger)
         {
             this.config = config;
             this.gameFactory = gameFactory;
@@ -48,6 +50,8 @@ namespace PixelFlut.Core
             this.pong = pong;
             this.snake = snake;
             this.distributed = distributed;
+            this.logger = logger;
+            logger.LogInformation($"Creates game: {this.config.GameToPlay}");
             currentGame = this.gameFactory.CreateGame(this.config.GameToPlay, this.serviceProvider);
             mqttGameChanger.Start();
         }
@@ -58,6 +62,7 @@ namespace PixelFlut.Core
             if (msg != null)
             {
                 UpdateConfigurations(msg);
+                logger.LogInformation($"Creates game: {this.config.GameToPlay}");
                 currentGame = this.gameFactory.CreateGame(this.config.GameToPlay, this.serviceProvider);
             }
             // TODO: Implement a game selection menu
@@ -110,18 +115,18 @@ namespace PixelFlut.Core
                 this.distributed.Port = msg.Distributed.Port;
                 this.distributed.Ip = msg.Distributed.Ip;
             }
-            if(msg.DistributedServer  != null)
+            if (msg.DistributedServer != null)
             {
                 this.distributedServer.Port = msg.DistributedServer.Port;
                 this.distributedServer.NumberOfBuffersPerFrame = msg.DistributedServer.NumberOfBuffersPerFrame;
                 this.distributedServer.Enable = msg.DistributedServer.Enable;
             }
-            if(msg.GameLoop != null)
+            if (msg.GameLoop != null)
             {
                 this.gameLoop.TargetGameLoopFPS = msg.GameLoop.TargetGameLoopFPS;
                 this.gameLoop.GameToPlay = msg.GameLoop.GameToPlay;
             }
-            if(msg.Pong != null)
+            if (msg.Pong != null)
             {
                 this.pong.BallBorder = msg.Pong.BallBorder;
                 this.pong.BallRadius = msg.Pong.BallRadius;

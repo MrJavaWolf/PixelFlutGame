@@ -27,6 +27,8 @@ public class MqttGameChangerConfiguration
     public bool Enable { get; set; } = false;
     public string MqttServer { get; set; } = "localhost";
     public string MqttTopic { get; set; } = "mqttnet/samples/topic/2";
+    public string? User { get; set; }
+    public string? Password { get; set; }
 
 }
 
@@ -34,16 +36,16 @@ public class MqttGameChanger
 {
     private readonly MqttFactory mqttFactory;
     private readonly MqttGameChangerConfiguration config;
-    private readonly Logger<MqttGameChanger> logger;
+    private readonly ILogger<MqttGameChanger> logger;
     private readonly IMqttClient mqttClient;
-    private readonly MqttClientOptions? mqttClientOptions;
-    private readonly MqttClientSubscribeOptions? mqttClientSubscribeOptions;
+    private MqttClientOptions? mqttClientOptions;
+    private MqttClientSubscribeOptions? mqttClientSubscribeOptions;
 
     private MqttMessage? latestMqttMessage;
 
     public MqttGameChanger(
         MqttGameChangerConfiguration config,
-        Logger<MqttGameChanger> logger)
+        ILogger<MqttGameChanger> logger)
     {
         this.config = config;
         this.logger = logger;
@@ -51,7 +53,21 @@ public class MqttGameChanger
         mqttFactory = new MqttFactory();
         mqttClient = mqttFactory.CreateMqttClient();
         if (!config.Enable) return;
-        mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(config.MqttServer).Build();
+        CreateMqttOptions(config);
+    }
+
+    private void CreateMqttOptions(MqttGameChangerConfiguration config)
+    {
+        // Connection
+        var mqttClientOptionsBuilder = new MqttClientOptionsBuilder();
+        mqttClientOptionsBuilder.WithTcpServer(config.MqttServer);
+        if (!string.IsNullOrWhiteSpace(config.User))
+        {
+            mqttClientOptionsBuilder.WithCredentials(config.User, config.Password);
+        }
+        mqttClientOptions = mqttClientOptionsBuilder.Build();
+
+        // Topic
         mqttClientSubscribeOptions = mqttFactory.CreateSubscribeOptionsBuilder()
           .WithTopicFilter(
               f =>
@@ -77,6 +93,7 @@ public class MqttGameChanger
 
     private async Task StartAsync(CancellationToken cancellationToken = default)
     {
+        logger.LogInformation("Connects to MQTT for updates: {@config}", config);
         mqttClient.ApplicationMessageReceivedAsync += OnRecivedMessageAsync;
         mqttClient.DisconnectedAsync += MqttClient_DisconnectedAsync;
 
@@ -91,7 +108,6 @@ public class MqttGameChanger
         await Task.Delay(sleepTime);
         await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
         await mqttClient.SubscribeAsync(mqttClientSubscribeOptions, CancellationToken.None);
-
     }
 
     private Task OnRecivedMessageAsync(MqttApplicationMessageReceivedEventArgs args)

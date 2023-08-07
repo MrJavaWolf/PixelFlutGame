@@ -63,8 +63,7 @@ public class DistributedWorker : IGame
                 logger.LogInformation($"Successfully connected to server: {serverEndpoint}");
                 while (true)
                 {
-                    using CancellationTokenSource responseCancellationTokenSource = new CancellationTokenSource(5000);
-                    List<PixelBuffer> frame = await ReadResponseFromServerAsync(client, responseCancellationTokenSource.Token);
+                    List<PixelBuffer> frame = await ReadResponseFromServerAsync(client);
                     this.currentFrame = frame;
                 }
             }
@@ -76,13 +75,14 @@ public class DistributedWorker : IGame
         }
     }
 
-    private async Task<List<PixelBuffer>> ReadResponseFromServerAsync(TcpClient client, CancellationToken cancellationToken)
+    private async Task<List<PixelBuffer>> ReadResponseFromServerAsync(TcpClient client)
     {
         List<byte[]> bytes = new List<byte[]>();
         while (true)
         {
+            using CancellationTokenSource responseCancellationTokenSource = new CancellationTokenSource(5000);
             byte[] buffer = new byte[screenProtocol.BufferSize];
-            int bytesRead = await client.GetStream().ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+            int bytesRead = await client.GetStream().ReadAsync(buffer, 0, buffer.Length, responseCancellationTokenSource.Token);
             if (bytesRead == DistributedServer.StopDelimitorBytes.Length)
             {
                 break;

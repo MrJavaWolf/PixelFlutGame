@@ -1,25 +1,24 @@
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 public class StickFigureWorldImporter
 {
-    public static StickFigureWorldExport LoadWorldData()
+    public static StickFigureWorldData LoadWorldData()
     {
         string json = File.ReadAllText("stickfigure_world.json", Encoding.UTF8);
-        return JsonSerializer.Deserialize<StickFigureWorldExport>(json) ?? throw new Exception("Failed to load Stick Figure World data");
+        return JsonSerializer.Deserialize<StickFigureWorldData>(json) ?? throw new Exception("Failed to load Stick Figure World data");
     }
 }
 
 [Serializable]
-public class StickFigureWorldExport
+public class StickFigureWorldData
 {
-    public List<StickFigureSquareExport> Squares = new List<StickFigureSquareExport>();
-    public List<StickFigureRespawnPointExport> RespawnPoints = new List<StickFigureRespawnPointExport>();
+    public List<StickFigureSquareData> Squares = new List<StickFigureSquareData>();
+    public List<StickFigureRespawnPointData> RespawnPoints = new List<StickFigureRespawnPointData>();
 }
 
 [Serializable]
-public class StickFigureSquareExport
+public class StickFigureSquareData
 {
     public float X;
     public float Y;
@@ -28,7 +27,7 @@ public class StickFigureSquareExport
 }
 
 [Serializable]
-public class StickFigureRespawnPointExport
+public class StickFigureRespawnPointData
 {
     public float X;
     public float Y;

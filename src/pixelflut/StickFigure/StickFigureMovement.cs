@@ -67,9 +67,9 @@ public class StickFigureMovement
     }
 
     // Update is called once per frame
-    public void Loop(GameTime time)
+    public void Loop(GameTime time, IGamePadDevice gamePad)
     {
-        Vector2 input = stickFigureBase.Input.GetInput();
+        Vector2 input = gamePad.LeftStickInput;
         directionX = input.X;
         desiredVelocity = new Vector2(directionX, 0f) * Math.Max(maxSpeed - friction, 0f);
 

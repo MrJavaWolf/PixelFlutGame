@@ -46,6 +46,7 @@ public class StickFigureProjectile
     // Update is called once per frame
     void Loop(GameTime time)
     {
+        if (world == null) return;
         this.Position = new Vector2(
             (float)(Position.X + this.direction.X * speed * time.DeltaTime.TotalSeconds),
             (float)(Position.Y + this.direction.Y * speed * time.DeltaTime.TotalSeconds));
@@ -56,7 +57,6 @@ public class StickFigureProjectile
         }
         else
         {
-            if (world == null) return;
             // Hit a player
             foreach (var player in world.Players)
             {
@@ -116,6 +116,7 @@ public class StickFigureProjectile
 
     public void Explode(GameTime time)
     {
+        if (world == null) return;
         world.Projectiles.Remove(this);
         foreach (var player in world.Players)
         {

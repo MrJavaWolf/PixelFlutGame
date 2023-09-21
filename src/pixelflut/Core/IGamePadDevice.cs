@@ -1,4 +1,6 @@
-﻿namespace PixelFlut.Core;
+﻿using System.Numerics;
+
+namespace PixelFlut.Core;
 
 public interface IGamePadDevice
 {
@@ -17,6 +19,10 @@ public interface IGamePadDevice
     /// 1   = All down
     /// </summary>
     double Y { get; }
+
+
+    public Vector2 LeftStickInput =>
+        new Vector2((float)(X - 0.5) * 2, (float)(Y - 0.5) * 2);
 
     GamepadButton StartButton { get; }
 

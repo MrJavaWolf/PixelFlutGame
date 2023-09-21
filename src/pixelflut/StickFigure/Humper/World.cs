@@ -56,7 +56,7 @@
 
 		#region Hits
 
-		public IHit Hit(Vector2 point, IEnumerable<IBox> ignoring = null)
+		public IHit? Hit(Vector2 point, IEnumerable<IBox>? ignoring = null)
 		{
 			var boxes = this.Find(point.X, point.Y, 0, 0);
 
@@ -78,7 +78,7 @@
 			return null;
 		}
 
-		public IHit Hit(Vector2 origin, Vector2 destination, IEnumerable<IBox> ignoring = null)
+		public IHit? Hit(Vector2 origin, Vector2 destination, IEnumerable<IBox>? ignoring = null)
 		{
 			var min = Vector2.Min(origin, destination);
 			var max = Vector2.Max(origin, destination);
@@ -91,7 +91,7 @@
 				boxes = boxes.Except(ignoring);
 			}
 
-			IHit nearest = null;
+			IHit? nearest = null;
 
 			foreach (var other in boxes)
 			{
@@ -106,7 +106,7 @@
 			return nearest;
 		}
 
-		public IHit Hit(RectangleF origin, RectangleF destination, IEnumerable<IBox> ignoring = null)
+		public IHit? Hit(RectangleF origin, RectangleF destination, IEnumerable<IBox>? ignoring = null)
 		{
 			var wrap = new RectangleF(origin, destination);
 			var boxes = this.Find(wrap.X, wrap.Y, wrap.Width, wrap.Height);
@@ -116,7 +116,7 @@
 				boxes = boxes.Except(ignoring);
 			}
 
-			IHit nearest = null;
+			IHit? nearest = null;
 
 			foreach (var other in boxes)
 			{

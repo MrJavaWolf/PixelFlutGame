@@ -36,7 +36,7 @@ public class StickFigureCharacterController
     }
 
 
-    void Loop(GameTime time)
+    public void Loop(GameTime time, IGamePadDevice gamePad)
     {
         if (time.TotalTime.TotalSeconds - TimeOfDeath < RespawnLockTime)
         {
@@ -51,36 +51,38 @@ public class StickFigureCharacterController
             shootAttack.Interrupt();
             slashAttack.Interrupt();
             takingDamage.Interrupt();
-            StickFigureRespawnPointExport spawnPosition = world.SpawnPoints[Random.Shared.Next(0, world.SpawnPoints.Count)];
-            stickFigureBase.Teleport(new Vector2(spawnPosition.X, spawnPosition.Y));
+            Vector2 spawnPosition = world.SpawnPoints[Random.Shared.Next(0, world.SpawnPoints.Count)];
+            stickFigureBase.Teleport(spawnPosition);
         }
 
         if (!shootAttack.IsAttacking(time) &&
             !dash.IsDashing(time) &&
-            !takingDamage.IsTakingDamage() &&
-            stickFigureBase.Input.GetSlashAttackInputOnDown() &&
+            !takingDamage.IsTakingDamage(time) &&
+            gamePad.WestButton.OnPress &&
             slashAttack.CanStartAttack(time))
         {
-            slashAttack.StartAttack(this, time);
+            slashAttack.StartAttack(this, time, gamePad);
         }
 
         if (!slashAttack.IsAttacking(time) &&
             !dash.IsDashing(time) &&
-            !takingDamage.IsTakingDamage() &&
-            stickFigureBase.Input.GetShootAttackInput() && shootAttack.CanStartAttack(time))
+            !takingDamage.IsTakingDamage(time) &&
+            gamePad.NorthButton.OnPress &&
+            shootAttack.CanStartAttack(time))
         {
-            shootAttack.StartAttack(time);
+            shootAttack.StartAttack(time, gamePad);
         }
 
         if (!slashAttack.IsAttacking(time) &&
             !shootAttack.IsAttacking(time) &&
-            !takingDamage.IsTakingDamage() &&
-            stickFigureBase.Input.GetDashInput() && dash.CanStartDash(time))
+            !takingDamage.IsTakingDamage(time) &&
+            gamePad.EastButton.OnPress &&
+            dash.CanStartDash(time))
         {
-            dash.StartDash(time);
+            dash.StartDash(time, gamePad);
         }
 
-        if (takingDamage.IsTakingDamage()) takingDamage.Loop();
+        if (takingDamage.IsTakingDamage(time)) takingDamage.Loop(time);
         else if (slashAttack.IsAttacking(time)) slashAttack.Loop(time);
         else if (shootAttack.IsAttacking(time)) shootAttack.Loop(time);
         else if (dash.IsDashing(time))
@@ -89,8 +91,8 @@ public class StickFigureCharacterController
         }
         else
         {
-            jump.Loop(time);
-            movement.Loop(time);
+            jump.Loop(time, gamePad);
+            movement.Loop(time, gamePad);
         }
     }
 
@@ -103,6 +105,6 @@ public class StickFigureCharacterController
         dash.Interrupt();
         shootAttack.Interrupt();
         slashAttack.Interrupt();
-        takingDamage.StartTakeDamage(damagePushback);
+        takingDamage.StartTakeDamage(time, damagePushback);
     }
 }

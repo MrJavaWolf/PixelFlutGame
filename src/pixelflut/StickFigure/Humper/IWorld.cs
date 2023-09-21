@@ -62,7 +62,7 @@
 		/// </summary>
 		/// <param name="point">Point.</param>
 		/// <param name="ignoring">A collection of boxes that will be ignored during hit test (optionnal).</param>
-		IHit Hit(Vector2 point, IEnumerable<IBox> ignoring = null);
+		IHit? Hit(Vector2 point, IEnumerable<IBox>? ignoring = null);
 
 		/// <summary>
 		/// Queries the world to find the nearest colliding position from an oriented segment.
@@ -70,7 +70,7 @@
 		/// <param name="origin">Origin.</param>
 		/// <param name="destination">Destination.</param>
 		/// <param name="ignoring">A collection of boxes that will be ignored during hit test (optionnal).</param>
-		IHit Hit(Vector2 origin, Vector2 destination, IEnumerable<IBox> ignoring = null);
+		IHit? Hit(Vector2 origin, Vector2 destination, IEnumerable<IBox>? ignoring = null);
 
 		/// <summary>
 		/// Queries the world to find the nearest colliding position from a moving rectangle.
@@ -78,7 +78,7 @@
 		/// <param name="origin">Origin.</param>
 		/// <param name="destination">Destination.</param>
 		/// <param name="ignoring">Ignoring.</param>
-		IHit Hit(RectangleF origin, RectangleF destination, IEnumerable<IBox> ignoring = null);
+		IHit? Hit(RectangleF origin, RectangleF destination, IEnumerable<IBox>? ignoring = null);
 
 		#endregion
 

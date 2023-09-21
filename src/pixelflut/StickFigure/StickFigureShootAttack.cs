@@ -35,10 +35,10 @@ public class StickFigureShootAttack
 
     public bool CanStartAttack(GameTime time) => time.TotalTime.TotalSeconds - startAttackTime - AttackDuration > AttackCooldown;
 
-    public void StartAttack(GameTime time)
+    public void StartAttack(GameTime time, IGamePadDevice gamePad)
     {
         startAttackTime = time.TotalTime.TotalSeconds;
-        Vector2 input = stickFigureBase.Input.GetInput();
+        Vector2 input = gamePad.LeftStickInput;
         pushBackDirection = GetPushBackDirection(input);
         shootDirection = GetShootDirection(input);
         HaveShoot = false;

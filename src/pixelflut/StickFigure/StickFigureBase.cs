@@ -24,20 +24,12 @@ public class StickFigureBase
     public Vector2 Size { get; set; } = new Vector2(0.65f, 1.25f);
 
     private StickFigureWorld world;
-    public IStickFigureInput Input = new StickFigureInput();
-    public enum Player1Or2 { Player1, Player2 }
-
-    public Player1Or2 Player;
 
     public IBox box { get; private set; }
 
     public StickFigureBase(StickFigureWorld world, Vector2 spawnLocation)
     {
         this.world = world;
-        Input = Player == Player1Or2.Player1 ?
-            new StickFigureInput() :
-            new StickFigureInput2();
-
         box = world.BoxWorld.Create(
             spawnLocation.X,
             spawnLocation.Y,

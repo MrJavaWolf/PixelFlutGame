@@ -39,12 +39,12 @@ public class StickFigureSlashAttack
         startAttackTime = -1;
     }
 
-    public void StartAttack(StickFigureCharacterController player, GameTime time)
+    public void StartAttack(StickFigureCharacterController player, GameTime time, IGamePadDevice gamePad)
     {
         this.player = player;
         playerHits.Clear();
         startAttackTime = time.TotalTime.TotalSeconds;
-        Vector2 input = stickFigureBase.Input.GetInput();
+        Vector2 input = gamePad.LeftStickInput;
         attackDirection = GetAttackDirection(input);
         stickFigureBase.Facing = attackDirection.X > 0 ?
               StickFigureBase.FacingDirection.Right :

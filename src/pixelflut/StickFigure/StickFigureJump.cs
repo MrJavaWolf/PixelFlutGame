@@ -81,13 +81,13 @@ public class StickFigureJump
         this.stickFigureBase = stickFigureBase;
     }
 
-    public void Loop(GameTime time)
+    public void Loop(GameTime time, IGamePadDevice gamePad)
     {
 
         if (stickFigureBase.IsGrounded)
             currentAirJump = 0;
-
-        bool jumpInput = stickFigureBase.Input.GetJumpInput();
+        
+        bool jumpInput = gamePad.SouthButton.IsPressed;
 
         if (!pressingJump && jumpInput)
         {

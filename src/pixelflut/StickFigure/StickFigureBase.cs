@@ -9,6 +9,7 @@ public class StickFigureBase
     public enum FacingDirection { Left, Right };
 
     public Animator PlayerAnimator { get; private set; }
+
     public SpriteRenderer PlayerSprite { get; private set; }
 
     public float MovementSpeed { get; set; } = 10;

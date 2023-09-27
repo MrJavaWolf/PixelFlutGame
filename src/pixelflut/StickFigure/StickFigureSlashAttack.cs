@@ -52,7 +52,7 @@ public class StickFigureSlashAttack
         stickFigureBase.PlayerSprite.flipX = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left;
         stickFigureBase.PlayerAnimator.Play("sword atk");
         SlashAnimator.Play("slash 2", -1, 0);
-        float angle = Vector2.SignedAngle(Vector2.UnitX, attackDirection);
+        float angle = Vector2.UnitX.SignedAngle(attackDirection);
         SlashAnimator.transform.rotation = Quaternion.Euler(0, 0, angle + this.slashEffectAngleOffset);
         SlashAnimator.transform.position = player.Center + attackDirection;
         SlashAnimator.transform.localScale =
@@ -104,7 +104,7 @@ public class StickFigureSlashAttack
             Vector2 directionToEnemy = Vector2.Normalize(enemy.Center - player.Center);
             if (Vector2.Distance(enemy.Center, player.Center) > DamageRadius) continue;
 
-            float angleToEnemy = Vector2.Angle(attackDirection, directionToEnemy);
+            float angleToEnemy = MathF.Abs(attackDirection.SignedAngle(directionToEnemy));
 
             if (angleToEnemy <= DamageAngle)
             {
@@ -130,7 +130,7 @@ public class StickFigureSlashAttack
             Vector2 directionToProjetile = Vector2.Normalize(projetile.Position - player.Center);
             if (Vector2.Distance(projetile.Position, player.Center) > DamageRadius) continue;
 
-            float angleToEnemy = Vector2.Angle(attackDirection, directionToProjetile);
+            float angleToEnemy = MathF.Abs(attackDirection.SignedAngle(directionToProjetile));
 
             if (angleToEnemy <= DamageAngle)
             {

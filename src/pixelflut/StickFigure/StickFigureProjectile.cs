@@ -38,7 +38,7 @@ public class StickFigureProjectile
         }
 
         // Angle for the fireball effect
-        float angle = Vector2.SignedAngle(Vector2.UnitX, direction);
+        float angle = Vector2.UnitX.SignedAngle(direction);
         transform.rotation = Quaternion.Euler(0, 0, angle);
 
     }

@@ -91,9 +91,11 @@ public class GameImage : IGame
         if (config.Image.ToLower().StartsWith("http://") || config.Image.ToLower().StartsWith("https://"))
         {
             logger.LogInformation($"Tries to download image: {config.Image}");
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             var httpResponse = httpClient.GetAsync(config.Image, token).Result; // Ugly waits for the result, should somehow be async
             logger.LogInformation($"Response status code: {httpResponse.StatusCode}");
             imageBytes = httpResponse.Content.ReadAsByteArrayAsync(token).Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
         }
         else if (File.Exists(config.Image))
         {

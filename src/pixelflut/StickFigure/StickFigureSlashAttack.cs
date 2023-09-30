@@ -23,11 +23,12 @@ public class StickFigureSlashAttack
     private List<StickFigureProjectile> projetileHits = new List<StickFigureProjectile>();
     private StickFigureWorld world;
     private StickFigureCharacterController? player;
-    public Animator SlashAnimator;
+    public StickFigureSlashAnimator SlashAnimator;
 
 
     public StickFigureSlashAttack(StickFigureBase stickFigureBase, StickFigureWorld world)
     {
+        SlashAnimator = new StickFigureSlashAnimator();
         this.stickFigureBase = stickFigureBase;
         this.world = world;
     }
@@ -49,17 +50,11 @@ public class StickFigureSlashAttack
         stickFigureBase.Facing = attackDirection.X > 0 ?
               StickFigureBase.FacingDirection.Right :
               StickFigureBase.FacingDirection.Left;
-        stickFigureBase.PlayerSprite.flipX = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left;
-        stickFigureBase.PlayerAnimator.Play("sword atk");
-        SlashAnimator.Play("slash 2", -1, 0);
+        stickFigureBase.PlayerAnimator.FlipX = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left;
+        stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.SwordAttack);
         float angle = Vector2.UnitX.SignedAngle(attackDirection);
-        SlashAnimator.transform.rotation = Quaternion.Euler(0, 0, angle + this.slashEffectAngleOffset);
-        SlashAnimator.transform.position = player.Center + attackDirection;
-        SlashAnimator.transform.localScale =
-            new Vector3(
-                SlashAnimator.transform.localScale.x,
-                Math.Abs(SlashAnimator.transform.localScale.y) * (stickFigureBase.Facing == StickFigureBase.FacingDirection.Left ? 1 : -1),
-                SlashAnimator.transform.localScale.z);
+        bool flipY = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left ? false : true;
+        SlashAnimator.Play(angle + this.slashEffectAngleOffset, player.Center + attackDirection, flipY);
     }
 
     private Vector2 GetAttackDirection(Vector2 input)
@@ -146,6 +141,6 @@ public class StickFigureSlashAttack
     private void OnProjetileHit(StickFigureProjectile projetile, Vector2 directionToProjetile, GameTime time)
     {
         if (player == null) return;
-        projetile.DoStart(time, directionToProjetile, projetile.Position, world, player);
+        projetile.DoStart(time, directionToProjetile, projetile.Position, player);
     }
 }

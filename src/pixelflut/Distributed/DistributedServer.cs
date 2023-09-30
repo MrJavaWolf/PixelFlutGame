@@ -36,8 +36,6 @@ public class DistributedServer
         this.pixelFlutScreen = pixelFlutScreen;
         this.logger = logger;
 
-
-        if (!config.Enable) return;
         server = new TcpListener(IPAddress.Any, config.Port);
     }
 

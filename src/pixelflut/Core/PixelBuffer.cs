@@ -10,7 +10,7 @@ public class PixelBuffer
     private readonly IPixelFlutScreenProtocol screenProtocol;
 
     // Screen config
-    private readonly PixelFlutScreenConfiguration screenConfiguration;
+    private readonly PixelFlutScreenConfiguration? screenConfiguration;
 
     /// <summary>
     /// To make the rendering look visually more humanly pleaseing, we use a mapping from pixel number to actual buffer and index in buffer position .
@@ -39,6 +39,7 @@ public class PixelBuffer
         NumberOfPixels = numberOfPixels;
         this.screenProtocol = screenProtocol;
         this.buffers = buffers;
+        mappings = new PixelBufferPosition[0];
     }
 
     public PixelBuffer(
@@ -94,6 +95,8 @@ public class PixelBuffer
 
     public void ChangePixelPosition(int pixelNumber, int X, int Y)
     {
+        if (screenConfiguration == null) return;
+
         if (pixelNumber >= NumberOfPixels)
             throw new IndexOutOfRangeException(
                 $"The {nameof(PixelBuffer)} have {NumberOfPixels} pixels (0 indexed), " +
@@ -109,6 +112,8 @@ public class PixelBuffer
 
     public void SetPixel(int pixelNumber, int X, int Y, byte R, byte G, byte B, byte A)
     {
+        if (screenConfiguration == null) return;
+
         if (pixelNumber >= NumberOfPixels)
             throw new IndexOutOfRangeException(
                 $"The {nameof(PixelBuffer)} have {NumberOfPixels} pixels (0 indexed), " +

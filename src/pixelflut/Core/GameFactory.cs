@@ -47,7 +47,8 @@ namespace PixelFlut.Core
             where TGameConfig : class
         {
             AddGame<TGame>(gameName, services);
-            services.AddSingleton(configuration.GetSection(gameName).Get<TGameConfig>());
+            services.AddSingleton(configuration.GetSection(gameName).Get<TGameConfig>() ?? 
+                throw new Exception($"Failed to read configuration for game: {gameName}"));
         }
     }
 }

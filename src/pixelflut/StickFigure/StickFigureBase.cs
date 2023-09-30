@@ -8,9 +8,7 @@ public class StickFigureBase
 {
     public enum FacingDirection { Left, Right };
 
-    public Animator PlayerAnimator { get; private set; }
-
-    public SpriteRenderer PlayerSprite { get; private set; }
+    public StickFigureAnimator PlayerAnimator { get; private set; }
 
     public float MovementSpeed { get; set; } = 10;
 
@@ -36,9 +34,8 @@ public class StickFigureBase
             spawnLocation.Y,
             Size.X,
             Size.Y);
-        PlayerAnimator = GetComponentInChildren<Animator>();
-        PlayerSprite = GetComponentInChildren<SpriteRenderer>();
-        PlayerAnimator.Play("idle");
+        PlayerAnimator = new StickFigureAnimator();
+        PlayerAnimator.Play(StickFigureAnimation.Idle);
     }
 
 

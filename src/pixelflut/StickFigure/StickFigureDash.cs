@@ -34,7 +34,7 @@ public class StickFigureDash
             dashDirection = Vector2.UnitX * (
                 stickFigureBase.Facing == StickFigureBase.FacingDirection.Left ? -1 : 1);
         }
-        stickFigureBase.PlayerAnimator.Play("dash");
+        stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.Dash);
     }
 
     public void Interrupt()

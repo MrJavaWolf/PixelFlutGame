@@ -1,4 +1,5 @@
 using PixelFlut.Core;
+using System;
 using System.Numerics;
 namespace StickFigureGame;
 
@@ -97,9 +98,10 @@ public class StickFigureMovement
             maxSpeedChange = deceleration * time.DeltaTime.TotalSeconds;
         }
 
+        
         //Move our velocity towards the desired velocity, at the rate of the number calculated above
         stickFigureBase.Velocity = new Vector2(
-            Mathf.MoveTowards(stickFigureBase.Velocity.X, desiredVelocity.X, maxSpeedChange),
+            MoveTowards(stickFigureBase.Velocity.X, desiredVelocity.X, (float)maxSpeedChange),
             stickFigureBase.Velocity.Y);
         if (input.X != 0)
         {
@@ -112,30 +114,39 @@ public class StickFigureMovement
         {
             if (Math.Abs(stickFigureBase.Velocity.X) > 0)
             {
-                stickFigureBase.PlayerAnimator.Play("run");
+                stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.Run);
             }
             else
             {
-                stickFigureBase.PlayerAnimator.Play("idle");
+                stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.Idle);
             }
         }
         else
         {
             if(Math.Abs(stickFigureBase.Velocity.Y) < 5)
             {
-                stickFigureBase.PlayerAnimator.Play("jump top");
+                stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.JumpTop);
             }
             else if (stickFigureBase.Velocity.Y > 0)
             {
-                stickFigureBase.PlayerAnimator.Play("jump up");
+                stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.JumpUp);
             }
             else
             {
-                stickFigureBase.PlayerAnimator.Play("jump down");
+                stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.JumpDown);
             }
         }
 
-        stickFigureBase.PlayerSprite.flipX = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left;
+        stickFigureBase.PlayerAnimator.FlipX = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left;
 
+    }
+
+    private static float MoveTowards(float current, float target, float maxDelta)
+    {
+        if (MathF.Abs(target - current) <= maxDelta)
+        {
+            return target;
+        }
+        return current + MathF.Sign(target - current) * maxDelta;
     }
 }

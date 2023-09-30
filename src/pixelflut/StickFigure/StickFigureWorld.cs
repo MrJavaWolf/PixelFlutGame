@@ -12,6 +12,8 @@ public class StickFigureWorld
     public List<IBox> WorldBoxes { get; } = new List<IBox>();
     public List<StickFigureCharacterController> Players { get; } = new List<StickFigureCharacterController>();
     public List<StickFigureProjectile> Projectiles { get; } = new List<StickFigureProjectile>();
+    public List<StickFigureExplosionEffect> Explosions { get; } = new List<StickFigureExplosionEffect>();
+    
 
     // Start is called before the first frame update
     public StickFigureWorld(StickFigureWorldData stickFigureWorldData)

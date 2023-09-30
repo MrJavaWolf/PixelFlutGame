@@ -1,5 +1,6 @@
 ﻿using System;
 using Humper.Base;
+#nullable disable
 
 namespace Humper.Responses
 {

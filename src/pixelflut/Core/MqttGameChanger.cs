@@ -179,11 +179,11 @@ public class MqttGameChanger : IDisposable
         }
         catch (Exception e)
         {
-
+            logger.LogError(e, "Failed to reconnect");
         }
     }
 
-    private async Task OnRecivedMessageAsync(MqttApplicationMessageReceivedEventArgs args)
+    private Task OnRecivedMessageAsync(MqttApplicationMessageReceivedEventArgs args)
     {
         try
         {
@@ -203,7 +203,7 @@ public class MqttGameChanger : IDisposable
                     message.Mqtt == null &&
                     message.RainbowTestImage == null)
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 this.latestMqttMessage = message;
@@ -213,6 +213,7 @@ public class MqttGameChanger : IDisposable
         {
             logger.LogError(ex, $"Failed to handle MQTT message '{args.ApplicationMessage.ConvertPayloadToString()}'");
         }
+        return Task.CompletedTask;
     }
 
     public void Dispose()
@@ -221,6 +222,8 @@ public class MqttGameChanger : IDisposable
         mqttClient.DisconnectedAsync -= MqttClient_DisconnectedAsync;
         MqttClientDisconnectOptionsBuilder builder = new();
         builder.WithReason(MqttClientDisconnectOptionsReason.NormalDisconnection);
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
         mqttClient.DisconnectAsync(builder.Build(), CancellationToken.None).Wait();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
     }
 }

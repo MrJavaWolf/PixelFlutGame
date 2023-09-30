@@ -20,9 +20,6 @@ public class StickFigureShootAttack
     private StickFigureWorld world;
     private StickFigureCharacterController player;
 
-    public GameObject projectile;
-
-
     public StickFigureShootAttack(
         StickFigureBase stickFigureBase, 
         StickFigureWorld world, 
@@ -42,7 +39,7 @@ public class StickFigureShootAttack
         pushBackDirection = GetPushBackDirection(input);
         shootDirection = GetShootDirection(input);
         HaveShoot = false;
-        stickFigureBase.PlayerAnimator.Play("shoot 2H");
+        stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.Shoot);
     }
 
     public void Interrupt()
@@ -98,8 +95,7 @@ public class StickFigureShootAttack
     private void SpawnProjectile(GameTime time)
     {
         Vector2 spawnPosition = player.Center;
-        GameObject projectileGameObject = Instantiate(projectile, spawnPosition, Quaternion.identity);
-        StickFigureProjectile proj = projectileGameObject.GetComponent<StickFigureProjectile>();
-        proj.DoStart(time, shootDirection, spawnPosition, this.world, player);
+        StickFigureProjectile proj = new StickFigureProjectile(world);
+        proj.DoStart(time, shootDirection, spawnPosition, player);
     }
 }

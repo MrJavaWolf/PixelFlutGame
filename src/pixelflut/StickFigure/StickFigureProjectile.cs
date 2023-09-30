@@ -14,23 +14,28 @@ public class StickFigureProjectile
     public float LifeTime = 2;
 
     private Vector2 direction;
-    private StickFigureWorld? world;
+    private StickFigureWorld world;
     private StickFigureCharacterController? shotByPlayer;
     private double startTime = -1;
 
-    public GameObject ExplosionEffect;
+    public StickFigureProjectileAnimator stickFigureProjectileAnimator;
+
+
+    public StickFigureProjectile(StickFigureWorld world)
+    {
+        stickFigureProjectileAnimator = new StickFigureProjectileAnimator();
+        this.world = world;
+    }
 
     public void DoStart(
-        GameTime time, 
-        Vector2 direction, 
-        Vector2 startPosition, 
-        StickFigureWorld world, 
+        GameTime time,
+        Vector2 direction,
+        Vector2 startPosition,
         StickFigureCharacterController player)
     {
         this.Position = startPosition;
         startTime = time.TotalTime.TotalSeconds;
         this.shotByPlayer = player;
-        this.world = world;
         this.direction = direction;
         if (!world.Projectiles.Contains(this))
         {
@@ -39,8 +44,7 @@ public class StickFigureProjectile
 
         // Angle for the fireball effect
         float angle = Vector2.UnitX.SignedAngle(direction);
-        transform.rotation = Quaternion.Euler(0, 0, angle);
-
+        stickFigureProjectileAnimator.Play(angle);
     }
 
     // Update is called once per frame
@@ -128,7 +132,11 @@ public class StickFigureProjectile
                 player.TakeDamage(damageDirection * pushbackDamage, time);
             }
         }
-        Instantiate(ExplosionEffect, Position, Quaternion.identity);
-        Destroy(this.gameObject);
+
+
+        StickFigureExplosionEffect explosionEffect = new StickFigureExplosionEffect(world);
+        explosionEffect.Play(Position);
+        
+        world.Projectiles.Remove(this);
     }
 }

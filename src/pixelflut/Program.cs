@@ -53,11 +53,11 @@ public class Program
         var services = new ServiceCollection();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger()));
         services.AddSingleton(configuration);
-        services.AddSingleton(configuration.GetRequiredSection("Screen").Get<PixelFlutScreenConfiguration>());
-        services.AddSingleton(configuration.GetRequiredSection("Gamepad").Get<PixelFlutGamepadConfiguration>());
-        services.AddSingleton(configuration.GetRequiredSection("GameLoop").Get<GameLoopConfiguration>());
-        services.AddSingleton(configuration.GetRequiredSection("DistributedServer").Get<DistributedServerConfiguration>());
-        services.AddSingleton(configuration.GetRequiredSection("Mqtt").Get<MqttGameChangerConfiguration>());
+        services.AddSingleton(Read<PixelFlutScreenConfiguration>(configuration,"Screen"));
+        services.AddSingleton(Read<PixelFlutGamepadConfiguration>(configuration, "Gamepad"));
+        services.AddSingleton(Read<GameLoopConfiguration>(configuration, "GameLoop"));
+        services.AddSingleton(Read<DistributedServerConfiguration>(configuration, "DistributedServer"));
+        services.AddSingleton(Read<MqttGameChangerConfiguration>(configuration, "Mqtt"));
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
         services.AddSingleton<MqttGameChanger>();
         services.AddSingleton<GamePadsController>();
@@ -87,6 +87,12 @@ public class Program
         await Task.WhenAll(t1);
 
         logger.LogInformation($"- - - - -  Shutdown pixelflut game - - - - - ");
+    }
+
+    private static T Read<T>(IConfiguration configuration, string conf)
+    {
+        return configuration.GetRequiredSection(conf).Get<T>() ?? 
+            throw new Exception($"Failed to read configuration: {conf}");
     }
 }
 

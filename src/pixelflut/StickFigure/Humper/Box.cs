@@ -4,7 +4,7 @@
 	using System.Linq;
 	using Base;
 	using Responses;
-
+#nullable disable
 	public class Box : IBox
 	{
 		#region Constructors 

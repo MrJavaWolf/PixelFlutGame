@@ -22,7 +22,7 @@ public class StickFigureTakingDamage
         StartTakingDamageTime = time.TotalTime.TotalSeconds;
         takingDamageForce = force;
         stickFigureBase.Velocity = takingDamageForce;
-        stickFigureBase.PlayerAnimator.Play("taking damage");
+        stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.TakeDamage);
     }
 
     public void Interrupt()

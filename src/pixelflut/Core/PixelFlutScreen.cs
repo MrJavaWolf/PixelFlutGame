@@ -12,7 +12,7 @@ public class PixelFlutScreenConfiguration
     /// <summary>
     /// The Port of the Pixelflut
     /// </summary>
-    public string Port { get; set; }
+    public string Port { get; set; } = null!;
 
     /// <summary>
     /// Set the on screen offset if you want the game to not run from 0,0 (usually top left)

@@ -2,8 +2,9 @@
 {
 	using System;
 	using Base;
+#nullable disable
 
-	public class Hit : IHit
+    public class Hit : IHit
 	{
 		public Hit()
 		{

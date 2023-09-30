@@ -1,5 +1,7 @@
 ﻿using Humper.Base;
 
+#nullable disable
+
 namespace Humper
 {
 	public class Collision : ICollision

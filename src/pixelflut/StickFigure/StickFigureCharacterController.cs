@@ -43,6 +43,7 @@ public class StickFigureCharacterController
         if (time.TotalTime.TotalSeconds - TimeOfDeath < RespawnLockTime)
         {
             stickFigureBase.Velocity = Vector2.Zero;
+            stickFigureBase.Loop(time);
             return;
         }
 
@@ -97,6 +98,8 @@ public class StickFigureCharacterController
             jump.Loop(time, gamePad);
             movement.Loop(time, gamePad);
         }
+
+        stickFigureBase.Loop(time);
     }
 
     public void TakeDamage(Vector2 damagePushback, GameTime time)

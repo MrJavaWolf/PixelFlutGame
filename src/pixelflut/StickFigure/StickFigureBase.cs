@@ -45,8 +45,7 @@ public class StickFigureBase
         box.Move(to.X, to.Y, c => CollisionResponses.None);
     }
 
-    // Update is called once per frame
-    void Loop(GameTime time)
+    public void Loop(GameTime time)
     {
         this.Move(time);
     }

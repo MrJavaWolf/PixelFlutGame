@@ -26,7 +26,7 @@ public class StickFigureBase
 
     public IBox box { get; private set; }
 
-    public StickFigureBase(StickFigureWorld world, Vector2 spawnLocation)
+    public StickFigureBase(StickFigureWorld world, Vector2 spawnLocation, IPixelFlutScreenProtocol screenProtocol)
     {
         this.world = world;
         box = world.BoxWorld.Create(
@@ -34,7 +34,7 @@ public class StickFigureBase
             spawnLocation.Y,
             Size.X,
             Size.Y);
-        PlayerAnimator = new StickFigureAnimator();
+        PlayerAnimator = new StickFigureAnimator(screenProtocol, this);
         PlayerAnimator.Play(StickFigureAnimation.Idle);
     }
 

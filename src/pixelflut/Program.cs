@@ -7,6 +7,7 @@ using PixelFlut.Pong;
 using PixelFlut.Snake;
 using PixelFlut.TestImage;
 using Serilog;
+using StickFigureGame;
 
 namespace PixelFlut;
 
@@ -29,6 +30,7 @@ public class Program
         gameFactory.AddGame<PongGame, PongConfiguration>("Pong", services);
         gameFactory.AddGame<SnakeGame, SnakeConfiguration>("Snake", services);
         gameFactory.AddGame<DistributedWorker, DistributedWorkerConfiguration>("Distributed", services);
+        gameFactory.AddGame<StickFigureGame.StickFigureGame, StickFigureGameConfiguration>("StickFigure", services);
     }
 
     public static async Task Main(string[] args)

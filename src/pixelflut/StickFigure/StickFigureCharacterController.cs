@@ -17,14 +17,16 @@ public class StickFigureCharacterController
     private StickFigureSlashAttack slashAttack;
     private StickFigureShootAttack shootAttack;
     private StickFigureWorld world;
+    private readonly ILogger logger;
     private StickFigureTakingDamage takingDamage;
     private double TimeOfDeath = -1;
     private float RespawnLockTime = 1;
     private float RespawnInvulnerableTime = 2;
 
-    public StickFigureCharacterController(StickFigureWorld world, Vector2 spawnPoint)
+    public StickFigureCharacterController(StickFigureWorld world, Vector2 spawnPoint, ILogger logger)
     {
         this.world = world;
+        this.logger = logger;
         stickFigureBase = new StickFigureBase(world, spawnPoint);
         jump = new StickFigureJump(stickFigureBase);
         movement = new StickFigureMovement(stickFigureBase);
@@ -53,6 +55,7 @@ public class StickFigureCharacterController
             takingDamage.Interrupt();
             Vector2 spawnPosition = world.SpawnPoints[Random.Shared.Next(0, world.SpawnPoints.Count)];
             stickFigureBase.Teleport(spawnPosition);
+            logger.LogInformation("Player fell off the map, respawns the player");
         }
 
         if (!shootAttack.IsAttacking(time) &&
@@ -61,6 +64,7 @@ public class StickFigureCharacterController
             gamePad.WestButton.OnPress &&
             slashAttack.CanStartAttack(time))
         {
+            logger.LogInformation("Player attack");
             slashAttack.StartAttack(this, time, gamePad);
         }
 
@@ -70,6 +74,7 @@ public class StickFigureCharacterController
             gamePad.NorthButton.OnPress &&
             shootAttack.CanStartAttack(time))
         {
+            logger.LogInformation("Player shoot");
             shootAttack.StartAttack(time, gamePad);
         }
 
@@ -79,16 +84,14 @@ public class StickFigureCharacterController
             gamePad.EastButton.OnPress &&
             dash.CanStartDash(time))
         {
+            logger.LogInformation("Player dash");
             dash.StartDash(time, gamePad);
         }
 
         if (takingDamage.IsTakingDamage(time)) takingDamage.Loop(time);
         else if (slashAttack.IsAttacking(time)) slashAttack.Loop(time);
         else if (shootAttack.IsAttacking(time)) shootAttack.Loop(time);
-        else if (dash.IsDashing(time))
-        {
-            dash.Loop();
-        }
+        else if (dash.IsDashing(time)) dash.Loop();
         else
         {
             jump.Loop(time, gamePad);
@@ -106,5 +109,7 @@ public class StickFigureCharacterController
         shootAttack.Interrupt();
         slashAttack.Interrupt();
         takingDamage.StartTakeDamage(time, damagePushback);
+        logger.LogInformation("Player take damage");
+
     }
 }

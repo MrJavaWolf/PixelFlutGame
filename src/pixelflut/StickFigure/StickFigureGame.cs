@@ -1,21 +1,33 @@
 ﻿using DevDecoder.HIDDevices.Controllers;
 using DynamicData;
 using PixelFlut.Core;
+using PixelFlut.Pong;
 using System.Numerics;
 
 namespace StickFigureGame;
 
+public class StickFigureGameConfiguration
+{
+
+}
+
 public class StickFigureGame : IGame
 {
+    private readonly StickFigureGameConfiguration config;
     private readonly IPixelFlutScreenProtocol screenProtocol;
-
+    private readonly ILogger<StickFigureGame> logger;
     private List<PixelBuffer> pixelBuffers = new();
     private StickFigureWorld world;
     private List<StickFigureCharacterController> Players = new();
 
-    public StickFigureGame(IPixelFlutScreenProtocol screenProtocol)
+    public StickFigureGame(
+        StickFigureGameConfiguration config, 
+        IPixelFlutScreenProtocol screenProtocol, 
+        ILogger<StickFigureGame> logger)
     {
+        this.config = config;
         this.screenProtocol = screenProtocol;
+        this.logger = logger;
         StickFigureWorldData stickFigureWorldData = StickFigureWorldImporter.LoadWorldData();
         world = new StickFigureWorld(stickFigureWorldData);
     }
@@ -49,6 +61,6 @@ public class StickFigureGame : IGame
     void SpawnPlayers()
     {
         Vector2 spawnPoint = world.SpawnPoints[Random.Shared.Next(world.SpawnPoints.Count)];
-        Players.Add(new StickFigureCharacterController(world, spawnPoint));
+        Players.Add(new StickFigureCharacterController(world, spawnPoint, logger));
     }
 }

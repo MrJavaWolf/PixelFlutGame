@@ -2,7 +2,6 @@
 
 public interface IPixelFlutScreenProtocol
 {
-
     public int PixelsPerBuffer { get; }
     public int BufferSize { get; }
     public byte[] CreateBuffer();

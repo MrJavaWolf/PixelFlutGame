@@ -27,15 +27,20 @@ public class ImageFrame
         }
     }
 
+    public bool FlipX { get; set; }
+    public bool FlipY { get; set; }
+    private ImageFrame<Rgba32> image;
+
     private record ImportedPixel(int x, int y, Rgba32 Color);
-    public ImageFrame(ImageFrame<Rgba32> imageFrame, PixelBufferFactory bufferFactory)
+    public ImageFrame(ImageFrame<Rgba32> image, PixelBufferFactory bufferFactory)
     {
+        this.image = image;
         pixels = new List<ImportedPixel>();
-        for (int y = 0; y < imageFrame.Height; y++)
+        for (int y = 0; y < image.Height; y++)
         {
-            for (int x = 0; x < imageFrame.Width; x++)
+            for (int x = 0; x < image.Width; x++)
             {
-                Rgba32 rgb = imageFrame[x, y];
+                Rgba32 rgb = image[x, y];
                 if (rgb.A != 0)
                 {
                     pixels.Add(new ImportedPixel(x, y, rgb));
@@ -64,10 +69,12 @@ public class ImageFrame
         for (int i = 0; i < pixels.Count; i++)
         {
             ImportedPixel pixel = pixels[i];
-            Buffer.ChangePixelPosition(
-                i,
-                pixel.x + (int)Position.X,
-                pixel.y + (int)Position.Y);
+            int newX = (int)Position.X +
+                (FlipX ? image.Width - pixel.x : pixel.x);
+            int newY = (int)Position.Y +
+                (FlipY ? image.Height - pixel.y : pixel.y);
+            
+            Buffer.ChangePixelPosition(i, newX, newY);
         }
     }
 }

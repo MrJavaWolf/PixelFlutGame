@@ -1,6 +1,7 @@
 using Humper;
 using Humper.Responses;
 using PixelFlut.Core;
+using PixelFlut.StickFigure;
 using System.Numerics;
 namespace StickFigureGame;
 
@@ -26,7 +27,10 @@ public class StickFigureBase
 
     public IBox box { get; private set; }
 
-    public StickFigureBase(StickFigureWorld world, Vector2 spawnLocation, IPixelFlutScreenProtocol screenProtocol)
+    public StickFigureBase(
+        StickFigureWorld world, 
+        Vector2 spawnLocation, 
+        SpriteLoader spriteLoader)
     {
         this.world = world;
         box = world.BoxWorld.Create(
@@ -34,7 +38,7 @@ public class StickFigureBase
             spawnLocation.Y,
             Size.X,
             Size.Y);
-        PlayerAnimator = new StickFigureAnimator(screenProtocol, this);
+        PlayerAnimator = new StickFigureAnimator(this, spriteLoader);
         PlayerAnimator.Play(StickFigureAnimation.Idle);
     }
 

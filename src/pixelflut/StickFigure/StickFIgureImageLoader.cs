@@ -3,13 +3,17 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using StickFigureGame;
 using System.Numerics;
 
 namespace PixelFlut.StickFigure;
 
 
-public class ImageFrame
+public class SpriteFrame
 {
+    private record ImportedPixel(int x, int y, Rgba32 Color);
+    private Image<Rgba32> image;
+
     public PixelBuffer Buffer { get; }
 
     private List<ImportedPixel> pixels;
@@ -29,10 +33,8 @@ public class ImageFrame
 
     public bool FlipX { get; set; }
     public bool FlipY { get; set; }
-    private ImageFrame<Rgba32> image;
 
-    private record ImportedPixel(int x, int y, Rgba32 Color);
-    public ImageFrame(ImageFrame<Rgba32> image, PixelBufferFactory bufferFactory)
+    public SpriteFrame(Image<Rgba32> image, PixelBufferFactory bufferFactory)
     {
         this.image = image;
         pixels = new List<ImportedPixel>();
@@ -73,68 +75,138 @@ public class ImageFrame
                 (FlipX ? image.Width - pixel.x : pixel.x);
             int newY = (int)Position.Y +
                 (FlipY ? image.Height - pixel.y : pixel.y);
-            
+
             Buffer.ChangePixelPosition(i, newX, newY);
         }
     }
 }
 
 
-public class ImageAnimation
+public class SpriteAnimation
 {
-
-    private List<ImageFrame> frames;
-    private readonly TimeSpan timeBetweenFrames;
-    private int imageFrameIndex = 0;
+    private List<SpriteFrame> frames;
+    private int animationIndex = 0;
     private TimeSpan nextFrameTime = TimeSpan.Zero;
 
-    public ImageAnimation(List<ImageFrame> frames, TimeSpan timeBetweenFrames)
+    private IReadOnlyList<int> animation;
+    
+    public TimeSpan TimeBetweenFrames { get; set; }
+    
+    public bool LoopAnimation { get; set; }
+
+    public SpriteAnimation(
+        List<SpriteFrame> frames, 
+        TimeSpan timeBetweenFrames, 
+        List<int>? animation = null, 
+        bool loopAnimation = true)
     {
         this.frames = frames;
-        this.timeBetweenFrames = timeBetweenFrames;
+        this.TimeBetweenFrames = timeBetweenFrames;
+        this.LoopAnimation = loopAnimation;
+
+        if (animation != null) this.animation = animation;
+        else this.animation = Enumerable.Range(0, frames.Count).ToList();
     }
+
+    public void Restart(GameTime time)
+    {
+        this.nextFrameTime = time.TotalTime + this.TimeBetweenFrames;
+    }
+
+    private bool ShouldGoToNextFrame(GameTime time)
+        => animation.Count > 1 &&                               // Only change frame if we have more than 1 frame
+        time.TotalTime > nextFrameTime &&                       // Change frame when it is time to change frame
+        (LoopAnimation || animationIndex != animation.Count);   // Only change frame we we are not on the last frame, or should loop the frame
 
     public PixelBuffer Loop(GameTime time)
     {
         // Checks if it is an animation
-        if (frames.Count > 1 && time.TotalTime > nextFrameTime)
+        if (ShouldGoToNextFrame(time))
         {
-            int prevFrameIndex = imageFrameIndex;
+            int prevFrameIndex = animationIndex;
             // Renders next frame
-            imageFrameIndex++;
-            if (imageFrameIndex >= frames.Count)
-                imageFrameIndex = 0;
-            nextFrameTime = time.TotalTime + timeBetweenFrames;
-            frames[imageFrameIndex].Position = frames[prevFrameIndex].Position;
+            animationIndex++;
+            if (animationIndex >= animation.Count)
+            {
+                if (LoopAnimation)
+                    animationIndex = 0;
+                else
+                    animationIndex--;
+            }
+            nextFrameTime = time.TotalTime + TimeBetweenFrames;
+            frames[animation[animationIndex]].Position = frames[animation[prevFrameIndex]].Position;
+            frames[animation[animationIndex]].FlipX = frames[animation[prevFrameIndex]].FlipX;
+            frames[animation[animationIndex]].FlipY = frames[animation[prevFrameIndex]].FlipY;
         }
-        return frames[imageFrameIndex].Buffer;
+        return frames[animation[animationIndex]].Buffer;
     }
 
     public void SetPosition(Vector2 position)
     {
-        frames[imageFrameIndex].Position = position;
+        frames[animationIndex].Position = position;
+    }
+
+    public void SetAnimation(
+        GameTime time,
+        List<int> animation,
+        int startAnimationIndex = 0,
+        TimeSpan? timeBetweenFrames = null,
+        bool loopAnimation = true)
+    {
+        SpriteFrame currentFrame = frames[animation[animationIndex]];
+        this.LoopAnimation = loopAnimation;
+        this.animation = animation;
+        this.TimeBetweenFrames = timeBetweenFrames ?? this.TimeBetweenFrames;
+        this.nextFrameTime = time.TotalTime + this.TimeBetweenFrames;
+        this.animationIndex = startAnimationIndex;
+        frames[animation[animationIndex]].Position = currentFrame.Position;
+        frames[animation[animationIndex]].FlipX = currentFrame.FlipX;
+        frames[animation[animationIndex]].FlipY = currentFrame.FlipY;
     }
 }
 
 
-
-public class ImageLoader
+public class SpriteLoader
 {
     private readonly PixelBufferFactory bufferFactory;
     private readonly IHttpClientFactory httpClientFactory;
-    private readonly ILogger<ImageLoader> logger;
+    private readonly ILogger<SpriteLoader> logger;
+    private readonly StickFigureGameConfiguration config;
 
-    public ImageLoader(
+    public SpriteLoader(
         PixelBufferFactory bufferFactory,
         IHttpClientFactory httpClientFactory,
-        ILogger<ImageLoader> logger)
+        StickFigureGameConfiguration config,
+        ILogger<SpriteLoader> logger)
     {
         this.bufferFactory = bufferFactory;
         this.httpClientFactory = httpClientFactory;
+        this.config = config;
         this.logger = logger;
     }
 
-    public Image<Rgba32> LoadImageRgb(string image, CancellationToken token)
+    public SpriteAnimation LoadAnimation(
+        string imageFile,
+        int width,
+        int height,
+        TimeSpan? timeBetweenFrames = null,
+        List<int>? animation = null,
+        bool loopAnimation = true)
+    {
+        if(timeBetweenFrames == null)
+            timeBetweenFrames = TimeSpan.FromMilliseconds(250);
+        Image<Rgba32> playerIdleFullImage = LoadImageRgb(imageFile);
+        List<Image<Rgba32>> playerIdleSprites = SplitImage(playerIdleFullImage, width, height);
+        List<SpriteFrame> playerIdleFrames = playerIdleSprites.Select(x => new SpriteFrame(x, bufferFactory)).ToList();
+        SpriteAnimation spriteAnimation = new(
+            playerIdleFrames,
+            timeBetweenFrames.Value,
+            animation,
+            loopAnimation);
+        return spriteAnimation;
+    }
+
+    public Image<Rgba32> LoadImageRgb(string image)
     {
         byte[] imageBytes;
         if (image.ToLower().StartsWith("http://") || image.ToLower().StartsWith("https://"))
@@ -142,9 +214,10 @@ public class ImageLoader
             logger.LogInformation($"Tries to download image: {image}");
             var httpClient = httpClientFactory.CreateClient();
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            var httpResponse = httpClient.GetAsync(image, token).Result; // Ugly waits for the result, should somehow be async
+            // Ugly waits for the result, should use async, but this is easiere
+            var httpResponse = httpClient.GetAsync(image).Result;
             logger.LogInformation($"Response status code: {httpResponse.StatusCode}");
-            imageBytes = httpResponse.Content.ReadAsByteArrayAsync(token).Result;
+            imageBytes = httpResponse.Content.ReadAsByteArrayAsync().Result;
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
         }
         else if (File.Exists(image))
@@ -160,7 +233,7 @@ public class ImageLoader
         logger.LogInformation("Image format: {@1}", format);
 
         // Resizes the image to fit the resolution
-        imageRgb.Mutate(x => x.Resize(bufferFactory.Screen.ResolutionX, bufferFactory.Screen.ResolutionY));
+        //imageRgb.Mutate(x => x.Resize(bufferFactory.Screen.ResolutionX, bufferFactory.Screen.ResolutionY));
         if (imageRgb.Frames.Count == 0)
         {
             throw new FileNotFoundException("Corrupt image, it appears it does not contain any frames", image);
@@ -176,11 +249,11 @@ public class ImageLoader
         int numberOfXImages = image.Width / width;
         int numberOfYImages = image.Height / height;
 
-        for(int i = 0; i < numberOfXImages; i++)
+        for (int i = 0; i < numberOfXImages; i++)
         {
-            for(int j = 0; j < numberOfYImages; j++)
+            for (int j = 0; j < numberOfYImages; j++)
             {
-                images.Add(SubImage(image, numberOfXImages * i, j * numberOfYImages, width, height);
+                images.Add(SubImage(image, numberOfXImages * i, j * numberOfYImages, width, height));
             }
         }
         return images;

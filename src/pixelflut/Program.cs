@@ -5,6 +5,7 @@ using PixelFlut.Distributed;
 using PixelFlut.Images;
 using PixelFlut.Pong;
 using PixelFlut.Snake;
+using PixelFlut.StickFigure;
 using PixelFlut.TestImage;
 using Serilog;
 using StickFigureGame;
@@ -55,7 +56,7 @@ public class Program
         var services = new ServiceCollection();
         services.AddLogging(logging => logging.AddSerilog(new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger()));
         services.AddSingleton(configuration);
-        services.AddSingleton(Read<PixelFlutScreenConfiguration>(configuration,"Screen"));
+        services.AddSingleton(Read<PixelFlutScreenConfiguration>(configuration, "Screen"));
         services.AddSingleton(Read<PixelFlutGamepadConfiguration>(configuration, "Gamepad"));
         services.AddSingleton(Read<GameLoopConfiguration>(configuration, "GameLoop"));
         services.AddSingleton(Read<DistributedServerConfiguration>(configuration, "DistributedServer"));
@@ -68,6 +69,7 @@ public class Program
         services.AddSingleton<ConsoleAsGamePad>();
         services.AddSingleton<GameLoop>();
         services.AddSingleton<PixelFlutScreen>();
+        services.AddSingleton<SpriteLoader>();
         services.AddTransient<GameSelector>();
         services.AddSingleton(new StoppingToken(tokenSource.Token));
         services.AddHttpClient();
@@ -93,7 +95,7 @@ public class Program
 
     private static T Read<T>(IConfiguration configuration, string conf)
     {
-        return configuration.GetRequiredSection(conf).Get<T>() ?? 
+        return configuration.GetRequiredSection(conf).Get<T>() ??
             throw new Exception($"Failed to read configuration: {conf}");
     }
 }

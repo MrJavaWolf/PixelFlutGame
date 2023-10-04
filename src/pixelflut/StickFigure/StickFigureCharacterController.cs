@@ -1,5 +1,6 @@
 using Humper;
 using PixelFlut.Core;
+using PixelFlut.StickFigure;
 using System.Numerics;
 namespace StickFigureGame;
 
@@ -24,11 +25,16 @@ public class StickFigureCharacterController
     private float RespawnLockTime = 1;
     private float RespawnInvulnerableTime = 2;
 
-    public StickFigureCharacterController(StickFigureWorld world, Vector2 spawnPoint, ILogger logger, IPixelFlutScreenProtocol screenProtocol)
+    public StickFigureCharacterController(
+        StickFigureWorld world, 
+        Vector2 spawnPoint, 
+        ILogger logger, 
+        IPixelFlutScreenProtocol screenProtocol,
+        SpriteLoader spriteLoader)
     {
         this.world = world;
         this.logger = logger;
-        StickFigureBase = new StickFigureBase(world, spawnPoint, screenProtocol);
+        StickFigureBase = new StickFigureBase(world, spawnPoint, spriteLoader);
         jump = new StickFigureJump(StickFigureBase);
         movement = new StickFigureMovement(StickFigureBase);
         dash = new StickFigureDash(StickFigureBase);

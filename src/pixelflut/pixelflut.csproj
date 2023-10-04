@@ -40,6 +40,87 @@
 		<None Update="Images\nyan_cat.gif">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Character Idle 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player air spin 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player climb-back 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Crouch-Idle 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player crouch-walk 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Death 64x64.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Hurt 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Jab 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player jump 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player land 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player ledge climb 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Pull 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Punch 64x64.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Punch Cross 64x64.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player push 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player push idle 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Roll 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player shoot 2H 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Side-Climb 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\player sword atk 64x64.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Sword Idle 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Sword Run 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Player Sword Stab 96x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\PlayerWalk 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\run cycle 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\wall land 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Player\Wall Slide 48x48.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="stickfigure_world.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

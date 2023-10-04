@@ -1,6 +1,5 @@
 ﻿using Humper;
 using PixelFlut.Core;
-using System.Collections.Generic;
 using System.Drawing;
 
 namespace StickFigureGame;
@@ -24,13 +23,13 @@ public class StickFigureWorldRenderer
         this.pixelBufferFactory = pixelBufferFactory;
     }
 
-    public List<PixelBuffer> Render()
+    public List<PixelBuffer> Render(GameTime time)
     {
         List<PixelBuffer> pixelBuffers = new List<PixelBuffer>();
 
         foreach (StickFigureCharacterController player in world.Players)
         {
-            pixelBuffers.Add(player.StickFigureBase.PlayerAnimator.Render(pixelBufferFactory, config.RenderScale));
+            pixelBuffers.Add(player.StickFigureBase.PlayerAnimator.Render(time));
         }
         pixelBuffers.AddRange(RenderGround());
         return pixelBuffers;

@@ -11,6 +11,7 @@ public class StickFigureCharacterController
         new Vector2(StickFigureBase.Size.X / 2, StickFigureBase.Size.Y / 2);
     
     public StickFigureBase StickFigureBase { get; private set; }
+    public StickFigureSlashAnimator SlashAnimator { get; private set; }
 
     public IBox Box => StickFigureBase.box;
     private StickFigureJump jump;
@@ -38,7 +39,8 @@ public class StickFigureCharacterController
         jump = new StickFigureJump(StickFigureBase);
         movement = new StickFigureMovement(StickFigureBase);
         dash = new StickFigureDash(StickFigureBase);
-        slashAttack = new StickFigureSlashAttack(StickFigureBase, world);
+        SlashAnimator = new StickFigureSlashAnimator(spriteLoader);
+        slashAttack = new StickFigureSlashAttack(StickFigureBase, world, SlashAnimator);
         shootAttack = new StickFigureShootAttack(StickFigureBase, world, this);
         takingDamage = new StickFigureTakingDamage(StickFigureBase);
         world.Players.Add(this);

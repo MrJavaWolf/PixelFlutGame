@@ -81,7 +81,7 @@ public class StickFigureAnimator
         restartAnimation = true;
     }
 
-    public PixelBuffer Render(GameTime time)
+    public List<PixelBuffer> Render(GameTime time)
     {
         if (restartAnimation)
         {

@@ -1,4 +1,5 @@
 using PixelFlut.Core;
+using PixelFlut.StickFigure;
 using System.Numerics;
 namespace StickFigureGame;
 
@@ -26,9 +27,9 @@ public class StickFigureSlashAttack
     public StickFigureSlashAnimator SlashAnimator;
 
 
-    public StickFigureSlashAttack(StickFigureBase stickFigureBase, StickFigureWorld world)
+    public StickFigureSlashAttack(StickFigureBase stickFigureBase, StickFigureWorld world, StickFigureSlashAnimator slashAnimator)
     {
-        SlashAnimator = new StickFigureSlashAnimator();
+        SlashAnimator = slashAnimator;
         this.stickFigureBase = stickFigureBase;
         this.world = world;
     }

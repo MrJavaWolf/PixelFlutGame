@@ -84,20 +84,34 @@ public class SpriteFrame
 
 public class SpriteAnimation
 {
+    private static readonly List<PixelBuffer> empty = new List<PixelBuffer>();
+
     private List<SpriteFrame> frames;
     private int animationIndex = 0;
     private TimeSpan nextFrameTime = TimeSpan.Zero;
 
     private IReadOnlyList<int> animation;
-    
+
     public TimeSpan TimeBetweenFrames { get; set; }
-    
+
     public bool LoopAnimation { get; set; }
 
+    public bool FlipX
+    {
+        get => frames[animation[animationIndex]].FlipX;
+        set => frames[animation[animationIndex]].FlipX = value;
+    }
+
+    public bool FlipY
+    {
+        get => frames[animation[animationIndex]].FlipY;
+        set => frames[animation[animationIndex]].FlipY = value;
+    }
+
     public SpriteAnimation(
-        List<SpriteFrame> frames, 
-        TimeSpan timeBetweenFrames, 
-        List<int>? animation = null, 
+        List<SpriteFrame> frames,
+        TimeSpan timeBetweenFrames,
+        List<int>? animation = null,
         bool loopAnimation = true)
     {
         this.frames = frames;
@@ -113,12 +127,17 @@ public class SpriteAnimation
         this.nextFrameTime = time.TotalTime + this.TimeBetweenFrames;
     }
 
+    private bool IsAnimationDone(GameTime time) =>
+        !LoopAnimation &&
+        time.TotalTime > nextFrameTime &&
+        animationIndex == animation.Count;
+
     private bool ShouldGoToNextFrame(GameTime time)
         => animation.Count > 1 &&                               // Only change frame if we have more than 1 frame
         time.TotalTime > nextFrameTime &&                       // Change frame when it is time to change frame
         (LoopAnimation || animationIndex != animation.Count);   // Only change frame we we are not on the last frame, or should loop the frame
 
-    public PixelBuffer Loop(GameTime time)
+    public List<PixelBuffer> Loop(GameTime time)
     {
         // Checks if it is an animation
         if (ShouldGoToNextFrame(time))
@@ -138,7 +157,10 @@ public class SpriteAnimation
             frames[animation[animationIndex]].FlipX = frames[animation[prevFrameIndex]].FlipX;
             frames[animation[animationIndex]].FlipY = frames[animation[prevFrameIndex]].FlipY;
         }
-        return frames[animation[animationIndex]].Buffer;
+        if (IsAnimationDone(time))
+            return empty;
+        else
+            return new List<PixelBuffer>() { frames[animation[animationIndex]].Buffer };
     }
 
     public void SetPosition(Vector2 position)
@@ -193,7 +215,7 @@ public class SpriteLoader
         List<int>? animation = null,
         bool loopAnimation = true)
     {
-        if(timeBetweenFrames == null)
+        if (timeBetweenFrames == null)
             timeBetweenFrames = TimeSpan.FromMilliseconds(250);
         Image<Rgba32> playerIdleFullImage = LoadImageRgb(imageFile);
         List<Image<Rgba32>> playerIdleSprites = SplitImage(playerIdleFullImage, width, height);

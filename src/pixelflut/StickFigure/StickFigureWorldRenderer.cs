@@ -29,7 +29,9 @@ public class StickFigureWorldRenderer
 
         foreach (StickFigureCharacterController player in world.Players)
         {
-            pixelBuffers.Add(player.StickFigureBase.PlayerAnimator.Render(time));
+            pixelBuffers.AddRange(player.StickFigureBase.PlayerAnimator.Render(time));
+            pixelBuffers.AddRange(player.SlashAnimator.Loop(time));
+
         }
         pixelBuffers.AddRange(RenderGround());
         return pixelBuffers;

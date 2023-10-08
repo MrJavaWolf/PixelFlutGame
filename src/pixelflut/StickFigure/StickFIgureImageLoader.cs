@@ -131,17 +131,17 @@ public class SpriteAnimation
         this.nextFrameTime = time.TotalTime + this.TimeBetweenFrames;
     }
 
-    private bool IsAnimationDone(GameTime time) =>
+    public bool IsAnimationDone(GameTime time) =>
         !LoopAnimation &&
         time.TotalTime > nextFrameTime &&
-        animationIndex == animation.Count;
+        animationIndex == animation.Count - 1;
 
     private bool ShouldGoToNextFrame(GameTime time)
         => animation.Count > 1 &&                               // Only change frame if we have more than 1 frame
         time.TotalTime > nextFrameTime &&                       // Change frame when it is time to change frame
-        (LoopAnimation || animationIndex != animation.Count);   // Only change frame we we are not on the last frame, or should loop the frame
+        (LoopAnimation || animationIndex != animation.Count - 1);   // Only change frame we we are not on the last frame, or should loop the frame
 
-    public List<PixelBuffer> Loop(GameTime time)
+    public List<PixelBuffer> Render(GameTime time)
     {
         // Checks if it is an animation
         if (ShouldGoToNextFrame(time))

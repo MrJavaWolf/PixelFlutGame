@@ -25,7 +25,7 @@ public class StickFigureGame : IGame
     private StickFigureWorldRenderer renderer;
 
     private ObjectPool<StickFigureProjectileAnimator> projectileAnimators;
-
+    private ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators;
 
     public StickFigureGame(
         StickFigureGameConfiguration config,
@@ -34,7 +34,8 @@ public class StickFigureGame : IGame
         IPixelFlutScreenProtocol screenProtocol,
         ILogger<StickFigureGame> logger,
         SpriteLoader spriteLoader,
-        ObjectPool<StickFigureProjectileAnimator> projectileAnimators)
+        ObjectPool<StickFigureProjectileAnimator> projectileAnimators,
+        ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators)
     {
         this.config = config;
         this.httpClientFactory = httpClientFactory;
@@ -43,6 +44,7 @@ public class StickFigureGame : IGame
         this.logger = logger;
         this.spriteLoader = spriteLoader;
         this.projectileAnimators = projectileAnimators;
+        this.explosionAnimators = explosionAnimators;
         StickFigureWorldData stickFigureWorldData = StickFigureWorldImporter.LoadWorldData();
         world = new StickFigureWorld(stickFigureWorldData);
         renderer = new StickFigureWorldRenderer(config, screenProtocol, world, pixelBufferFactory);
@@ -73,6 +75,11 @@ public class StickFigureGame : IGame
             world.Projectiles[i].Loop(time);
         }
 
+        for (int i = 0; i < world.Explosions.Count; i++)
+        {
+            world.Explosions[i].Loop(time);
+        }
+
         // Render
         List<PixelBuffer> buffer = renderer.Render(time);
         return buffer;
@@ -87,6 +94,7 @@ public class StickFigureGame : IGame
             logger,
             screenProtocol,
             projectileAnimators,
+            explosionAnimators,
             spriteLoader));
     }
 }

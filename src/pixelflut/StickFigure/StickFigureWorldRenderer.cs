@@ -37,8 +37,14 @@ public class StickFigureWorldRenderer
 
         for (int i = 0; i < world.Projectiles.Count; i++)
         {
-            pixelBuffers.AddRange(world.Projectiles[i].Animator.Loop(time));
+            pixelBuffers.AddRange(world.Projectiles[i].Animator.Render(time));
         }
+
+        for (int i = 0; i < world.Explosions.Count; i++)
+        {
+            pixelBuffers.AddRange(world.Explosions[i].Animator.Render(time));
+        }
+
 
         return pixelBuffers;
     }

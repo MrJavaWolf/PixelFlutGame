@@ -31,7 +31,7 @@ public class StickFigureSlashAnimator
 
     public List<PixelBuffer> Loop(GameTime time)
     {
-       return slash.Loop(time);
+       return slash.Render(time);
     }
 
 }

@@ -68,6 +68,11 @@ public class Program
             return new DefaultObjectPool<StickFigureProjectileAnimator>(
                  new StickFigureProjectileAnimatorPooledObjectPolicy(serviceProvider.GetRequiredService<SpriteLoader>()));
         });
+        services.AddSingleton<ObjectPool<StickFigureExplosionEffectAnimator>>(serviceProvider =>
+        {
+            return new DefaultObjectPool<StickFigureExplosionEffectAnimator>(
+                 new StickFigureExplosionEffectAnimatorPooledObjectPolicy(serviceProvider.GetRequiredService<SpriteLoader>()));
+        });
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
         services.AddSingleton<MqttGameChanger>();
         services.AddSingleton<GamePadsController>();

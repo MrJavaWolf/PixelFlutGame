@@ -89,7 +89,7 @@ public class StickFigureAnimator
             restartAnimation = false;
         }
         currentAnimation.SetPosition(stickFigureBase.Position);
-        return currentAnimation.Loop(time);
+        return currentAnimation.Render(time);
     }
 
     //public PixelBuffer Render(PixelBufferFactory pixelBufferFactory, float renderScale)

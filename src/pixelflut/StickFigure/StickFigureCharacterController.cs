@@ -33,6 +33,7 @@ public class StickFigureCharacterController
         ILogger logger, 
         IPixelFlutScreenProtocol screenProtocol,
         ObjectPool<StickFigureProjectileAnimator> projectileAnimators,
+        ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators,
         SpriteLoader spriteLoader)
     {
         this.world = world;
@@ -43,7 +44,7 @@ public class StickFigureCharacterController
         dash = new StickFigureDash(StickFigureBase);
         SlashAnimator = new StickFigureSlashAnimator(spriteLoader);
         slashAttack = new StickFigureSlashAttack(StickFigureBase, world, SlashAnimator);
-        shootAttack = new StickFigureShootAttack(StickFigureBase, world, this, projectileAnimators);
+        shootAttack = new StickFigureShootAttack(StickFigureBase, world, this, projectileAnimators, explosionAnimators);
         takingDamage = new StickFigureTakingDamage(StickFigureBase);
         world.Players.Add(this);
     }

@@ -30,9 +30,9 @@ public class StickFigureProjectileAnimator
         projectile.SetPosition(position);
     }
 
-    public List<PixelBuffer> Loop(GameTime time)
+    public List<PixelBuffer> Render(GameTime time)
     {
-        return projectile.Loop(time);
+        return projectile.Render(time);
     }
 }
 

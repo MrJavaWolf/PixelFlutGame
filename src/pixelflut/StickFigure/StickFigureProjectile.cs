@@ -18,16 +18,21 @@ public class StickFigureProjectile
     private Vector2 direction;
     private StickFigureWorld world;
     private readonly ObjectPool<StickFigureProjectileAnimator> projectileAnimators;
+    private readonly ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators;
     private StickFigureCharacterController? shotByPlayer;
     private double startTime = -1;
 
     public StickFigureProjectileAnimator Animator { get; }
 
 
-    public StickFigureProjectile(StickFigureWorld world, ObjectPool<StickFigureProjectileAnimator> projectileAnimators)
+    public StickFigureProjectile(
+        StickFigureWorld world, 
+        ObjectPool<StickFigureProjectileAnimator> projectileAnimators,
+        ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators)
     {
         this.world = world;
         this.projectileAnimators = projectileAnimators;
+        this.explosionAnimators = explosionAnimators;
         Animator = projectileAnimators.Get();
     }
 
@@ -138,8 +143,8 @@ public class StickFigureProjectile
             }
         }
 
-        StickFigureExplosionEffect explosionEffect = new StickFigureExplosionEffect(world);
-        explosionEffect.Play(Position);
+        StickFigureExplosionEffect explosionEffect = new(world, explosionAnimators);
+        explosionEffect.Play(Position, time);
         world.Projectiles.Remove(this);
         projectileAnimators.Return(Animator);
     }

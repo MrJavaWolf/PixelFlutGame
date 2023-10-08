@@ -21,17 +21,20 @@ public class StickFigureShootAttack
     private StickFigureWorld world;
     private StickFigureCharacterController player;
     private readonly ObjectPool<StickFigureProjectileAnimator> projectileAnimators;
+    private readonly ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators;
 
     public StickFigureShootAttack(
         StickFigureBase stickFigureBase, 
         StickFigureWorld world, 
         StickFigureCharacterController player,
-        ObjectPool<StickFigureProjectileAnimator> projectileAnimators)
+        ObjectPool<StickFigureProjectileAnimator> projectileAnimators,
+        ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators)
     {
         this.stickFigureBase = stickFigureBase;
         this.world = world;
         this.player = player;
         this.projectileAnimators = projectileAnimators;
+        this.explosionAnimators = explosionAnimators;
     }
 
     public bool CanStartAttack(GameTime time) => time.TotalTime.TotalSeconds - startAttackTime - AttackDuration > AttackCooldown;
@@ -99,7 +102,7 @@ public class StickFigureShootAttack
     private void SpawnProjectile(GameTime time)
     {
         Vector2 spawnPosition = player.Center;
-        StickFigureProjectile proj = new StickFigureProjectile(world, projectileAnimators);
+        StickFigureProjectile proj = new StickFigureProjectile(world, projectileAnimators, explosionAnimators);
         proj.DoStart(time, shootDirection, spawnPosition, player);
     }
 }

@@ -1,5 +1,4 @@
 using PixelFlut.Core;
-using PixelFlut.StickFigure;
 using System.Numerics;
 namespace StickFigureGame;
 
@@ -55,7 +54,7 @@ public class StickFigureSlashAttack
         stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.SwordAttack);
         float angle = Vector2.UnitX.SignedAngle(attackDirection);
         bool flipY = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left ? false : true;
-        SlashAnimator.Play(angle + this.slashEffectAngleOffset, player.Center + attackDirection, flipY);
+        SlashAnimator.Play(angle + this.slashEffectAngleOffset, player.Center + attackDirection, flipY, time);
     }
 
     private Vector2 GetAttackDirection(Vector2 input)

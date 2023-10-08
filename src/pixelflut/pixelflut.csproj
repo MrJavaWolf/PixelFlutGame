@@ -18,6 +18,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.11" />
 		<PackageReference Include="MQTTnet" Version="4.2.1.781" />
 		<PackageReference Include="Serilog" Version="3.0.1" />
 		<PackageReference Include="Serilog.Extensions.Logging" Version="7.0.0" />
@@ -38,6 +39,12 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="Images\nyan_cat.gif">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Effect\Fireball 2\fireball.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="StickFigure\Resources\spritesheet\Effect\Slash\pngfind.com-rpg-png-887284.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="StickFigure\Resources\spritesheet\Player\Character Idle 48x48.png">

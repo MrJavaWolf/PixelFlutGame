@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using PixelFlut.Core;
 using PixelFlut.Distributed;
 using PixelFlut.Images;
@@ -9,6 +10,7 @@ using PixelFlut.StickFigure;
 using PixelFlut.TestImage;
 using Serilog;
 using StickFigureGame;
+using System.Text;
 
 namespace PixelFlut;
 
@@ -61,6 +63,11 @@ public class Program
         services.AddSingleton(Read<GameLoopConfiguration>(configuration, "GameLoop"));
         services.AddSingleton(Read<DistributedServerConfiguration>(configuration, "DistributedServer"));
         services.AddSingleton(Read<MqttGameChangerConfiguration>(configuration, "Mqtt"));
+        services.AddSingleton<ObjectPool<StickFigureProjectileAnimator>>(serviceProvider =>
+        {
+            return new DefaultObjectPool<StickFigureProjectileAnimator>(
+                 new StickFigureProjectileAnimatorPooledObjectPolicy(serviceProvider.GetRequiredService<SpriteLoader>()));
+        });
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
         services.AddSingleton<MqttGameChanger>();
         services.AddSingleton<GamePadsController>();

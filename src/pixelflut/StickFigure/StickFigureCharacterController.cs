@@ -1,4 +1,5 @@
 using Humper;
+using Microsoft.Extensions.ObjectPool;
 using PixelFlut.Core;
 using PixelFlut.StickFigure;
 using System.Numerics;
@@ -31,6 +32,7 @@ public class StickFigureCharacterController
         Vector2 spawnPoint, 
         ILogger logger, 
         IPixelFlutScreenProtocol screenProtocol,
+        ObjectPool<StickFigureProjectileAnimator> projectileAnimators,
         SpriteLoader spriteLoader)
     {
         this.world = world;
@@ -41,7 +43,7 @@ public class StickFigureCharacterController
         dash = new StickFigureDash(StickFigureBase);
         SlashAnimator = new StickFigureSlashAnimator(spriteLoader);
         slashAttack = new StickFigureSlashAttack(StickFigureBase, world, SlashAnimator);
-        shootAttack = new StickFigureShootAttack(StickFigureBase, world, this);
+        shootAttack = new StickFigureShootAttack(StickFigureBase, world, this, projectileAnimators);
         takingDamage = new StickFigureTakingDamage(StickFigureBase);
         world.Players.Add(this);
     }

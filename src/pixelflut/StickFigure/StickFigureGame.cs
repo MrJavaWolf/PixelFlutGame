@@ -1,6 +1,6 @@
-﻿using PixelFlut.Core;
+﻿using Microsoft.Extensions.ObjectPool;
+using PixelFlut.Core;
 using PixelFlut.StickFigure;
-using System.Net.Http;
 using System.Numerics;
 
 namespace StickFigureGame;
@@ -24,13 +24,17 @@ public class StickFigureGame : IGame
     private List<StickFigureCharacterController> Players = new();
     private StickFigureWorldRenderer renderer;
 
+    private ObjectPool<StickFigureProjectileAnimator> projectileAnimators;
+
+
     public StickFigureGame(
         StickFigureGameConfiguration config,
         IHttpClientFactory httpClientFactory,
         PixelBufferFactory pixelBufferFactory,
         IPixelFlutScreenProtocol screenProtocol,
         ILogger<StickFigureGame> logger,
-        SpriteLoader spriteLoader)
+        SpriteLoader spriteLoader,
+        ObjectPool<StickFigureProjectileAnimator> projectileAnimators)
     {
         this.config = config;
         this.httpClientFactory = httpClientFactory;
@@ -38,6 +42,7 @@ public class StickFigureGame : IGame
         this.screenProtocol = screenProtocol;
         this.logger = logger;
         this.spriteLoader = spriteLoader;
+        this.projectileAnimators = projectileAnimators;
         StickFigureWorldData stickFigureWorldData = StickFigureWorldImporter.LoadWorldData();
         world = new StickFigureWorld(stickFigureWorldData);
         renderer = new StickFigureWorldRenderer(config, screenProtocol, world, pixelBufferFactory);
@@ -63,6 +68,10 @@ public class StickFigureGame : IGame
             world.Players[i].Loop(time, gamePads[i]);
         }
 
+        for (int i = 0; i < world.Projectiles.Count; i++)
+        {
+            world.Projectiles[i].Loop(time);
+        }
 
         // Render
         List<PixelBuffer> buffer = renderer.Render(time);
@@ -72,6 +81,12 @@ public class StickFigureGame : IGame
     void SpawnPlayers()
     {
         Vector2 spawnPoint = world.SpawnPoints[Random.Shared.Next(world.SpawnPoints.Count)];
-        Players.Add(new StickFigureCharacterController(world, spawnPoint, logger, screenProtocol, spriteLoader));
+        Players.Add(new StickFigureCharacterController(
+            world,
+            spawnPoint,
+            logger,
+            screenProtocol,
+            projectileAnimators,
+            spriteLoader));
     }
 }

@@ -1,5 +1,7 @@
 using Humper;
+using Microsoft.Extensions.ObjectPool;
 using PixelFlut.Core;
+using PixelFlut.StickFigure;
 using System.Numerics;
 namespace StickFigureGame;
 
@@ -15,16 +17,18 @@ public class StickFigureProjectile
 
     private Vector2 direction;
     private StickFigureWorld world;
+    private readonly ObjectPool<StickFigureProjectileAnimator> projectileAnimators;
     private StickFigureCharacterController? shotByPlayer;
     private double startTime = -1;
 
-    public StickFigureProjectileAnimator stickFigureProjectileAnimator;
+    public StickFigureProjectileAnimator Animator { get; }
 
 
-    public StickFigureProjectile(StickFigureWorld world)
+    public StickFigureProjectile(StickFigureWorld world, ObjectPool<StickFigureProjectileAnimator> projectileAnimators)
     {
-        stickFigureProjectileAnimator = new StickFigureProjectileAnimator();
         this.world = world;
+        this.projectileAnimators = projectileAnimators;
+        Animator = projectileAnimators.Get();
     }
 
     public void DoStart(
@@ -44,17 +48,18 @@ public class StickFigureProjectile
 
         // Angle for the fireball effect
         float angle = Vector2.UnitX.SignedAngle(direction);
-        stickFigureProjectileAnimator.Play(angle);
+        Animator.Play(angle, time);
     }
 
     // Update is called once per frame
-    void Loop(GameTime time)
+    public void Loop(GameTime time)
     {
         if (world == null) return;
         this.Position = new Vector2(
             (float)(Position.X + this.direction.X * speed * time.DeltaTime.TotalSeconds),
             (float)(Position.Y + this.direction.Y * speed * time.DeltaTime.TotalSeconds));
-        if (time.DeltaTime.TotalSeconds - startTime > LifeTime)
+        Animator.UpdatePosition(this.Position);
+        if (time.TotalTime.TotalSeconds - startTime > LifeTime)
         {
             Explode(time);
             return;
@@ -133,10 +138,9 @@ public class StickFigureProjectile
             }
         }
 
-
         StickFigureExplosionEffect explosionEffect = new StickFigureExplosionEffect(world);
         explosionEffect.Play(Position);
-        
         world.Projectiles.Remove(this);
+        projectileAnimators.Return(Animator);
     }
 }

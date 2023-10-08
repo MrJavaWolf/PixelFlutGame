@@ -1,3 +1,4 @@
+using Microsoft.Extensions.ObjectPool;
 using PixelFlut.Core;
 using System.Numerics;
 namespace StickFigureGame;
@@ -19,15 +20,18 @@ public class StickFigureShootAttack
     private StickFigureBase stickFigureBase;
     private StickFigureWorld world;
     private StickFigureCharacterController player;
+    private readonly ObjectPool<StickFigureProjectileAnimator> projectileAnimators;
 
     public StickFigureShootAttack(
         StickFigureBase stickFigureBase, 
         StickFigureWorld world, 
-        StickFigureCharacterController player)
+        StickFigureCharacterController player,
+        ObjectPool<StickFigureProjectileAnimator> projectileAnimators)
     {
         this.stickFigureBase = stickFigureBase;
         this.world = world;
         this.player = player;
+        this.projectileAnimators = projectileAnimators;
     }
 
     public bool CanStartAttack(GameTime time) => time.TotalTime.TotalSeconds - startAttackTime - AttackDuration > AttackCooldown;
@@ -95,7 +99,7 @@ public class StickFigureShootAttack
     private void SpawnProjectile(GameTime time)
     {
         Vector2 spawnPosition = player.Center;
-        StickFigureProjectile proj = new StickFigureProjectile(world);
+        StickFigureProjectile proj = new StickFigureProjectile(world, projectileAnimators);
         proj.DoStart(time, shootDirection, spawnPosition, player);
     }
 }

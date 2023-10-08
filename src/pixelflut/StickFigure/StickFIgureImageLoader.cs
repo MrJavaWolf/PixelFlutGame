@@ -49,6 +49,10 @@ public class SpriteFrame
                 }
             }
         }
+        if(pixels.Count == 0)
+        {
+            pixels.Add(new ImportedPixel(0, 0, new Rgba32()));
+        }
         this.Buffer = bufferFactory.Create(pixels.Count);
         for (int i = 0; i < pixels.Count; i++)
         {
@@ -250,7 +254,7 @@ public class SpriteLoader
         {
             throw new FileNotFoundException("Could not find file to display", image);
         }
-        logger.LogInformation($"Number of bits in the file: {imageBytes.Count()}");
+        logger.LogInformation($"Number of bytes in the file: {imageBytes.Count()} b - {image}");
         Image<Rgba32> imageRgb = Image.Load<Rgba32>(imageBytes, out IImageFormat format);
         logger.LogInformation("Image format: {@1}", format);
 

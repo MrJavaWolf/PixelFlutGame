@@ -26,7 +26,7 @@ public class StickFigureProjectile
 
 
     public StickFigureProjectile(
-        StickFigureWorld world, 
+        StickFigureWorld world,
         ObjectPool<StickFigureProjectileAnimator> projectileAnimators,
         ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators)
     {

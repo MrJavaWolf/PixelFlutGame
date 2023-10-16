@@ -14,7 +14,7 @@ public class StickFigureExplosionEffectAnimator
 
     public StickFigureExplosionEffectAnimator(SpriteLoader spriteLoader)
     {
-        animation = spriteLoader.LoadAnimation(projectileSheet, 341, 341, TimeSpan.FromMilliseconds(25),
+        animation = spriteLoader.LoadAnimation(projectileSheet, 341, 341, 35, TimeSpan.FromMilliseconds(25),
             loopAnimation: false);
     }
 

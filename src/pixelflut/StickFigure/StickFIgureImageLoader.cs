@@ -265,13 +265,14 @@ public class SpriteLoader
         string imageFile,
         int width,
         int height,
+        float pixelsPerUnit,
         TimeSpan? timeBetweenFrames = null,
         List<int>? animation = null,
         bool loopAnimation = true)
     {
         if (timeBetweenFrames == null)
             timeBetweenFrames = TimeSpan.FromMilliseconds(250);
-        Image<Rgba32> playerIdleFullImage = LoadImageRgb(imageFile);
+        Image<Rgba32> playerIdleFullImage = LoadImageRgb(imageFile, pixelsPerUnit);
         List<Image<Rgba32>> playerIdleSprites = SplitImage(playerIdleFullImage, width, height);
         List<SpriteFrame> playerIdleFrames = playerIdleSprites.Select(x => new SpriteFrame(x, bufferFactory)).ToList();
         SpriteAnimation spriteAnimation = new(
@@ -282,7 +283,7 @@ public class SpriteLoader
         return spriteAnimation;
     }
 
-    public Image<Rgba32> LoadImageRgb(string image)
+    public Image<Rgba32> LoadImageRgb(string image, float pixelsPerUnit)
     {
         byte[] imageBytes;
         if (image.ToLower().StartsWith("http://") || image.ToLower().StartsWith("https://"))
@@ -308,8 +309,9 @@ public class SpriteLoader
         Image<Rgba32> imageRgb = Image.Load<Rgba32>(imageBytes, out IImageFormat format);
         logger.LogInformation("Image format: {@1}", format);
 
-        // Resizes the image to fit the resolution
-        //imageRgb.Mutate(x => x.Resize(bufferFactory.Screen.ResolutionX, bufferFactory.Screen.ResolutionY));
+        imageRgb.Mutate(x => x.Resize(
+            (int)(bufferFactory.Screen.ResolutionX / pixelsPerUnit * config.RenderScale), 
+            (int)(bufferFactory.Screen.ResolutionY/ pixelsPerUnit* config.RenderScale)));
         if (imageRgb.Frames.Count == 0)
         {
             throw new FileNotFoundException("Corrupt image, it appears it does not contain any frames", image);

@@ -50,15 +50,15 @@ public class StickFigureAnimator
         SpriteLoader spriteLoader)
     {
         this.stickFigureBase = stickFigureBase;
-        idle = spriteLoader.LoadAnimation(PlayerIdle, 48, 48, TimeSpan.FromMilliseconds(100));
-        shoot = spriteLoader.LoadAnimation(PlayerShoot, 48, 48, TimeSpan.FromMilliseconds(100));
-        run = spriteLoader.LoadAnimation(PlayerRun, 48, 48, TimeSpan.FromMilliseconds(100));
-        jumpUp = spriteLoader.LoadAnimation(PlayerJumpUp, 48, 48, animation: new() { 0 });
-        jumpTop = spriteLoader.LoadAnimation(PlayerJumpTop, 48, 48, animation: new() { 1 });
-        jumpDown = spriteLoader.LoadAnimation(PlayerJumpDown, 48, 48, animation: new() { 2 });
-        swordAttack = spriteLoader.LoadAnimation(PlayerSwordAttack, 64, 64, TimeSpan.FromMilliseconds(100));
-        dash = spriteLoader.LoadAnimation(PlayerDash, 48, 48, animation: new() { 1 });
-        takeDamage = spriteLoader.LoadAnimation(PlayerTakeDamage, 48, 48, animation: new() { 4 });
+        idle = spriteLoader.LoadAnimation(PlayerIdle, 48, 48, 24, TimeSpan.FromMilliseconds(100));
+        shoot = spriteLoader.LoadAnimation(PlayerShoot, 48, 48, 24, TimeSpan.FromMilliseconds(100));
+        run = spriteLoader.LoadAnimation(PlayerRun, 48, 48, 24, TimeSpan.FromMilliseconds(100));
+        jumpUp = spriteLoader.LoadAnimation(PlayerJumpUp, 48, 48, 24, animation: new() { 0 });
+        jumpTop = spriteLoader.LoadAnimation(PlayerJumpTop, 48, 48, 24, animation: new() { 1 });
+        jumpDown = spriteLoader.LoadAnimation(PlayerJumpDown, 48, 48, 24, animation: new() { 2 });
+        swordAttack = spriteLoader.LoadAnimation(PlayerSwordAttack, 64, 64, 32, TimeSpan.FromMilliseconds(100));
+        dash = spriteLoader.LoadAnimation(PlayerDash, 48, 48, 24, animation: new() { 1 });
+        takeDamage = spriteLoader.LoadAnimation(PlayerTakeDamage, 48, 48, 24, animation: new() { 4 });
         currentAnimation = idle;
     }
 

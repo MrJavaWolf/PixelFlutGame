@@ -12,32 +12,76 @@ namespace PixelFlut.StickFigure;
 public class SpriteFrame
 {
     private record ImportedPixel(int x, int y, Rgba32 Color);
-    private Image<Rgba32> image;
+    private Image<Rgba32> originalImage;
 
-    public PixelBuffer Buffer { get; }
+    public PixelBuffer Buffer { get; private set; }
 
     private List<ImportedPixel> pixels;
 
-    private Vector2 _Position;
-    public Vector2 Position
-    {
-        get => _Position; set
-        {
-            if (_Position != value)
-            {
-                _Position = value;
-                UpdatePosition();
-            }
-        }
-    }
-
+    public Vector2 Position { get; private set; }
     public bool FlipX { get; set; }
     public bool FlipY { get; set; }
+    public float Rotation { get; private set; }
+
+
+    private PixelBufferFactory bufferFactory;
 
     public SpriteFrame(Image<Rgba32> image, PixelBufferFactory bufferFactory)
     {
-        this.image = image;
-        pixels = new List<ImportedPixel>();
+        this.bufferFactory = bufferFactory;
+        originalImage = image;
+        pixels = GetNonTransparentPixels(image);
+        Buffer = CreateBuffer(pixels, Position);
+    }
+
+    public void SetPosition(Vector2 position)
+    {
+        if (position == this.Position) return;
+        this.Position = position;
+        for (int i = 0; i < pixels.Count; i++)
+        {
+            ImportedPixel pixel = pixels[i];
+            int newX = (int)Position.X +
+                (FlipX ? originalImage.Width - pixel.x : pixel.x);
+            int newY = (int)Position.Y +
+                (FlipY ? originalImage.Height - pixel.y : pixel.y);
+            Buffer.ChangePixelPosition(i, newX, newY);
+        }
+    }
+
+    public void SetRotation(float angle)
+    {
+        if (Rotation == angle) return;
+        Image<Rgba32> rotatedImage = originalImage.CloneAs<Rgba32>();
+        rotatedImage.Mutate(x => x.Rotate(angle));
+        List<ImportedPixel> pixels = GetNonTransparentPixels(rotatedImage);
+        PixelBuffer buffer = CreateBuffer(pixels, Position);
+        this.Buffer = buffer;
+        Rotation = angle;
+    }
+
+    private PixelBuffer CreateBuffer(List<ImportedPixel> pixels, Vector2 position)
+    {
+        var buffer = bufferFactory.Create(pixels.Count);
+        for (int i = 0; i < pixels.Count; i++)
+        {
+            ImportedPixel pixel = pixels[i];
+            buffer.SetPixel(
+                i,
+                pixel.x + (int)position.X,
+                pixel.y + (int)position.Y,
+                System.Drawing.Color.FromArgb(
+                    pixel.Color.A,
+                    pixel.Color.R,
+                    pixel.Color.G,
+                    pixel.Color.B));
+        }
+        return buffer;
+    }
+
+    private static List<ImportedPixel> GetNonTransparentPixels(Image<Rgba32> image)
+    {
+        List<ImportedPixel> pixels = new();
         for (int y = 0; y < image.Height; y++)
         {
             for (int x = 0; x < image.Width; x++)
@@ -49,39 +93,15 @@ public class SpriteFrame
                 }
             }
         }
-        if(pixels.Count == 0)
+
+        if (pixels.Count == 0)
         {
+            // Always have at least one pixel, the rest of the system expect at least one pixel 
+            // Correct solution: do not load and use the image
             pixels.Add(new ImportedPixel(0, 0, new Rgba32()));
         }
-        this.Buffer = bufferFactory.Create(pixels.Count);
-        for (int i = 0; i < pixels.Count; i++)
-        {
-            ImportedPixel pixel = pixels[i];
-            this.Buffer.SetPixel(
-                i,
-                pixel.x,
-                pixel.y,
-                System.Drawing.Color.FromArgb(
-                    pixel.Color.A,
-                    pixel.Color.R,
-                    pixel.Color.G,
-                    pixel.Color.B));
-        }
-        this.Position = Vector2.Zero;
-    }
 
-    private void UpdatePosition()
-    {
-        for (int i = 0; i < pixels.Count; i++)
-        {
-            ImportedPixel pixel = pixels[i];
-            int newX = (int)Position.X +
-                (FlipX ? image.Width - pixel.x : pixel.x);
-            int newY = (int)Position.Y +
-                (FlipY ? image.Height - pixel.y : pixel.y);
-
-            Buffer.ChangePixelPosition(i, newX, newY);
-        }
+        return pixels;
     }
 }
 
@@ -136,9 +156,9 @@ public class SpriteAnimation
         time.TotalTime > nextFrameTime &&
         animationIndex == animation.Count - 1;
 
-    private bool ShouldGoToNextFrame(GameTime time)
-        => animation.Count > 1 &&                               // Only change frame if we have more than 1 frame
-        time.TotalTime > nextFrameTime &&                       // Change frame when it is time to change frame
+    private bool ShouldGoToNextFrame(GameTime time) =>
+        animation.Count > 1 &&                                      // Only change frame if we have more than 1 frame
+        time.TotalTime > nextFrameTime &&                           // Change frame when it is time to change frame
         (LoopAnimation || animationIndex != animation.Count - 1);   // Only change frame we we are not on the last frame, or should loop the frame
 
     public List<PixelBuffer> Render(GameTime time)
@@ -146,7 +166,8 @@ public class SpriteAnimation
         // Checks if it is an animation
         if (ShouldGoToNextFrame(time))
         {
-            int prevFrameIndex = animationIndex;
+            SpriteFrame previousFrame = frames[animation[animationIndex]];
+
             // Renders next frame
             animationIndex++;
             if (animationIndex >= animation.Count)
@@ -156,10 +177,14 @@ public class SpriteAnimation
                 else
                     animationIndex--;
             }
-            nextFrameTime = time.TotalTime + TimeBetweenFrames;
-            frames[animation[animationIndex]].Position = frames[animation[prevFrameIndex]].Position;
-            frames[animation[animationIndex]].FlipX = frames[animation[prevFrameIndex]].FlipX;
-            frames[animation[animationIndex]].FlipY = frames[animation[prevFrameIndex]].FlipY;
+            UpdateAnimationIndex(
+                animationIndex,
+                time,
+                previousFrame.Position,
+                previousFrame.FlipX,
+                previousFrame.FlipY,
+                previousFrame.Rotation);
+
         }
         if (IsAnimationDone(time))
             return empty;
@@ -169,7 +194,12 @@ public class SpriteAnimation
 
     public void SetPosition(Vector2 position)
     {
-        frames[animationIndex].Position = position;
+        frames[animationIndex].SetPosition(position);
+    }
+
+    public void SetRotation(float rotation)
+    {
+        frames[animationIndex].SetRotation(rotation);
     }
 
     public void SetAnimation(
@@ -179,15 +209,35 @@ public class SpriteAnimation
         TimeSpan? timeBetweenFrames = null,
         bool loopAnimation = true)
     {
-        SpriteFrame currentFrame = frames[animation[animationIndex]];
+        SpriteFrame previousFrame = frames[animation[animationIndex]];
         this.LoopAnimation = loopAnimation;
         this.animation = animation;
         this.TimeBetweenFrames = timeBetweenFrames ?? this.TimeBetweenFrames;
+
+        UpdateAnimationIndex(
+            startAnimationIndex,
+            time,
+            previousFrame.Position,
+            previousFrame.FlipX,
+            previousFrame.FlipY,
+            previousFrame.Rotation);
+    }
+
+    public void UpdateAnimationIndex(
+        int toIndex,
+        GameTime time,
+        Vector2 position,
+        bool flipX,
+        bool flipY,
+        float rotation)
+    {
+        frames[animation[toIndex]].FlipX = flipX;
+        frames[animation[toIndex]].FlipY = flipY;
+        frames[animation[toIndex]].SetRotation(rotation);
+        frames[animationIndex].SetPosition(position);
+
+        this.animationIndex = toIndex;
         this.nextFrameTime = time.TotalTime + this.TimeBetweenFrames;
-        this.animationIndex = startAnimationIndex;
-        frames[animation[animationIndex]].Position = currentFrame.Position;
-        frames[animation[animationIndex]].FlipX = currentFrame.FlipX;
-        frames[animation[animationIndex]].FlipY = currentFrame.FlipY;
     }
 }
 

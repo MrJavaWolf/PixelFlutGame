@@ -9,33 +9,34 @@ public class StickFigureExplosionEffectAnimator
 {
     private const string BasePath = "StickFigure/Resources/spritesheet/";
     private const string projectileSheet = BasePath + "Effect/Explosion 1/explosion.png";
-    private readonly SpriteLoader spriteLoader;
 
-    private SpriteAnimation explosion;
+    private SpriteAnimation animation;
 
     public StickFigureExplosionEffectAnimator(SpriteLoader spriteLoader)
     {
-        this.spriteLoader = spriteLoader;
-        explosion = spriteLoader.LoadAnimation(projectileSheet, 341, 341, TimeSpan.FromMilliseconds(25),
+        animation = spriteLoader.LoadAnimation(projectileSheet, 341, 341, TimeSpan.FromMilliseconds(25),
             loopAnimation: false);
     }
 
-    public bool IsAnimationDone(GameTime time) => explosion.IsAnimationDone(time);
+    public bool IsAnimationDone(GameTime time) => animation.IsAnimationDone(time);
 
     public void Play(Vector2 position, GameTime time)
     {
-        explosion.SetPosition(position);
-        explosion.Restart(time);
+        animation.SetPosition(position);
+        animation.Restart(time);
     }
 
     public List<PixelBuffer> Render(GameTime time)
     {
-        return explosion.Render(time);
+        return animation.Render(time);
     }
 }
 
 
 
+/// <summary>
+/// Allow the <see cref="StickFigureExplosionEffectAnimator"/> to be pooled so we do not have to load the image from the disk more times than nessesary 
+/// </summary>
 public class StickFigureExplosionEffectAnimatorPooledObjectPolicy : IPooledObjectPolicy<StickFigureExplosionEffectAnimator>
 {
     private readonly SpriteLoader spriteLoader;

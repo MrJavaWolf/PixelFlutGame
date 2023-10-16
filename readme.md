@@ -9,7 +9,7 @@ Requirements:
 
 ## Get started
 
-1. [Install .NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) ([or later](https://dotnet.microsoft.com/en-us/download/dotnet))
+1. Install .NET 7
 1. `cd src/PixelFlut`
 1. Edit `src/PixelFlut/appsettings.json` to point to the Pixelflut server's IP address and port
 1. `sudo dotnet run`

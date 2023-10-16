@@ -272,18 +272,29 @@ public class SpriteLoader
     {
         if (timeBetweenFrames == null)
             timeBetweenFrames = TimeSpan.FromMilliseconds(250);
-        Image<Rgba32> playerIdleFullImage = LoadImageRgb(imageFile, pixelsPerUnit);
-        List<Image<Rgba32>> playerIdleSprites = SplitImage(playerIdleFullImage, width, height);
-        List<SpriteFrame> playerIdleFrames = playerIdleSprites.Select(x => new SpriteFrame(x, bufferFactory)).ToList();
+        Image<Rgba32> fullimage = LoadImageRgb(imageFile);
+        List<Image<Rgba32>> sprites = SplitImage(fullimage, width, height);
+        ResizeImages(sprites, pixelsPerUnit);
+        List<SpriteFrame> frames = sprites.Select(x => new SpriteFrame(x, bufferFactory)).ToList();
         SpriteAnimation spriteAnimation = new(
-            playerIdleFrames,
+            frames,
             timeBetweenFrames.Value,
             animation,
             loopAnimation);
         return spriteAnimation;
     }
 
-    public Image<Rgba32> LoadImageRgb(string image, float pixelsPerUnit)
+    private void ResizeImages(List<Image<Rgba32>> sprites, float pixelsPerUnit)
+    {
+        foreach (Image<Rgba32> sprite in sprites)
+        {
+            sprite.Mutate(x => x.Resize(
+                (int)((sprite.Width / pixelsPerUnit) * config.RenderScale),
+                (int)((sprite.Height / pixelsPerUnit) * config.RenderScale)));
+        }
+    }
+
+    public Image<Rgba32> LoadImageRgb(string image)
     {
         byte[] imageBytes;
         if (image.ToLower().StartsWith("http://") || image.ToLower().StartsWith("https://"))
@@ -309,9 +320,6 @@ public class SpriteLoader
         Image<Rgba32> imageRgb = Image.Load<Rgba32>(imageBytes, out IImageFormat format);
         logger.LogInformation("Image format: {@1}", format);
 
-        imageRgb.Mutate(x => x.Resize(
-            (int)(bufferFactory.Screen.ResolutionX / pixelsPerUnit * config.RenderScale), 
-            (int)(bufferFactory.Screen.ResolutionY/ pixelsPerUnit* config.RenderScale)));
         if (imageRgb.Frames.Count == 0)
         {
             throw new FileNotFoundException("Corrupt image, it appears it does not contain any frames", image);

@@ -13,7 +13,7 @@ public class StickFigureSlashAnimator
 
     public StickFigureSlashAnimator(SpriteLoader spriteLoader)
     {
-        animation = spriteLoader.LoadAnimation(SlashSheet, 189, 189, 12, TimeSpan.FromMilliseconds(75), 
+        animation = spriteLoader.LoadAnimation(SlashSheet, 189, 189, 120, TimeSpan.FromMilliseconds(75), 
             new List<int>() { 3, 4, 5, 6 },
             loopAnimation: false);
     }

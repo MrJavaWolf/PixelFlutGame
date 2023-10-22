@@ -20,7 +20,7 @@ public class PixelFlutScreenSender
         this.configuration = configuration;
 
         // Setup connnection
-        socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+        socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         IPAddress serverAddr = IPAddress.Parse(configuration.Ip);
         int port = ReadPort(configuration);
         endPoint = new IPEndPoint(serverAddr, port);

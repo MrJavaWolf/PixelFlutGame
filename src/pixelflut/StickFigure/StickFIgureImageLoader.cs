@@ -20,16 +20,26 @@ public class SpriteFrame
 
     public Vector2 Position { get; private set; }
     public bool FlipX { get; set; }
-    public bool FlipY { get; set; }
+    public bool FlipY { get; set; } = true;
     public float Rotation { get; private set; }
 
 
     private PixelBufferFactory bufferFactory;
 
-    public SpriteFrame(Image<Rgba32> image, PixelBufferFactory bufferFactory)
+    private PixelFlutScreenConfiguration screenConfiguration;
+
+    private StickFigureGameConfiguration stickFigureGameConfiguration;
+
+    public SpriteFrame(
+        Image<Rgba32> image,
+        PixelBufferFactory bufferFactory,
+        StickFigureGameConfiguration stickFigureGameConfiguration,
+        PixelFlutScreenConfiguration screenConfiguration)
     {
-        this.bufferFactory = bufferFactory;
         originalImage = image;
+        this.bufferFactory = bufferFactory;
+        this.screenConfiguration = screenConfiguration;
+        this.stickFigureGameConfiguration = stickFigureGameConfiguration;
         pixels = GetNonTransparentPixels(image);
         Buffer = CreateBuffer(pixels, Position);
     }
@@ -38,13 +48,16 @@ public class SpriteFrame
     {
         if (position == this.Position) return;
         this.Position = position;
+
         for (int i = 0; i < pixels.Count; i++)
         {
             ImportedPixel pixel = pixels[i];
-            int newX = (int)Position.X +
-                (FlipX ? originalImage.Width - pixel.x : pixel.x);
-            int newY = (int)Position.Y +
-                (FlipY ? originalImage.Height - pixel.y : pixel.y);
+            int newX = (int)(Position.X * stickFigureGameConfiguration.RenderScale +
+                (FlipX ? originalImage.Width - pixel.x : pixel.x));
+
+            int newY = screenConfiguration.ResolutionY - ((int)(Position.Y * stickFigureGameConfiguration.RenderScale +
+                (FlipY ? originalImage.Height - pixel.y : pixel.y)));
+
             Buffer.ChangePixelPosition(i, newX, newY);
         }
     }
@@ -111,7 +124,9 @@ public class SpriteAnimation
     private static readonly List<PixelBuffer> empty = new List<PixelBuffer>();
 
     private List<SpriteFrame> frames;
+
     private int animationIndex = 0;
+
     private TimeSpan nextFrameTime = TimeSpan.Zero;
 
     private IReadOnlyList<int> animation;
@@ -144,6 +159,7 @@ public class SpriteAnimation
 
         if (animation != null) this.animation = animation;
         else this.animation = Enumerable.Range(0, frames.Count).ToList();
+        if (this.animation.Count == 0) throw new Exception("Failed create sprite animation, animation lenght is 0");
     }
 
     public void Restart(GameTime time)
@@ -194,12 +210,12 @@ public class SpriteAnimation
 
     public void SetPosition(Vector2 position)
     {
-        frames[animationIndex].SetPosition(position);
+        frames[animation[animationIndex]].SetPosition(position);
     }
 
     public void SetRotation(float rotation)
     {
-        frames[animationIndex].SetRotation(rotation);
+        frames[animation[animationIndex]].SetRotation(rotation);
     }
 
     public void SetAnimation(
@@ -248,16 +264,19 @@ public class SpriteLoader
     private readonly IHttpClientFactory httpClientFactory;
     private readonly ILogger<SpriteLoader> logger;
     private readonly StickFigureGameConfiguration config;
+    private readonly PixelFlutScreenConfiguration screenConfiguration;
 
     public SpriteLoader(
         PixelBufferFactory bufferFactory,
         IHttpClientFactory httpClientFactory,
         StickFigureGameConfiguration config,
+        PixelFlutScreenConfiguration screenConfiguration,
         ILogger<SpriteLoader> logger)
     {
         this.bufferFactory = bufferFactory;
         this.httpClientFactory = httpClientFactory;
         this.config = config;
+        this.screenConfiguration = screenConfiguration;
         this.logger = logger;
     }
 
@@ -275,7 +294,7 @@ public class SpriteLoader
         Image<Rgba32> fullimage = LoadImageRgb(imageFile);
         List<Image<Rgba32>> sprites = SplitImage(fullimage, width, height);
         ResizeImages(sprites, pixelsPerUnit);
-        List<SpriteFrame> frames = sprites.Select(x => new SpriteFrame(x, bufferFactory)).ToList();
+        List<SpriteFrame> frames = sprites.Select(x => new SpriteFrame(x, bufferFactory, config, screenConfiguration)).ToList();
         SpriteAnimation spriteAnimation = new(
             frames,
             timeBetweenFrames.Value,
@@ -339,20 +358,20 @@ public class SpriteLoader
         {
             for (int j = 0; j < numberOfYImages; j++)
             {
-                images.Add(SubImage(image, numberOfXImages * i, j * numberOfYImages, width, height));
+                images.Add(SubImage(image, i * width, j * height, width, height));
             }
         }
         return images;
     }
 
-    public Image<Rgba32> SubImage(Image<Rgba32> image, int x, int y, int width, int height)
+    public Image<Rgba32> SubImage(Image<Rgba32> image, int startX, int startY, int width, int height)
     {
         Image<Rgba32> subImage = new Image<Rgba32>(width, height);
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
-                subImage[i, j] = image[i + x, j + y];
+                subImage[i, j] = image[startX + i, startY + j];
             }
         }
         return subImage;

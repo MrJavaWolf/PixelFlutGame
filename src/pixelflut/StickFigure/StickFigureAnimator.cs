@@ -67,18 +67,26 @@ public class StickFigureAnimator
     {
         switch (animation)
         {
-            case StickFigureAnimation.Dash: currentAnimation = dash; break;
-            case StickFigureAnimation.Idle: currentAnimation = idle; break;
-            case StickFigureAnimation.JumpDown: currentAnimation = jumpDown; break;
-            case StickFigureAnimation.JumpTop: currentAnimation = jumpTop; break;
-            case StickFigureAnimation.JumpUp: currentAnimation = jumpUp; break;
-            case StickFigureAnimation.Run: currentAnimation = run; break;
-            case StickFigureAnimation.Shoot: currentAnimation = shoot; break;
-            case StickFigureAnimation.SwordAttack: currentAnimation = swordAttack; break;
-            case StickFigureAnimation.TakeDamage: currentAnimation = takeDamage; break;
-            default: currentAnimation = idle; break;
+            case StickFigureAnimation.Dash: SetAnimation(dash); break;
+            case StickFigureAnimation.Idle: SetAnimation(idle); break;
+            case StickFigureAnimation.JumpDown: SetAnimation(jumpDown); break;
+            case StickFigureAnimation.JumpTop: SetAnimation(jumpTop); break;
+            case StickFigureAnimation.JumpUp: SetAnimation(jumpUp); break;
+            case StickFigureAnimation.Run: SetAnimation(run); break;
+            case StickFigureAnimation.Shoot: SetAnimation(shoot); break;
+            case StickFigureAnimation.SwordAttack: SetAnimation(swordAttack); break;
+            case StickFigureAnimation.TakeDamage: SetAnimation(takeDamage); break;
+            default: SetAnimation(idle); break;
         }
-        restartAnimation = true;
+    }
+
+    private void SetAnimation(SpriteAnimation animation)
+    {
+        if (animation != currentAnimation)
+        {
+            restartAnimation = true;
+        }
+        currentAnimation = animation;
     }
 
     public List<PixelBuffer> Render(GameTime time)
@@ -88,6 +96,7 @@ public class StickFigureAnimator
             currentAnimation.Restart(time);
             restartAnimation = false;
         }
+        currentAnimation.FlipX = stickFigureBase.Facing != StickFigureBase.FacingDirection.Right;
         currentAnimation.SetPosition(stickFigureBase.Position);
         return currentAnimation.Render(time);
     }

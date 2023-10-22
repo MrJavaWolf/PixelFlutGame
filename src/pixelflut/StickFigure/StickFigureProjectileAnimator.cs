@@ -13,7 +13,7 @@ public class StickFigureProjectileAnimator
 
     public StickFigureProjectileAnimator(SpriteLoader spriteLoader)
     {
-        animation = spriteLoader.LoadAnimation(projectileSheet, 189, 189, 15, TimeSpan.FromMilliseconds(25),
+        animation = spriteLoader.LoadAnimation(projectileSheet, 189, 189, 150, TimeSpan.FromMilliseconds(25),
             new List<int>() { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 },
             loopAnimation: true);
     }

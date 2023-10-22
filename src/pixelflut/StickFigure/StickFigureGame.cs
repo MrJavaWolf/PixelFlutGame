@@ -26,12 +26,14 @@ public class StickFigureGame : IGame
 
     private ObjectPool<StickFigureProjectileAnimator> projectileAnimators;
     private ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators;
+    private readonly PixelFlutScreenConfiguration screenConfiguration;
 
     public StickFigureGame(
         StickFigureGameConfiguration config,
         IHttpClientFactory httpClientFactory,
         PixelBufferFactory pixelBufferFactory,
         IPixelFlutScreenProtocol screenProtocol,
+        PixelFlutScreenConfiguration screenConfiguration,
         ILogger<StickFigureGame> logger,
         SpriteLoader spriteLoader,
         ObjectPool<StickFigureProjectileAnimator> projectileAnimators,
@@ -41,13 +43,14 @@ public class StickFigureGame : IGame
         this.httpClientFactory = httpClientFactory;
         this.pixelBufferFactory = pixelBufferFactory;
         this.screenProtocol = screenProtocol;
+        this.screenConfiguration = screenConfiguration;
         this.logger = logger;
         this.spriteLoader = spriteLoader;
         this.projectileAnimators = projectileAnimators;
         this.explosionAnimators = explosionAnimators;
         StickFigureWorldData stickFigureWorldData = StickFigureWorldImporter.LoadWorldData();
         world = new StickFigureWorld(stickFigureWorldData);
-        renderer = new StickFigureWorldRenderer(config, screenProtocol, world, pixelBufferFactory);
+        renderer = new StickFigureWorldRenderer(config, screenProtocol, screenConfiguration, world, pixelBufferFactory);
     }
 
     public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)

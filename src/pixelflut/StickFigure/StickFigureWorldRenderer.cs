@@ -10,15 +10,18 @@ public class StickFigureWorldRenderer
     private readonly IPixelFlutScreenProtocol screenProtocol;
     private readonly StickFigureWorld world;
     private readonly PixelBufferFactory pixelBufferFactory;
+    private readonly PixelFlutScreenConfiguration screenConfiguration;
 
     public StickFigureWorldRenderer(
         StickFigureGameConfiguration config,
         IPixelFlutScreenProtocol screenProtocol,
+        PixelFlutScreenConfiguration screenConfiguration,
         StickFigureWorld world,
         PixelBufferFactory pixelBufferFactory)
     {
         this.config = config;
         this.screenProtocol = screenProtocol;
+        this.screenConfiguration = screenConfiguration;
         this.world = world;
         this.pixelBufferFactory = pixelBufferFactory;
     }
@@ -27,23 +30,24 @@ public class StickFigureWorldRenderer
     {
         List<PixelBuffer> pixelBuffers = new List<PixelBuffer>();
 
+        pixelBuffers.AddRange(RenderGround());
+
+
         foreach (StickFigureCharacterController player in world.Players)
         {
             pixelBuffers.AddRange(player.StickFigureBase.PlayerAnimator.Render(time));
-            pixelBuffers.AddRange(player.SlashAnimator.Loop(time));
-
-        }
-        pixelBuffers.AddRange(RenderGround());
-
-        for (int i = 0; i < world.Projectiles.Count; i++)
-        {
-            pixelBuffers.AddRange(world.Projectiles[i].Animator.Render(time));
+            //     pixelBuffers.AddRange(player.SlashAnimator.Loop(time));
         }
 
-        for (int i = 0; i < world.Explosions.Count; i++)
-        {
-            pixelBuffers.AddRange(world.Explosions[i].Animator.Render(time));
-        }
+        // for (int i = 0; i < world.Projectiles.Count; i++)
+        // {
+        //     pixelBuffers.AddRange(world.Projectiles[i].Animator.Render(time));
+        // }
+
+        // for (int i = 0; i < world.Explosions.Count; i++)
+        // {
+        //     pixelBuffers.AddRange(world.Explosions[i].Animator.Render(time));
+        // }
 
 
         return pixelBuffers;
@@ -54,7 +58,7 @@ public class StickFigureWorldRenderer
         List<PixelBuffer> buffers = new();
         foreach (IBox ground in world.WorldBoxes)
         {
-            if (!IsGroundVisible(ground)) continue;
+            //if (!IsGroundVisible(ground)) continue;
             buffers.Add(RenderGround(ground));
         }
         return buffers;
@@ -96,11 +100,12 @@ public class StickFigureWorldRenderer
             int xPos = (int)(ground.X * config.RenderScale) + x;
             for (int y = 0; y < ySize; y++)
             {
-                if (IsVisible(x, y))
-                {
-                    int yPos = (int)(ground.Y * config.RenderScale) + y;
-                    pixels.Add(new PixelToRender(xPos, yPos));
-                }
+                // if (IsVisible(x, y))
+                //{
+
+                int yPos = (int)(ground.Y * config.RenderScale) + y;
+                pixels.Add(new PixelToRender(xPos, screenConfiguration.ResolutionY - yPos));
+                //}
             }
         }
 

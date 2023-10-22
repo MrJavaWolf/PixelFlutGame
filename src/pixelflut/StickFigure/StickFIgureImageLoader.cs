@@ -287,12 +287,17 @@ public class SpriteLoader
         float pixelsPerUnit,
         TimeSpan? timeBetweenFrames = null,
         List<int>? animation = null,
-        bool loopAnimation = true)
+        bool loopAnimation = true,
+        Vector4? cropEachSprite = null)
     {
         if (timeBetweenFrames == null)
             timeBetweenFrames = TimeSpan.FromMilliseconds(250);
+
+        if (cropEachSprite == null)
+            cropEachSprite = Vector4.Zero;
+
         Image<Rgba32> fullimage = LoadImageRgb(imageFile);
-        List<Image<Rgba32>> sprites = SplitImage(fullimage, width, height);
+        List<Image<Rgba32>> sprites = SplitImage(fullimage, width, height, cropEachSprite.Value);
         ResizeImages(sprites, pixelsPerUnit);
         List<SpriteFrame> frames = sprites.Select(x => new SpriteFrame(x, bufferFactory, config, screenConfiguration)).ToList();
         SpriteAnimation spriteAnimation = new(
@@ -348,7 +353,11 @@ public class SpriteLoader
 
 
 
-    public List<Image<Rgba32>> SplitImage(Image<Rgba32> image, int width, int height)
+    public List<Image<Rgba32>> SplitImage(
+        Image<Rgba32> image,
+        int width,
+        int height,
+        Vector4 cropEachSprite)
     {
         List<Image<Rgba32>> images = new List<Image<Rgba32>>();
         int numberOfXImages = image.Width / width;
@@ -358,20 +367,41 @@ public class SpriteLoader
         {
             for (int j = 0; j < numberOfYImages; j++)
             {
-                images.Add(SubImage(image, i * width, j * height, width, height));
+                images.Add(SubImage(
+                    image,
+                    i * width,
+                    j * height,
+                    width,
+                    height,
+                    cropEachSprite));
             }
         }
         return images;
     }
 
-    public Image<Rgba32> SubImage(Image<Rgba32> image, int startX, int startY, int width, int height)
+    public Image<Rgba32> SubImage(
+        Image<Rgba32> image,
+        int startX,
+        int startY,
+        int width,
+        int height,
+        Vector4 cropEachSprite)
     {
-        Image<Rgba32> subImage = new Image<Rgba32>(width, height);
-        for (int i = 0; i < width; i++)
+        int widthCrop = (int)(cropEachSprite.X + (width - (width - cropEachSprite.Z)));
+        int heightCrop = (int)(cropEachSprite.Y + (height - (height - cropEachSprite.W)));
+        Image<Rgba32> subImage = new Image<Rgba32>(width - widthCrop, height - heightCrop);
+        for (int x = (int)cropEachSprite.X; x < width - (int)cropEachSprite.Z; x++)
         {
-            for (int j = 0; j < height; j++)
+            for (int y = (int)cropEachSprite.Y; y < height - (int)cropEachSprite.W; y++)
             {
-                subImage[i, j] = image[startX + i, startY + j];
+                //if (x < cropEachSprite.X ||
+                //    x > cropEachSprite.Z ||
+                //    y < cropEachSprite.Y ||
+                //    y > cropEachSprite.W)
+                //    continue;
+
+                subImage[x - (int)cropEachSprite.X, y - (int)cropEachSprite.Y] = 
+                    image[startX + x, startY + y];
             }
         }
         return subImage;

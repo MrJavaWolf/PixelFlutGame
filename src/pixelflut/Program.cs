@@ -2,11 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using PixelFlut.Core;
+using PixelFlut.Core.Sprite;
 using PixelFlut.Distributed;
 using PixelFlut.Images;
 using PixelFlut.Pong;
 using PixelFlut.Snake;
-using PixelFlut.StickFigure;
 using PixelFlut.TestImage;
 using Serilog;
 using StickFigureGame;

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.ObjectPool;
 using PixelFlut.Core;
-using PixelFlut.StickFigure;
+using PixelFlut.Core.Sprite;
 using System.Numerics;
 
 namespace StickFigureGame;

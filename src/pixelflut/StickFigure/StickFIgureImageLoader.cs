@@ -280,6 +280,11 @@ public class SpriteLoader
         this.logger = logger;
     }
 
+    public int SpriteToUnitConversion(int spritePixelSize, float wantedSizeInUnits)
+    {
+        return (int)(spritePixelSize / wantedSizeInUnits);
+    }
+
     public SpriteAnimation LoadAnimation(
         string imageFile,
         int width,
@@ -400,7 +405,7 @@ public class SpriteLoader
                 //    y > cropEachSprite.W)
                 //    continue;
 
-                subImage[x - (int)cropEachSprite.X, y - (int)cropEachSprite.Y] = 
+                subImage[x - (int)cropEachSprite.X, y - (int)cropEachSprite.Y] =
                     image[startX + x, startY + y];
             }
         }

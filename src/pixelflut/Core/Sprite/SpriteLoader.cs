@@ -118,9 +118,9 @@ public class SpriteLoader
         int numberOfXImages = image.Width / width;
         int numberOfYImages = image.Height / height;
 
-        for (int i = 0; i < numberOfXImages; i++)
+        for (int j = 0; j < numberOfYImages; j++)
         {
-            for (int j = 0; j < numberOfYImages; j++)
+            for (int i = 0; i < numberOfXImages; i++)
             {
                 images.Add(SubImage(
                     image,

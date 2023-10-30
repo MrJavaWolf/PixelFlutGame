@@ -65,7 +65,7 @@ public class SpriteFrame
         if (Rotation == angle) return;
         Image<Rgba32> rotatedImage = originalImage.CloneAs<Rgba32>();
         rotatedImage.Mutate(x => x.Rotate(angle));
-        List<ImportedPixel> pixels = GetNonTransparentPixels(rotatedImage);
+        pixels = GetNonTransparentPixels(rotatedImage);
         PixelBuffer buffer = CreateBuffer(pixels, Position);
         Buffer = buffer;
         Rotation = angle;

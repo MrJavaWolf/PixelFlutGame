@@ -51,6 +51,23 @@ public class StickFigureGame : IGame
         StickFigureWorldData stickFigureWorldData = StickFigureWorldImporter.LoadWorldData();
         world = new StickFigureWorld(stickFigureWorldData);
         renderer = new StickFigureWorldRenderer(config, screenProtocol, screenConfiguration, world, pixelBufferFactory);
+        PreloadPool(projectileAnimators);
+        PreloadPool(explosionAnimators);
+    }
+
+    private void PreloadPool<T>(ObjectPool<T> pool) where T : class
+    {
+        List<T> values = new List<T>();
+        for (int i = 0; i < 5; i++)
+        {
+            values.Add(pool.Get());
+        }
+
+        while (values.Count > 0)
+        {
+            pool.Return(values[0]);
+            values.RemoveAt(0);
+        }
     }
 
     public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)

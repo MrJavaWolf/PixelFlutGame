@@ -24,8 +24,8 @@ public class StickFigureShootAttack
     private readonly ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators;
 
     public StickFigureShootAttack(
-        StickFigureBase stickFigureBase, 
-        StickFigureWorld world, 
+        StickFigureBase stickFigureBase,
+        StickFigureWorld world,
         StickFigureCharacterController player,
         ObjectPool<StickFigureProjectileAnimator> projectileAnimators,
         ObjectPool<StickFigureExplosionEffectAnimator> explosionAnimators)

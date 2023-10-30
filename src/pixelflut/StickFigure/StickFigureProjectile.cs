@@ -1,7 +1,6 @@
 using Humper;
 using Microsoft.Extensions.ObjectPool;
 using PixelFlut.Core;
-using PixelFlut.StickFigure;
 using System.Numerics;
 namespace StickFigureGame;
 

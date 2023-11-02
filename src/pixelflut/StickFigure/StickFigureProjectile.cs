@@ -11,8 +11,8 @@ public class StickFigureProjectile
     public float radius = 0.5f;
     public float explosionRadius = 3f;
     public float pushbackDamage = 5f;
-    public float speed = 20;
-    public float LifeTime = 2;
+    public float speed = 5;
+    public float LifeTime = 1;
 
     private Vector2 direction;
     private StickFigureWorld world;
@@ -52,7 +52,7 @@ public class StickFigureProjectile
 
         // Angle for the fireball effect
         float angle = Vector2.UnitX.SignedAngle(direction);
-        Animator.Play(angle, time);
+        Animator.Play(-angle, time);
     }
 
     // Update is called once per frame

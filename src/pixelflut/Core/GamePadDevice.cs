@@ -115,7 +115,7 @@ namespace PixelFlut.Core
             switch (usage.FullId)
             {
                 case (uint)GenericDesktopPage.Y:
-                    this.Y = IsInDeadzone(change.Value) ? 0.5 : change.Value;
+                    this.Y = IsInDeadzone(change.Value) ? 0.5 : 1 - change.Value;
                     break;
                 case (uint)GenericDesktopPage.X:
                     this.X = IsInDeadzone(change.Value) ? 0.5 : change.Value;

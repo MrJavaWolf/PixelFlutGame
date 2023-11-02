@@ -49,7 +49,14 @@ public class SpriteAnimation
     public void Restart(GameTime time)
     {
         nextFrameTime = time.TotalTime + TimeBetweenFrames;
-        animationIndex = 0;
+        SpriteFrame previousFrame = frames[animation[animationIndex]];
+        UpdateAnimationIndex(
+            0,
+            time,
+            previousFrame.Position,
+            previousFrame.FlipX,
+            previousFrame.FlipY,
+            previousFrame.Rotation);
     }
 
     public bool IsAnimationDone(GameTime time) =>
@@ -63,7 +70,7 @@ public class SpriteAnimation
         (LoopAnimation || animationIndex != animation.Count - 1);   // Only change frame we we are not on the last frame, or should loop the frame
 
     public List<PixelBuffer> Render(GameTime time)
-    {       
+    {
         // Checks if it is an animation
         if (ShouldGoToNextFrame(time))
         {

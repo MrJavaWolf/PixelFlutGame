@@ -1,5 +1,6 @@
 ﻿using PixelFlut.Core;
 using PixelFlut.Core.Sprite;
+using System.Drawing;
 using System.Numerics;
 
 namespace StickFigureGame;
@@ -51,16 +52,18 @@ public class StickFigureAnimator
         SpriteLoader spriteLoader)
     {
         this.stickFigureBase = stickFigureBase;
+        var color = Color.Blue;
         var defaultPixelsPerUnit = spriteLoader.SpriteToUnitConversion(48, stickFigureBase.Size.Y);
-        idle = spriteLoader.LoadAnimation(PlayerIdle, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8));
-        shoot = spriteLoader.LoadAnimation(PlayerShoot, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8));
-        run = spriteLoader.LoadAnimation(PlayerRun, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8));
-        jumpUp = spriteLoader.LoadAnimation(PlayerJumpUp, 48, 48, defaultPixelsPerUnit, animation: new() { 0 }, cropEachSprite: new Vector4(0, 0, 0, 8));
-        jumpTop = spriteLoader.LoadAnimation(PlayerJumpTop, 48, 48, defaultPixelsPerUnit, animation: new() { 1 }, cropEachSprite: new Vector4(0, 0, 0, 8));
-        jumpDown = spriteLoader.LoadAnimation(PlayerJumpDown, 48, 48, defaultPixelsPerUnit, animation: new() { 2 }, cropEachSprite: new Vector4(0, 0, 0, 8));
-        swordAttack = spriteLoader.LoadAnimation(PlayerSwordAttack, 64, 64, spriteLoader.SpriteToUnitConversion(64, stickFigureBase.Size.X), timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 16));
-        dash = spriteLoader.LoadAnimation(PlayerDash, 48, 48, defaultPixelsPerUnit, animation: new() { 1 }, cropEachSprite: new Vector4(0, 0, 0, 8));
-        takeDamage = spriteLoader.LoadAnimation(PlayerTakeDamage, 48, 48, defaultPixelsPerUnit, animation: new() { 4 }, cropEachSprite: new Vector4(0, 0, 0, 8));
+        int outlineSize = 4;
+        idle = spriteLoader.LoadAnimation(PlayerIdle, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
+        shoot = spriteLoader.LoadAnimation(PlayerShoot, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
+        run = spriteLoader.LoadAnimation(PlayerRun, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
+        jumpUp = spriteLoader.LoadAnimation(PlayerJumpUp, 48, 48, defaultPixelsPerUnit, animation: new() { 0 }, cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
+        jumpTop = spriteLoader.LoadAnimation(PlayerJumpTop, 48, 48, defaultPixelsPerUnit, animation: new() { 1 }, cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
+        jumpDown = spriteLoader.LoadAnimation(PlayerJumpDown, 48, 48, defaultPixelsPerUnit, animation: new() { 2 }, cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
+        swordAttack = spriteLoader.LoadAnimation(PlayerSwordAttack, 64, 64, spriteLoader.SpriteToUnitConversion(64, stickFigureBase.Size.X), timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 16), overwriteColor: color, outlineSize: outlineSize);
+        dash = spriteLoader.LoadAnimation(PlayerDash, 48, 48, defaultPixelsPerUnit, animation: new() { 1 }, cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
+        takeDamage = spriteLoader.LoadAnimation(PlayerTakeDamage, 48, 48, defaultPixelsPerUnit, animation: new() { 4 }, cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
         currentAnimation = idle;
     }
 

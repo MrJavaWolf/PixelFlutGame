@@ -1,4 +1,5 @@
 ﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.ColorSpaces;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using StickFigureGame;
@@ -28,15 +29,21 @@ public class SpriteFrame
 
     private StickFigureGameConfiguration stickFigureGameConfiguration;
 
+    private System.Drawing.Color? overwriteColor;
+    private int outlineSize = 0;
     public SpriteFrame(
         Image<Rgba32> image,
         PixelBufferFactory bufferFactory,
         StickFigureGameConfiguration stickFigureGameConfiguration,
-        PixelFlutScreenConfiguration screenConfiguration)
+        PixelFlutScreenConfiguration screenConfiguration,
+        System.Drawing.Color? overwriteColor = null,
+        int outlineSize = 0)
     {
         originalImage = image;
         this.bufferFactory = bufferFactory;
         this.screenConfiguration = screenConfiguration;
+        this.overwriteColor = overwriteColor;
+        this.outlineSize = outlineSize;
         this.stickFigureGameConfiguration = stickFigureGameConfiguration;
         pixels = GetNonTransparentPixels(image);
         Buffer = CreateBuffer(pixels, Position);
@@ -90,17 +97,61 @@ public class SpriteFrame
         return buffer;
     }
 
-    private static List<ImportedPixel> GetNonTransparentPixels(Image<Rgba32> image)
+    private List<ImportedPixel> GetNonTransparentPixels(Image<Rgba32> image)
     {
         List<ImportedPixel> pixels = new();
-        for (int y = 0; y < image.Height; y++)
+
+        Rgba32? overwriteRgb = null;
+        Rgba32 outlineRgb = new Rgba32(0, 0, 0, 255);
+
+        if (overwriteColor != null)
         {
-            for (int x = 0; x < image.Width; x++)
+            overwriteRgb = new Rgba32(
+                overwriteColor.Value.R,
+                overwriteColor.Value.G,
+                overwriteColor.Value.B,
+                overwriteColor.Value.A);
+        }
+
+        for (int i = 0; i < image.Height; i++)
+        {
+            for (int j = 0; j < image.Width; j++)
             {
-                Rgba32 rgb = image[x, y];
+                Rgba32 rgb = image[j, i];
                 if (rgb.A != 0)
                 {
-                    pixels.Add(new ImportedPixel(x, y, rgb));
+                    if (overwriteRgb != null)
+                    {
+                        rgb = overwriteRgb.Value;
+                    }
+                    pixels.Add(new ImportedPixel(j, i, rgb));
+                }
+                else if (outlineSize > 0)
+                {
+                    // Check if a drawn pixel within the specified distance
+                    bool isWithinDistance = false;
+
+                    for (int x = Math.Max(0, i - outlineSize); x <= Math.Min(image.Height - 1, i + outlineSize); x++)
+                    {
+                        for (int y = Math.Max(0, j - outlineSize); y <= Math.Min(image.Width - 1, j + outlineSize); y++)
+                        {
+                            if (image[y, x].A != 0)
+                            {
+                                isWithinDistance = true;
+                                break;
+                            }
+                        }
+
+                        if (isWithinDistance)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (isWithinDistance)
+                    {
+                        pixels.Add(new ImportedPixel(j, i, outlineRgb));
+                    }
                 }
             }
         }

@@ -7,6 +7,19 @@ using System.Numerics;
 
 namespace PixelFlut.Core.Sprite;
 
+public class SpriteConfiguration
+{
+    public string imageFile;
+    public int width;
+    public int height;
+    public float pixelsPerUnit;
+    public TimeSpan? timeBetweenFrames = null;
+    public List<int>? animation = null;
+    public bool loopAnimation = true;
+    public Vector4? cropEachSprite = null;
+    public System.Drawing.Color? overwriteColor = null;
+
+}
 
 public class SpriteLoader
 {
@@ -43,7 +56,9 @@ public class SpriteLoader
         TimeSpan? timeBetweenFrames = null,
         List<int>? animation = null,
         bool loopAnimation = true,
-        Vector4? cropEachSprite = null)
+        Vector4? cropEachSprite = null,
+        System.Drawing.Color? overwriteColor = null,
+        int outlineSize = 0)
     {
         if (timeBetweenFrames == null)
             timeBetweenFrames = TimeSpan.FromMilliseconds(250);
@@ -54,7 +69,7 @@ public class SpriteLoader
         Image<Rgba32> fullimage = LoadImageRgb(imageFile);
         List<Image<Rgba32>> sprites = SplitImage(fullimage, width, height, cropEachSprite.Value);
         ResizeImages(sprites, pixelsPerUnit);
-        List<SpriteFrame> frames = sprites.Select(x => new SpriteFrame(x, bufferFactory, config, screenConfiguration)).ToList();
+        List<SpriteFrame> frames = sprites.Select(x => new SpriteFrame(x, bufferFactory, config, screenConfiguration, overwriteColor, outlineSize)).ToList();
         SpriteAnimation spriteAnimation = new(
             frames,
             timeBetweenFrames.Value,

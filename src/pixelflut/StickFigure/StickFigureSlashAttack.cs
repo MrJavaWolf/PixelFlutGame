@@ -122,8 +122,8 @@ public class StickFigureSlashAttack
         if (player == null) return;
         foreach (StickFigureProjectile projetile in world.Projectiles)
         {
-            Vector2 directionToProjetile = Vector2.Normalize(projetile.Position - player.Center);
-            if (Vector2.Distance(projetile.Position, player.Center) > DamageRadius) continue;
+            Vector2 directionToProjetile = Vector2.Normalize(projetile.CenterPosition - player.Center);
+            if (Vector2.Distance(projetile.CenterPosition, player.Center) > DamageRadius) continue;
 
             float angleToEnemy = MathF.Abs(attackDirection.SignedAngle(directionToProjetile));
 
@@ -141,6 +141,6 @@ public class StickFigureSlashAttack
     private void OnProjetileHit(StickFigureProjectile projetile, Vector2 directionToProjetile, GameTime time)
     {
         if (player == null) return;
-        projetile.DoStart(time, directionToProjetile, projetile.Position, player);
+        projetile.DoStart(time, directionToProjetile, projetile.CenterPosition, player);
     }
 }

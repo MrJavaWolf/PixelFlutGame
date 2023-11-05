@@ -17,7 +17,7 @@ public class SpriteAnimation
 
     public TimeSpan TimeBetweenFrames { get; set; }
 
-    public bool LoopAnimation { get; set; }
+    public bool LoopAnimation { get; set; } = false;
 
     public bool FlipX
     {
@@ -98,7 +98,10 @@ public class SpriteAnimation
         if (IsAnimationDone(time))
             return empty;
         else
-            return new List<PixelBuffer>() { frames[animation[animationIndex]].Buffer };
+        {
+            List<PixelBuffer> buffers = new () { frames[animation[animationIndex]].Buffer };
+            return buffers;
+        }
     }
 
     public void SetPosition(Vector2 position)

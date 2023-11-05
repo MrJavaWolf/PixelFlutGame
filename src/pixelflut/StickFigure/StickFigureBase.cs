@@ -21,7 +21,7 @@ public class StickFigureBase
 
     public Vector2 Position => box == null ? Vector2.Zero : new Vector2(box.X, box.Y);
 
-    public Vector2 Size { get; set; } = new Vector2(0.65f, 1.25f);
+    public Vector2 Size { get; set; } = new Vector2(1f, 1.25f);
 
     private StickFigureWorld world;
 

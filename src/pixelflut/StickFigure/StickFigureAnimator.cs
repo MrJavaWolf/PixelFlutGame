@@ -51,8 +51,7 @@ public class StickFigureAnimator
         SpriteLoader spriteLoader)
     {
         this.stickFigureBase = stickFigureBase;
-        
-        var defaultPixelsPerUnit = spriteLoader.SpriteToUnitConversion(48, stickFigureBase.Size.X);
+        var defaultPixelsPerUnit = spriteLoader.SpriteToUnitConversion(48, stickFigureBase.Size.Y);
         idle = spriteLoader.LoadAnimation(PlayerIdle, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8));
         shoot = spriteLoader.LoadAnimation(PlayerShoot, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8));
         run = spriteLoader.LoadAnimation(PlayerRun, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8));
@@ -100,7 +99,8 @@ public class StickFigureAnimator
             restartAnimation = false;
         }
         currentAnimation.FlipX = stickFigureBase.Facing != StickFigureBase.FacingDirection.Right;
-        currentAnimation.SetPosition(stickFigureBase.Position);
+        Vector2 offset = new(0.2f, 0);
+        currentAnimation.SetPosition(stickFigureBase.Position - offset);
         return currentAnimation.Render(time);
     }
 

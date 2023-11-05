@@ -102,7 +102,7 @@ public class StickFigureShootAttack
     private void SpawnProjectile(GameTime time)
     {
         Vector2 spawnPosition = player.Center;
-        StickFigureProjectile proj = new StickFigureProjectile(world, projectileAnimators, explosionAnimators);
+        StickFigureProjectile proj = new(world, projectileAnimators, explosionAnimators);
         proj.DoStart(time, shootDirection, spawnPosition, player);
     }
 }

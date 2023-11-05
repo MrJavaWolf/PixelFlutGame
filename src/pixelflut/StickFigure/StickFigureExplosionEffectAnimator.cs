@@ -11,18 +11,24 @@ public class StickFigureExplosionEffectAnimator
     private const string projectileSheet = BasePath + "Effect/Explosion 1/explosion.png";
 
     private SpriteAnimation animation;
+    private int pixelsPerUnit = 100;
+    private int spriteWidth = 341;
+    private int spriteHeight = 341;
 
     public StickFigureExplosionEffectAnimator(SpriteLoader spriteLoader)
     {
-        animation = spriteLoader.LoadAnimation(projectileSheet, 341, 341, 200, TimeSpan.FromMilliseconds(33),
+        animation = spriteLoader.LoadAnimation(projectileSheet, spriteWidth, spriteHeight, pixelsPerUnit, TimeSpan.FromMilliseconds(33),
             loopAnimation: false);
     }
 
     public bool IsAnimationDone(GameTime time) => animation.IsAnimationDone(time);
 
-    public void Play(Vector2 position, GameTime time)
+    public void Play(Vector2 centerPosition, GameTime time)
     {
-        animation.SetPosition(position);
+
+        // The animation wants lower left conor, so we calculate the center to lower left offset
+        Vector2 offset = new Vector2(spriteWidth / 2.0f / pixelsPerUnit, spriteHeight / 2.0f / pixelsPerUnit);
+        animation.SetPosition(centerPosition - offset);
         animation.Restart(time);
     }
 

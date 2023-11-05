@@ -11,19 +11,25 @@ public class StickFigureSlashAnimator
     private const string SlashSheet = BasePath + "Effect/Slash/pngfind.com-rpg-png-887284.png";
     private SpriteAnimation animation;
 
+    private int pixelsPerUnit = 90;
+    private int spriteWidth = 189;
+    private int spriteHeight = 189;
+
     public StickFigureSlashAnimator(SpriteLoader spriteLoader)
     {
-        animation = spriteLoader.LoadAnimation(SlashSheet, 189, 189, 120, TimeSpan.FromMilliseconds(75), 
+        animation = spriteLoader.LoadAnimation(SlashSheet, spriteWidth, spriteHeight, pixelsPerUnit, TimeSpan.FromMilliseconds(75), 
             new List<int>() { 3, 4, 5, 6 },
             loopAnimation: false);
     }
 
-    public void Play(float angle, Vector2 position, bool flipY, GameTime time)
+    public void Play(float angle, Vector2 centerPosition, bool flipY, GameTime time)
     {
         animation.Restart(time);
         animation.FlipY = flipY;
         animation.SetRotation(angle);
-        animation.SetPosition(position);
+        // The animation wants lower left conor, so we calculate the center to lower left offset
+        Vector2 offset = new Vector2(spriteWidth / 2.0f / pixelsPerUnit, spriteHeight / 2.0f / pixelsPerUnit);
+        animation.SetPosition(centerPosition - offset);
     }
 
     public List<PixelBuffer> Loop(GameTime time)

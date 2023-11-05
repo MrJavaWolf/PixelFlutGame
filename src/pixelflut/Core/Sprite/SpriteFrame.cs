@@ -44,7 +44,7 @@ public class SpriteFrame
 
     public void SetPosition(Vector2 position)
     {
-        if (position == Position) return;
+        //if (position == Position) return;
         Position = position;
 
         for (int i = 0; i < pixels.Count; i++)
@@ -62,7 +62,7 @@ public class SpriteFrame
 
     public void SetRotation(float angle)
     {
-        if (Rotation == angle) return;
+        //if (Rotation == angle) return;
         Image<Rgba32> rotatedImage = originalImage.CloneAs<Rgba32>();
         rotatedImage.Mutate(x => x.Rotate(angle));
         pixels = GetNonTransparentPixels(rotatedImage);

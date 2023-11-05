@@ -53,8 +53,9 @@ public class StickFigureSlashAttack
         stickFigureBase.PlayerAnimator.FlipX = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left;
         stickFigureBase.PlayerAnimator.Play(StickFigureAnimation.SwordAttack);
         float angle = Vector2.UnitX.SignedAngle(attackDirection);
-        bool flipY = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left ? false : true;
-        SlashAnimator.Play(angle + this.slashEffectAngleOffset, player.Center + attackDirection, flipY, time);
+        //bool flipY = stickFigureBase.Facing == StickFigureBase.FacingDirection.Left ? false : true;
+        bool flipY = false;
+        SlashAnimator.Play(angle + this.slashEffectAngleOffset, player.Center, flipY, time);
     }
 
     private Vector2 GetAttackDirection(Vector2 input)

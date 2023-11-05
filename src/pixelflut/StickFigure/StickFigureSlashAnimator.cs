@@ -11,14 +11,14 @@ public class StickFigureSlashAnimator
     private const string SlashSheet = BasePath + "Effect/Slash/pngfind.com-rpg-png-887284.png";
     private SpriteAnimation animation;
 
-    private int pixelsPerUnit = 90;
-    private int spriteWidth = 189;
-    private int spriteHeight = 189;
+    private int pixelsPerUnit = 70;
+    private int spriteWidth = 188;
+    private int spriteHeight = 188;
 
     public StickFigureSlashAnimator(SpriteLoader spriteLoader)
     {
-        animation = spriteLoader.LoadAnimation(SlashSheet, spriteWidth, spriteHeight, pixelsPerUnit, TimeSpan.FromMilliseconds(75), 
-            new List<int>() { 3, 4, 5, 6 },
+        animation = spriteLoader.LoadAnimation(SlashSheet, spriteWidth, spriteHeight, pixelsPerUnit, TimeSpan.FromMilliseconds(50), 
+            new List<int>() { 3, 4, 6 },
             loopAnimation: false);
     }
 

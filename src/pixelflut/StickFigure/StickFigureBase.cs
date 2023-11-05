@@ -23,6 +23,11 @@ public class StickFigureBase
 
     public Vector2 Size { get; set; } = new Vector2(1f, 1.25f);
 
+    /// <summary>
+    /// The max platform thickness the player can jump through
+    /// </summary>
+    public float MaxJumpThroughPlatformHeight { get; set; } = 0.5f;
+
     private StickFigureWorld world;
 
     public IBox box { get; private set; }
@@ -68,6 +73,11 @@ public class StickFigureBase
         bool hitGround = false;
         box.Move(toPosition.X, toPosition.Y, c =>
         {
+            // Allow the player to jump through platforms
+            if (c.Other.Height < MaxJumpThroughPlatformHeight &&
+               (Velocity.Y > 0 || prevPositin.Y + 0.025f < c.Other.Y + c.Other.Height))
+                return CollisionResponses.None;
+
             if (c.Hit.Normal.X != 0)
             {
                 this.Velocity = new Vector2(0, this.Velocity.Y);

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.ObjectPool;
+﻿using Humper;
+using Microsoft.Extensions.ObjectPool;
 using PixelFlut.Core;
 using PixelFlut.Core.Sprite;
 using System.Numerics;
@@ -75,7 +76,7 @@ public class StickFigureGame : IGame
         // If a game pad have been disconnected
         while (world.Players.Count > gamePads.Count)
         {
-            world.Players.RemoveAt(world.Players.Count - 1);
+            DespawnPlayers();
         }
 
         // If a game pad have been connected
@@ -116,5 +117,11 @@ public class StickFigureGame : IGame
             projectileAnimators,
             explosionAnimators,
             spriteLoader));
+    }
+
+    void DespawnPlayers()
+    {
+        world.BoxWorld.Remove(world.Players[world.Players.Count - 1].Box);
+        world.Players.RemoveAt(world.Players.Count - 1);
     }
 }

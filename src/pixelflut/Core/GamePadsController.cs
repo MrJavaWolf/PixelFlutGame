@@ -61,7 +61,7 @@ public class GamePadsController
     public void Loop()
     {
         // Make a local reference in case the connectedDevices list changes while updating the devices
-        IReadOnlyList<IGamePadDevice> devices = connectedDevices;
+        IReadOnlyList<IGamePadDevice> devices = connectedDevices.ToList();
         foreach (var device in devices)
         {
             if (device is ConsoleAsGamePad consoleGamePad)

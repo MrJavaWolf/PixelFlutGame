@@ -1,6 +1,7 @@
 ﻿using PixelFlut.Core;
 using PixelFlut.Core.Sprite;
 using System.Drawing;
+using System.Net.Sockets;
 using System.Numerics;
 
 namespace StickFigureGame;
@@ -46,15 +47,25 @@ public class StickFigureAnimator
     public bool FlipX { get; set; }
     private bool restartAnimation = false;
 
+    // Distinct colors
+    public static readonly List<Color> PlayerColors = new List<Color>()
+    {
+        Color.FromArgb(0xdc, 0xbe, 0xff),
+        Color.FromArgb(0xaa, 0xff, 0xc3),
+        Color.FromArgb(0xff, 0xfa, 0xc8),
+        Color.FromArgb(0xff, 0xd8, 0xb1),
+        Color.FromArgb(0x42, 0xd4, 0xf4),
+        Color.FromArgb(0x3c, 0xb4, 0x4b),
+    };
 
     public StickFigureAnimator(
         StickFigureBase stickFigureBase,
         SpriteLoader spriteLoader)
     {
         this.stickFigureBase = stickFigureBase;
-        var color = Color.Blue;
+        Color color = PlayerColors[Random.Shared.Next(PlayerColors.Count)];
         var defaultPixelsPerUnit = spriteLoader.SpriteToUnitConversion(48, stickFigureBase.Size.Y);
-        int outlineSize = 4;
+        int outlineSize = 5;
         idle = spriteLoader.LoadAnimation(PlayerIdle, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
         shoot = spriteLoader.LoadAnimation(PlayerShoot, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);
         run = spriteLoader.LoadAnimation(PlayerRun, 48, 48, defaultPixelsPerUnit, timeBetweenFrames: TimeSpan.FromMilliseconds(100), cropEachSprite: new Vector4(0, 0, 0, 8), overwriteColor: color, outlineSize: outlineSize);

@@ -7,20 +7,17 @@ namespace StickFigureGame;
 public class StickFigureWorldRenderer
 {
     private readonly StickFigureGameConfiguration config;
-    private readonly IPixelFlutScreenProtocol screenProtocol;
     private readonly StickFigureWorld world;
     private readonly PixelBufferFactory pixelBufferFactory;
     private readonly PixelFlutScreenConfiguration screenConfiguration;
 
     public StickFigureWorldRenderer(
         StickFigureGameConfiguration config,
-        IPixelFlutScreenProtocol screenProtocol,
         PixelFlutScreenConfiguration screenConfiguration,
         StickFigureWorld world,
         PixelBufferFactory pixelBufferFactory)
     {
         this.config = config;
-        this.screenProtocol = screenProtocol;
         this.screenConfiguration = screenConfiguration;
         this.world = world;
         this.pixelBufferFactory = pixelBufferFactory;

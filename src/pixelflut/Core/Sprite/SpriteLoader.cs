@@ -164,12 +164,6 @@ public class SpriteLoader
         {
             for (int y = (int)cropEachSprite.Y; y < height - (int)cropEachSprite.W; y++)
             {
-                //if (x < cropEachSprite.X ||
-                //    x > cropEachSprite.Z ||
-                //    y < cropEachSprite.Y ||
-                //    y > cropEachSprite.W)
-                //    continue;
-
                 subImage[x - (int)cropEachSprite.X, y - (int)cropEachSprite.Y] =
                     image[startX + x, startY + y];
             }

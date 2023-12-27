@@ -76,7 +76,7 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
                 logger.LogInformation($"Creates TCP connection to {endPoint}...");
                 tcpClient.Connect(endPoint);
                 logger.LogInformation($"Successfully connected to TCP {endPoint}");
-                isConnected = false;
+                isConnected = true;
             }
             catch (Exception e)
             {

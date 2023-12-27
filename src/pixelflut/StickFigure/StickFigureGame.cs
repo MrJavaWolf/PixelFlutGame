@@ -51,7 +51,7 @@ public class StickFigureGame : IGame
         this.explosionAnimators = explosionAnimators;
         StickFigureWorldData stickFigureWorldData = StickFigureWorldImporter.LoadWorldData();
         world = new StickFigureWorld(stickFigureWorldData);
-        renderer = new StickFigureWorldRenderer(config, screenProtocol, screenConfiguration, world, pixelBufferFactory);
+       // renderer = new StickFigureWorldRenderer(config, screenProtocol, screenConfiguration, world, pixelBufferFactory);
         PreloadPool(projectileAnimators);
         PreloadPool(explosionAnimators);
     }

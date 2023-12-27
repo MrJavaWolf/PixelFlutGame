@@ -10,8 +10,6 @@ using PixelFlut.Snake;
 using PixelFlut.TestImage;
 using Serilog;
 using StickFigureGame;
-using System.Text;
-
 namespace PixelFlut;
 
 public class Program
@@ -73,7 +71,7 @@ public class Program
             return new DefaultObjectPool<StickFigureExplosionEffectAnimator>(
                  new StickFigureExplosionEffectAnimatorPooledObjectPolicy(serviceProvider.GetRequiredService<SpriteLoader>()));
         });
-        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
+        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocolDefNull>();
         services.AddSingleton<MqttGameChanger>();
         services.AddSingleton<GamePadsController>();
         services.AddSingleton<DistributedServer>();

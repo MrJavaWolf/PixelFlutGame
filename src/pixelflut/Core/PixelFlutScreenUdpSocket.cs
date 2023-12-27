@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace PixelFlut.Core;
 
-public class PixelFlutScreenSender
+public class PixelFlutScreenUdpSocket : IPixelFlutScreenSocket
 {
     private readonly PixelFlutScreenConfiguration configuration;
 
@@ -15,7 +15,7 @@ public class PixelFlutScreenSender
     private int currentRenderByteBuffer = 0;
 
 
-    public PixelFlutScreenSender(PixelFlutScreenConfiguration configuration, ILogger logger)
+    public PixelFlutScreenUdpSocket(PixelFlutScreenConfiguration configuration, ILogger logger)
     {
         this.configuration = configuration;
 

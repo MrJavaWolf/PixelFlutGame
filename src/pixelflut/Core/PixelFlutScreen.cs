@@ -98,7 +98,7 @@ public class PixelFlutScreen
     public IReadOnlyList<PixelBuffer> CurrentFrame => currentFrame;
 
     // Senders
-    private List<PixelFlutScreenSender> senders = new();
+    private List<IPixelFlutScreenSocket> senders = new();
 
     public PixelFlutScreen(
         PixelFlutScreenConfiguration configuration,
@@ -109,7 +109,7 @@ public class PixelFlutScreen
 
         for (int i = 0; i < configuration.SenderThreads; i++)
         {
-            senders.Add(new PixelFlutScreenSender(configuration, logger));
+            senders.Add(new PixelFlutScreenTcpSocket(configuration, logger));
         }
 
         // Stats counter
@@ -155,13 +155,13 @@ public class PixelFlutScreen
     {
         for (int i = 0; i < senders.Count; i++)
         {
-            PixelFlutScreenSender sender = senders[i];
+            IPixelFlutScreenSocket sender = senders[i];
             Thread thread = new(() => SenderThread(sender, token));
             thread.Start();
         }
     }
 
-    private void SenderThread(PixelFlutScreenSender sender, CancellationToken token)
+    private void SenderThread(IPixelFlutScreenSocket sender, CancellationToken token)
     {
         while (!token.IsCancellationRequested)
         {

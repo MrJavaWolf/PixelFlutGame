@@ -138,7 +138,7 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
             index = b.Length;
         }
 
-        return (pixelsToSend, b);
+        return (pixelsToSend, bytes);
     }
 
     private (int pixels, byte[] sendBuffer) SelectNextBuffer(List<PixelBuffer> frame)

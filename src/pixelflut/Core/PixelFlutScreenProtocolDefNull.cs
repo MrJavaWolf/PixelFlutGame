@@ -20,7 +20,7 @@ public class PixelFlutScreenProtocolDefNull : IPixelFlutScreenProtocol
         if (pixelNumber != 0)
             throw new Exception($"The {nameof(PixelFlutScreenProtocolDefNull)} can only have 1 pixel per byte array");
 
-        string message = $"PX {x} {y}\n";
+        string message = $"PX {x} {y}";
         byte[] bytes = UTF8Encoding.UTF8.GetBytes(message);
 
         byte[] newSendBuffer = new byte[bytes.Length + 7];

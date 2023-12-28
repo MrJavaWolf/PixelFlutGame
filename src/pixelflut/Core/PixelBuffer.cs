@@ -103,11 +103,13 @@ public class PixelBuffer
                 $"you tried to set pixel index {pixelNumber}");
         PixelBufferPosition position = mappings[pixelNumber];
         byte[] buffer = buffers[position.buffer];
-        screenProtocol.WriteToBuffer(
+        byte[] updatedBuffer = screenProtocol.WriteToBuffer(
             buffer,
             position.position,
             X + screenConfiguration.OffsetX,
             Y + screenConfiguration.OffsetY);
+        buffers[position.buffer] = updatedBuffer;
+
     }
 
     public void SetPixel(int pixelNumber, int X, int Y, byte R, byte G, byte B, byte A)

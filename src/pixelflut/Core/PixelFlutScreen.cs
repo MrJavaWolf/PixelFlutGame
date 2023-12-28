@@ -174,7 +174,7 @@ public class PixelFlutScreen
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Failed to send udp package");
+                logger.LogError(e, "Failed to send package");
                 Thread.Sleep(5000);
             }
         }

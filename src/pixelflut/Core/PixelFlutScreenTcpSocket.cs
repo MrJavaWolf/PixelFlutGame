@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace PixelFlut.Core;
 
@@ -102,7 +103,8 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"TCP send failed");
+            string result = System.Text.UTF8Encoding.UTF8.GetString(sendBuffer, 0, sendBuffer.Length);
+            logger.LogError(ex, $"TCP failed to send: '{result}'");
             isConnected = false;
             throw;
         }
@@ -135,9 +137,8 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
         foreach (byte[] b in bytesList)
         {
             Array.Copy(b, 0, bytes, index, b.Length);
-            index = b.Length;
+            index += b.Length;
         }
-
         return (pixelsToSend, bytes);
     }
 

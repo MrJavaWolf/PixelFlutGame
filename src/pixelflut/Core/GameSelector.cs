@@ -80,10 +80,6 @@ namespace PixelFlut.Core
                 this.image.AutoMove.SpeedX = msg.Image.AutoMove.SpeedX;
                 this.image.AutoMove.SpeedY = msg.Image.AutoMove.SpeedY;
                 this.image.AutoMove.Enable = msg.Image.AutoMove.Enable;
-                this.image.AutoMove.MaxX = msg.Image.AutoMove.MaxX;
-                this.image.AutoMove.MaxY = msg.Image.AutoMove.MaxY;
-                this.image.AutoMove.MinY = msg.Image.AutoMove.MinY;
-                this.image.AutoMove.MinX = msg.Image.AutoMove.MinX;
             }
             if (msg.Snake != null)
             {

@@ -22,6 +22,10 @@ public class GameImage : IGame
         /// </summary>
         public double Speed { get; set; }
 
+        public int SizeX { get; set; }
+
+        public int SizeY { get; set; }
+
         /// <summary>
         /// Auto move configurations
         /// </summary>
@@ -45,12 +49,6 @@ public class GameImage : IGame
         /// How fast the image should move in the Y direction
         /// </summary>
         public double SpeedY { get; set; }
-
-
-        public int MinX { get; set; }
-        public int MinY { get; set; }
-        public int MaxX { get; set; }
-        public int MaxY { get; set; }
     }
 
     private record ImageFrame(List<PixelBuffer> frame, TimeSpan delay);
@@ -65,6 +63,8 @@ public class GameImage : IGame
     private int imageFrameIndex = 0;
     private TimeSpan nextFrameTime = TimeSpan.Zero;
     private Vector2 imagePosition = Vector2.Zero;
+    private bool isMovingDown = true;
+    private bool isMovingRight = true;
 
     public GameImage(
         ILogger<GameImage> logger,
@@ -110,7 +110,7 @@ public class GameImage : IGame
         logger.LogInformation("Image format: {@1}", format);
 
         // Resizes the image to fit the resolution
-        image.Mutate(x => x.Resize(bufferFactory.Screen.ResolutionX, bufferFactory.Screen.ResolutionY));
+        image.Mutate(x => x.Resize(config.SizeX, config.SizeX));
 
         if (image.Frames.Count == 0)
         {
@@ -181,28 +181,54 @@ public class GameImage : IGame
 
     private void AutoMoveLoop(GameTime time)
     {
-        imagePosition.X += (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
-        imagePosition.Y += (float)(config.AutoMove.SpeedY * time.DeltaTime.TotalSeconds);
-        if (imagePosition.X > config.AutoMove.MaxX)
+        if (isMovingDown)
         {
-            imagePosition.X = config.AutoMove.MinX;
-            imagePosition.Y += bufferFactory.Screen.ResolutionY;
+            imagePosition.Y += (float)(config.AutoMove.SpeedY * time.DeltaTime.TotalSeconds);
+            if(imagePosition.Y + config.SizeY >  bufferFactory.Screen.ResolutionY)
+            {
+                imagePosition.Y = bufferFactory.Screen.ResolutionY - config.SizeY;
+                isMovingDown = false;
+            }
         }
-        else if (imagePosition.X < config.AutoMove.MinX)
-            imagePosition.X = config.AutoMove.MaxX;
-        if (imagePosition.Y > config.AutoMove.MaxY)
-            imagePosition.Y = config.AutoMove.MinY;
-        else if (imagePosition.Y < config.AutoMove.MinY)
-            imagePosition.Y = config.AutoMove.MaxY;
+        else
+        {
+            imagePosition.Y -= (float)(config.AutoMove.SpeedY * time.DeltaTime.TotalSeconds);
+            if (imagePosition.Y < 0)
+            {
+                imagePosition.Y = 0;
+                isMovingDown = true;
+            }
+        }
+
+
+        if (isMovingRight)
+        {
+            imagePosition.X += (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
+            if (imagePosition.X + config.SizeX > bufferFactory.Screen.ResolutionX)
+            {
+                imagePosition.X = bufferFactory.Screen.ResolutionX - config.SizeX;
+                isMovingRight = false;
+            }
+        }
+        else
+        {
+            imagePosition.X -= (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
+            if (imagePosition.X < 0)
+            {
+                imagePosition.X = 0;
+                isMovingRight = true;
+            }
+        }
+
         UpdateImagePosition(imageFrames[imageFrameIndex].frame[0]);
     }
 
     private void DrawImage(PixelBuffer buffer, ImageFrame<Rgba32> imageFrame)
     {
         int pixelNumber = 0;
-        for (int y = 0; y < bufferFactory.Screen.ResolutionY && y < imageFrame.Height; y++)
+        for (int y = 0; y < config.SizeY && y < imageFrame.Height; y++)
         {
-            for (int x = 0; x < bufferFactory.Screen.ResolutionX && x < imageFrame.Width; x++)
+            for (int x = 0; x < config.SizeX && x < imageFrame.Width; x++)
             {
                 Rgba32 rgb = imageFrame[x, y];
                 int xPos = x + (int)imagePosition.X;
@@ -215,9 +241,9 @@ public class GameImage : IGame
     private void UpdateImagePosition(PixelBuffer buffer)
     {
         int pixelNumber = 0;
-        for (int y = 0; y < bufferFactory.Screen.ResolutionY; y++)
+        for (int y = 0; y < config.SizeY; y++)
         {
-            for (int x = 0; x < bufferFactory.Screen.ResolutionX; x++)
+            for (int x = 0; x < config.SizeX; x++)
             {
                 int xPos = x + (int)imagePosition.X;
                 int yPos = y + (int)imagePosition.Y;

@@ -10,17 +10,18 @@ public class PixelFlutScreenProtocolDefNull : IPixelFlutScreenProtocol
 
     public byte[] CreateBuffer()
     {
-        string message = $"PX {0:0000} {0:0000} {ToHex(0)}{ToHex(0)}{ToHex(0)}";
+        string message = $"PX {0} {0} {ToHex(0)}{ToHex(0)}{ToHex(0)}\n";
         byte[] send_buffer = UTF8Encoding.UTF8.GetBytes(message);
         return send_buffer;
     }
 
     public void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y)
     {
+        throw new NotSupportedException($"Not supported");
         if (pixelNumber != 0)
             throw new Exception($"The {nameof(PixelFlutScreenProtocolDefNull)} can only have 1 pixel per byte array");
 
-        string message = $"PX {x:0000} {y:0000}";
+        string message = $"PX {x} {y}\n";
         byte[] bytes = UTF8Encoding.UTF8.GetBytes(message);
         if (send_buffer.Length < bytes.Length)
         {
@@ -34,17 +35,20 @@ public class PixelFlutScreenProtocolDefNull : IPixelFlutScreenProtocol
         if (pixelNumber != 0)
             throw new Exception($"The {nameof(PixelFlutScreenProtocolDefNull)} can only have 1 pixel per byte array");
 
-        string message = $"PX {x:0000} {y:0000} {ToHex(r)}{ToHex(g)}{ToHex(b)}";
+
+        string message = $"PX {x} {y} {ToHex(r)}{ToHex(g)}{ToHex(b)}\n";
         byte[] bytes = UTF8Encoding.UTF8.GetBytes(message);
-        if(send_buffer.Length != bytes.Length)
+        if (send_buffer.Length != bytes.Length)
         {
-            throw new Exception($"Failed to write to buffer: '{message}'");
+            //throw new Exception($"Failed to write to buffer: '{message}'");
+            Array.Resize(ref send_buffer, bytes.Length);
+
         }
         Array.Copy(bytes, send_buffer, bytes.Length);
     }
 
     private static string ToHex(byte b)
     {
-        return BitConverter.ToString(new byte[] { b });
+        return BitConverter.ToString(new byte[] { b }).ToLower();
     }
 }

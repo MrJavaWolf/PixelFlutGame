@@ -15,7 +15,7 @@ public class PixelFlutScreenProtocol_JanKlopperPixelvloedC_P0 : IPixelFlutScreen
         return send_buffer;
     }
 
-    public void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y)
+    public byte[] WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y)
     {
         int offset = HeaderSize + pixelNumber * BytesPerPixel;
         byte[] xBytes = BitConverter.GetBytes(x);
@@ -24,9 +24,10 @@ public class PixelFlutScreenProtocol_JanKlopperPixelvloedC_P0 : IPixelFlutScreen
         send_buffer[offset + 1] = xBytes[1];
         send_buffer[offset + 2] = yBytes[0];
         send_buffer[offset + 3] = yBytes[1];
+        return send_buffer;
     }
 
-    public void WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y, byte r, byte g, byte b, byte a)
+    public byte[] WriteToBuffer(byte[] send_buffer, int pixelNumber, int x, int y, byte r, byte g, byte b, byte a)
     {
         int offset = HeaderSize + pixelNumber * BytesPerPixel;
         byte[] xBytes = BitConverter.GetBytes(x);
@@ -38,5 +39,6 @@ public class PixelFlutScreenProtocol_JanKlopperPixelvloedC_P0 : IPixelFlutScreen
         send_buffer[offset + 4] = r;
         send_buffer[offset + 5] = g;
         send_buffer[offset + 6] = b;
+        return send_buffer;
     }
 }

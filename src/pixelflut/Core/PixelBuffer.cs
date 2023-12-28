@@ -121,7 +121,7 @@ public class PixelBuffer
 
         PixelBufferPosition position = mappings[pixelNumber];
         byte[] buffer = buffers[position.buffer];
-        screenProtocol.WriteToBuffer(
+        byte[] updatedBuffer = screenProtocol.WriteToBuffer(
             buffer,
             position.position,
             X + screenConfiguration.OffsetX,
@@ -130,6 +130,7 @@ public class PixelBuffer
             G,
             B,
             A);
+        buffers[position.buffer] = updatedBuffer;
     }
 
     public void SetPixel(int pixelNumber, int X, int Y, Color c)

@@ -25,7 +25,7 @@ public class PixelFlutScreenProtocolDefNull : IPixelFlutScreenProtocol
 
         byte[] newSendBuffer = new byte[bytes.Length + 8];
         Array.Copy(bytes, newSendBuffer, bytes.Length);
-        Array.Copy(send_buffer, 0, newSendBuffer, bytes.Length, 8);
+        Array.Copy(send_buffer, send_buffer.Length - 8, newSendBuffer, bytes.Length, 8);
 
         return newSendBuffer;
     }

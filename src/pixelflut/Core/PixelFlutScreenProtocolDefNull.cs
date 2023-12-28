@@ -23,9 +23,9 @@ public class PixelFlutScreenProtocolDefNull : IPixelFlutScreenProtocol
         string message = $"PX {x} {y}";
         byte[] bytes = UTF8Encoding.UTF8.GetBytes(message);
 
-        byte[] newSendBuffer = new byte[bytes.Length + 7];
+        byte[] newSendBuffer = new byte[bytes.Length + 8];
         Array.Copy(bytes, newSendBuffer, bytes.Length);
-        Array.Copy(send_buffer, 0, newSendBuffer, bytes.Length, 7);
+        Array.Copy(send_buffer, 0, newSendBuffer, bytes.Length, 8);
 
         return newSendBuffer;
     }

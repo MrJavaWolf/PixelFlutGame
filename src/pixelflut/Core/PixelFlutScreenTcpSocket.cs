@@ -87,7 +87,7 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
         }
 
         // Pick a buffer to render
-        (int pixels, byte[] sendBuffer) = SelectNextBuffer(frame);
+        (int pixels, byte[] sendBuffer) = SelectNextBuffers(frame);
 
         try
         {
@@ -113,6 +113,32 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
         {
             Thread.Sleep(configuration.SleepTimeBetweenSends);
         }
+    }
+
+    private (int pixels, byte[] sendBuffer) SelectNextBuffers(List<PixelBuffer> frame)
+    {
+
+        int pixelsToSend = 0;
+        int bytesToSend = 0;
+        List<byte[]> bytesList = new List<byte[]>();
+        while (bytesToSend < 1000)
+        {
+
+            (int pixels, byte[] sendBuffer) = SelectNextBuffer(frame);
+            pixelsToSend += pixels;
+            bytesToSend += sendBuffer.Length;
+            bytesList.Add(sendBuffer);
+        }
+
+        byte[] bytes = new byte[bytesToSend];
+        int index = 0;
+        foreach (byte[] b in bytesList)
+        {
+            Array.Copy(b, 0, bytes, index, b.Length);
+            index = b.Length;
+        }
+
+        return (pixelsToSend, b);
     }
 
     private (int pixels, byte[] sendBuffer) SelectNextBuffer(List<PixelBuffer> frame)

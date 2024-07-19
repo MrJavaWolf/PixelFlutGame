@@ -88,7 +88,7 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
         }
 
         // Pick a buffer to render
-        (int pixels, byte[] sendBuffer) = SelectNextBuffers(frame);
+        (int pixels, byte[] sendBuffer) = SelectNextBuffer(frame);
 
         try
         {
@@ -100,6 +100,9 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
             stats.PixelsSent += pixels;
             stats.BuffersSent++;
             stats.TotalBuffersSent++;
+
+            //string result = System.Text.UTF8Encoding.UTF8.GetString(sendBuffer, 0, sendBuffer.Length);
+            //logger.LogInformation($"Bytes send: {result}");
         }
         catch (Exception ex)
         {
@@ -139,6 +142,7 @@ public class PixelFlutScreenTcpSocket : IPixelFlutScreenSocket
             Array.Copy(b, 0, bytes, index, b.Length);
             index += b.Length;
         }
+
         return (pixelsToSend, bytes);
     }
 

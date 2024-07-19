@@ -109,7 +109,7 @@ public class PixelFlutScreen
 
         for (int i = 0; i < configuration.SenderThreads; i++)
         {
-            senders.Add(new PixelFlutScreenTcpSocket(configuration, logger));
+            senders.Add(new PixelFlutScreenUdpSocket(configuration, logger));
         }
 
         // Stats counter

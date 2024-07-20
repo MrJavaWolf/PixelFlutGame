@@ -1,5 +1,4 @@
 ﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using StickFigureGame;
@@ -7,19 +6,6 @@ using System.Numerics;
 
 namespace PixelFlut.Core.Sprite;
 
-public class SpriteConfiguration
-{
-    public string imageFile;
-    public int width;
-    public int height;
-    public float pixelsPerUnit;
-    public TimeSpan? timeBetweenFrames = null;
-    public List<int>? animation = null;
-    public bool loopAnimation = true;
-    public Vector4? cropEachSprite = null;
-    public System.Drawing.Color? overwriteColor = null;
-
-}
 
 public class SpriteLoader
 {
@@ -111,8 +97,7 @@ public class SpriteLoader
             throw new FileNotFoundException("Could not find file to display", image);
         }
         logger.LogInformation($"Number of bytes in the file: {imageBytes.Count()} b - {image}");
-        Image<Rgba32> imageRgb = Image.Load<Rgba32>(imageBytes, out IImageFormat format);
-        logger.LogInformation("Image format: {@1}", format);
+        Image<Rgba32> imageRgb = Image.Load<Rgba32>(imageBytes);
 
         if (imageRgb.Frames.Count == 0)
         {

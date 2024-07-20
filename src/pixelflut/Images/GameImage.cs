@@ -106,8 +106,7 @@ public class GameImage : IGame
             throw new FileNotFoundException("Could not find file to display", config.Image);
         }
         logger.LogInformation($"Number of bits in the file: {imageBytes.Count()}");
-        Image<Rgba32> image = Image.Load<Rgba32>(imageBytes, out IImageFormat format);
-        logger.LogInformation("Image format: {@1}", format);
+        Image<Rgba32> image = Image.Load<Rgba32>(imageBytes);
 
         // Resizes the image to fit the resolution
         image.Mutate(x => x.Resize(config.SizeX, config.SizeX));

@@ -11,6 +11,9 @@ public class StickFigureWorldRenderer
     private readonly PixelBufferFactory pixelBufferFactory;
     private readonly PixelFlutScreenConfiguration screenConfiguration;
 
+    private List<PixelBuffer> prerenderedGroundPixelBuffers;
+
+
     public StickFigureWorldRenderer(
         StickFigureGameConfiguration config,
         PixelFlutScreenConfiguration screenConfiguration,
@@ -21,13 +24,14 @@ public class StickFigureWorldRenderer
         this.screenConfiguration = screenConfiguration;
         this.world = world;
         this.pixelBufferFactory = pixelBufferFactory;
+        prerenderedGroundPixelBuffers = RenderGround();
     }
 
     public List<PixelBuffer> Render(GameTime time)
     {
         List<PixelBuffer> pixelBuffers = new List<PixelBuffer>();
 
-        pixelBuffers.AddRange(RenderGround());
+        pixelBuffers.AddRange(prerenderedGroundPixelBuffers);
 
 
         foreach (StickFigureCharacterController player in world.Players)
@@ -55,34 +59,10 @@ public class StickFigureWorldRenderer
         List<PixelBuffer> buffers = new();
         foreach (IBox ground in world.WorldBoxes)
         {
-            if (!IsGroundVisible(ground)) continue;
+            //if (!IsGroundVisible(ground)) continue;
             buffers.Add(RenderGround(ground));
         }
         return buffers;
-    }
-
-    private bool IsGroundVisible(IBox ground)
-    {
-        foreach (var player in world.Players)
-        {
-            var c = player.Center;
-            if (IsInsideCircle(c.X, c.Y, config.PlayerViewSphere, ground.X, ground.Y) ||
-                IsInsideCircle(c.X, c.Y, config.PlayerViewSphere, ground.X, ground.Y + ground.Height) ||
-                IsInsideCircle(c.X, c.Y, config.PlayerViewSphere, ground.X + ground.Width, ground.Y) ||
-                IsInsideCircle(c.X, c.Y, config.PlayerViewSphere, ground.X + ground.Width, ground.Y + ground.Height) ||
-                IsInsideCircle(c.X, c.Y, config.PlayerViewSphere, ground.X + ground.Width / 2, ground.Y + ground.Height / 2))
-                return true;
-        }
-        return false;
-    }
-
-    bool IsInsideCircle(float circle_x, float circle_y, float rad, float x, float y)
-    {
-        if ((x - circle_x) * (x - circle_x) +
-            (y - circle_y) * (y - circle_y) <= rad * rad)
-            return true;
-        else
-            return false;
     }
 
     record PixelToRender(int x, int y);
@@ -98,10 +78,7 @@ public class StickFigureWorldRenderer
             for (int y = 0; y < ySize; y++)
             {
                 int yPos = (int)(ground.Y * config.RenderScale) + y;
-                if (IsVisible(xPos, yPos))
-                {
-                    pixels.Add(new PixelToRender(xPos, screenConfiguration.ResolutionY - yPos));
-                }
+                pixels.Add(new PixelToRender(xPos, screenConfiguration.ResolutionY - yPos));
             }
         }
         if (pixels.Count == 0)
@@ -117,18 +94,5 @@ public class StickFigureWorldRenderer
         }
 
         return buffer;
-    }
-
-    private bool IsVisible(int x, int y)
-    {
-        foreach (var player in world.Players)
-        {
-            var c = player.Center * config.RenderScale;
-            if (IsInsideCircle(c.X, c.Y, config.PlayerViewSphere * config.RenderScale, x, y))
-            {
-                return true;
-            }
-        }
-        return false;
     }
 }

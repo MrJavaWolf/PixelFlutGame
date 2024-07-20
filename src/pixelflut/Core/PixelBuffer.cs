@@ -32,6 +32,12 @@ public class PixelBuffer
     // Buffers used for sending the bytes
     private readonly List<byte[]> buffers = new();
 
+    /// <summary>
+    /// Enable this pixel buffer.
+    /// If set to false, and you send the pixelbuffer to the be rendered, the pixel buffer will be ignored
+    /// </summary>
+    public bool Enable { get; set; } = true;
+
     public int PixelsPerBuffer { get => screenProtocol.PixelsPerBuffer; }
 
     public PixelBuffer(int numberOfPixels, IPixelFlutScreenProtocol screenProtocol, List<byte[]> buffers)

@@ -14,7 +14,7 @@ namespace PixelFlut.Core
         private bool isEastButtonCurrentlyPressedDown = false;
         private bool isSouthButtonCurrentlyPressedDown = false;
         private bool isWestButtonCurrentlyPressedDown = false;
-        
+
         public double X { get; private set; } = 0.5;
         public double Y { get; private set; } = 0.5;
 
@@ -115,7 +115,7 @@ namespace PixelFlut.Core
             switch (usage.FullId)
             {
                 case (uint)GenericDesktopPage.Y:
-                    this.Y = IsInDeadzone(change.Value) ? 0.5 : 1 - change.Value;
+                    this.Y = IsInDeadzone(change.Value) ? 0.5 : change.Value;
                     break;
                 case (uint)GenericDesktopPage.X:
                     this.X = IsInDeadzone(change.Value) ? 0.5 : change.Value;

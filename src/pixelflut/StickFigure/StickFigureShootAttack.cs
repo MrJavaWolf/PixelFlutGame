@@ -43,6 +43,7 @@ public class StickFigureShootAttack
     {
         startAttackTime = time.TotalTime.TotalSeconds;
         Vector2 input = gamePad.LeftStickInput;
+        input.Y = -input.Y;
         pushBackDirection = GetPushBackDirection(input);
         shootDirection = GetShootDirection(input);
         HaveShoot = false;

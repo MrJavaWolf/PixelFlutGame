@@ -46,6 +46,7 @@ public class StickFigureSlashAttack
         playerHits.Clear();
         startAttackTime = time.TotalTime.TotalSeconds;
         Vector2 input = gamePad.LeftStickInput;
+        input.Y = -input.Y;
         attackDirection = GetAttackDirection(input);
         stickFigureBase.Facing = attackDirection.X > 0 ?
               StickFigureBase.FacingDirection.Right :

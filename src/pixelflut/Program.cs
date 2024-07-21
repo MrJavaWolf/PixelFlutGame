@@ -36,20 +36,29 @@ public class Program
 
     public static async Task Main(string[] args)
     {
+        CancellationTokenSource tokenSource = new();
+
+        // Setup gracefull shutdown
+        Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e)
+        {
+            e.Cancel = true;
+            tokenSource.Cancel();
+        };
+
+        // Create game loop
+        ServiceProvider serviceProvider = Setup(args, tokenSource.Token);
+        await RunAsync(tokenSource.Token, serviceProvider);
+    }
+
+
+    public static ServiceProvider Setup(string[] args, CancellationToken token)
+    {
         // Configuration
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables()
             .AddCommandLine(args)
             .Build();
-
-        // Setup gracefull shutdown
-        CancellationTokenSource tokenSource = new();
-        Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e)
-        {
-            e.Cancel = true;
-            tokenSource.Cancel();
-        };
 
         // Dependency injection
         GameFactory gameFactory = new GameFactory(configuration);
@@ -82,32 +91,38 @@ public class Program
         services.AddSingleton<PixelFlutScreen>();
         services.AddSingleton<SpriteLoader>();
         services.AddTransient<GameSelector>();
-        services.AddSingleton(new StoppingToken(tokenSource.Token));
+        services.AddSingleton(new StoppingToken(token));
         services.AddHttpClient();
         services.AddSingleton(gameFactory);
         AddGames(services, gameFactory);
-        using ServiceProvider serviceProvider = services.BuildServiceProvider();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        return serviceProvider;
 
-        // Create game loop
-        ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation($"- - - - - Starting pixelflut game - - - - - ");
-        GamePadsController gamepadsController = serviceProvider.GetRequiredService<GamePadsController>();
-        GameLoop gameLoop = serviceProvider.GetRequiredService<GameLoop>();
-
-        // Run
-        Task t1 = Task.Run(async () => await gamepadsController.RunAsync(tokenSource.Token));
-        Thread gameLoopThread = new(() => gameLoop.Run(tokenSource.Token));
-        gameLoopThread.Start();
-        gameLoopThread.Join();
-        await Task.WhenAll(t1);
-
-        logger.LogInformation($"- - - - -  Shutdown pixelflut game - - - - - ");
     }
 
     private static T Read<T>(IConfiguration configuration, string conf)
     {
         return configuration.GetRequiredSection(conf).Get<T>() ??
             throw new Exception($"Failed to read configuration: {conf}");
+    }
+
+    public static async Task RunAsync(CancellationToken token, ServiceProvider serviceProvider)
+    {
+        var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+        logger.LogInformation($"- - - - - Starting pixelflut game - - - - - ");
+        GamePadsController gamepadsController = serviceProvider.GetRequiredService<GamePadsController>();
+        GameLoop gameLoop = serviceProvider.GetRequiredService<GameLoop>();
+
+        // Run
+        Task t1 = Task.Run(async () => await gamepadsController.RunAsync(token));
+        Thread gameLoopThread = new(() => gameLoop.Run(token));
+        gameLoopThread.Start();
+        gameLoopThread.Join();
+        await Task.WhenAll(t1);
+
+        logger.LogInformation($"- - - - -  Shutdown pixelflut game - - - - - ");
     }
 }
 

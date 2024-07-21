@@ -5,7 +5,9 @@ VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelFlut", "PixelFlut\PixelFlut.csproj", "{9B00BF95-453F-46F8-A40F-2142A4133F64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelFlutTests", "PixelFlutTests\PixelFlutTests.csproj", "{6E2768EF-FE8D-472A-B578-FBC58687611F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelFlutTests", "PixelFlutTests\PixelFlutTests.csproj", "{6E2768EF-FE8D-472A-B578-FBC58687611F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelFlutHomePage", "PixelFlutHomePage\PixelFlutHomePage.csproj", "{FB4E3A5E-97E1-4C35-91D6-B02B334826B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{6E2768EF-FE8D-472A-B578-FBC58687611F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E2768EF-FE8D-472A-B578-FBC58687611F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E2768EF-FE8D-472A-B578-FBC58687611F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB4E3A5E-97E1-4C35-91D6-B02B334826B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB4E3A5E-97E1-4C35-91D6-B02B334826B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB4E3A5E-97E1-4C35-91D6-B02B334826B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB4E3A5E-97E1-4C35-91D6-B02B334826B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,8 @@
 ﻿using DevDecoder.HIDDevices;
 using DevDecoder.HIDDevices.Usages;
 using HidSharp;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 namespace PixelFlut.Core;
 
 public class GamePadsController
@@ -16,6 +18,8 @@ public class GamePadsController
 
     public IReadOnlyList<IGamePadDevice> GamePads { get => activeGamePads; }
 
+    private ConcurrentQueue<IGamePadDevice> newExternalGamePads = new();
+    private ConcurrentQueue<IGamePadDevice> removedExternalGamePads = new();
 
     public GamePadsController(
         PixelFlutGamepadConfiguration configuration,
@@ -78,6 +82,31 @@ public class GamePadsController
                 }
             }
         }
+
+        while(newExternalGamePads.TryDequeue(out var externalDevice))
+        {
+            if (!activeGamePads.Contains(externalDevice))
+            {
+                activeGamePads.Add(externalDevice);
+            }
+        }
+        while (removedExternalGamePads.TryDequeue(out var externalDevice))
+        {
+            if (activeGamePads.Contains(externalDevice))
+            {
+                activeGamePads.Remove(externalDevice);
+            }
+        }
+    }
+
+    public void AddExternalGamePadDevice(IGamePadDevice gamePadDevice)
+    {
+        newExternalGamePads.Enqueue(gamePadDevice);
+    }
+
+    public void RemoveExternalGamePadDevice(IGamePadDevice gamePadDevice)
+    {
+        removedExternalGamePads.Enqueue(gamePadDevice);
     }
 
     /// <summary>

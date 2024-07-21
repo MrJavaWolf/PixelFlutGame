@@ -31,8 +31,7 @@ public class ExternalGameInputService
         {
             var newExternalGameControllerInput = new ExternalGameControllerInput();
             connectedGameControllers.TryAdd(controllerId, newExternalGameControllerInput);
-            pixelFlutServiceProvider.ServiceProvider
-                .GetRequiredService<GamePadsController>()
+            pixelFlutServiceProvider.ServiceProvider.GetRequiredService<GamePadsController>()
                 .AddExternalGamePadDevice(newExternalGameControllerInput);
             logger.LogInformation($"New external controller connected: {controllerId}");
         }
@@ -47,6 +46,7 @@ public class ExternalGameInputService
             externalGameController.SouthButton.Loop(controllerState.IsSouthButtonPressed);
             externalGameController.EastButton.Loop(controllerState.IsEastButtonPressed);
             externalGameController.WestButton.Loop(controllerState.IsWestButtonPressed);
+            logger.LogInformation($"Updating controller: {controllerId}, {externalGameController}");
         }
     }
 
@@ -60,7 +60,12 @@ public class ExternalGameInputService
                 {
                     if (DateTimeOffset.UtcNow - connectedGameController.Item2.LastUpdated > TimeSpan.FromSeconds(10))
                     {
-                        connectedGameControllers.TryRemove(connectedGameController.Item1, out _);
+                        connectedGameControllers.TryRemove(connectedGameController.Item1, out var oldExternalGameControllerInput);
+                        if (oldExternalGameControllerInput != null)
+                        {
+                            pixelFlutServiceProvider.ServiceProvider.GetRequiredService<GamePadsController>()
+                            .RemoveExternalGamePadDevice(oldExternalGameControllerInput);
+                        }
                         logger.LogInformation($"External controller disconnected: {connectedGameController.Item1}");
                     }
                 }

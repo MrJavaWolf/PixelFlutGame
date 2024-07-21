@@ -46,6 +46,7 @@ public class ExternalGameInputService
             externalGameController.SouthButton.Loop(controllerState.IsSouthButtonPressed);
             externalGameController.EastButton.Loop(controllerState.IsEastButtonPressed);
             externalGameController.WestButton.Loop(controllerState.IsWestButtonPressed);
+            externalGameController.LastUpdated = DateTimeOffset.UtcNow;
             logger.LogInformation($"Updating controller: {controllerId}, {externalGameController}");
         }
     }

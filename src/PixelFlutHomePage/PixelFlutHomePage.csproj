@@ -12,14 +12,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Program.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <None Include="..\pixelflut\stickfigure_world.json" Link="stickfigure_world.json" />
-	  <None Include="Program.cs">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\pixelflut\pixelflut.csproj" />

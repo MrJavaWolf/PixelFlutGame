@@ -183,7 +183,7 @@ public class GameImage : IGame
         if (isMovingDown)
         {
             imagePosition.Y += (float)(config.AutoMove.SpeedY * time.DeltaTime.TotalSeconds);
-            if(imagePosition.Y + config.SizeY >  bufferFactory.Screen.ResolutionY)
+            if (imagePosition.Y + config.SizeY > bufferFactory.Screen.ResolutionY)
             {
                 imagePosition.Y = bufferFactory.Screen.ResolutionY - config.SizeY;
                 isMovingDown = false;
@@ -200,24 +200,31 @@ public class GameImage : IGame
         }
 
 
-        if (isMovingRight)
+        //if (isMovingRight)
+        //{
+        //    imagePosition.X += (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
+        //    if (imagePosition.X + config.SizeX > bufferFactory.Screen.ResolutionX)
+        //    {
+        //        imagePosition.X = bufferFactory.Screen.ResolutionX - config.SizeX;
+        //        isMovingRight = false;
+        //    }
+        //}
+        //else
+        //{
+        //    imagePosition.X -= (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
+        //    if (imagePosition.X < 0)
+        //    {
+        //        imagePosition.X = 0;
+        //        isMovingRight = true;
+        //    }
+        //}
+
+        imagePosition.X += (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
+        if (imagePosition.X > bufferFactory.Screen.ResolutionX)
         {
-            imagePosition.X += (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
-            if (imagePosition.X + config.SizeX > bufferFactory.Screen.ResolutionX)
-            {
-                imagePosition.X = bufferFactory.Screen.ResolutionX - config.SizeX;
-                isMovingRight = false;
-            }
+            imagePosition.X = 0 - config.SizeX;
         }
-        else
-        {
-            imagePosition.X -= (float)(config.AutoMove.SpeedX * time.DeltaTime.TotalSeconds);
-            if (imagePosition.X < 0)
-            {
-                imagePosition.X = 0;
-                isMovingRight = true;
-            }
-        }
+
 
         UpdateImagePosition(imageFrames[imageFrameIndex].frame[0]);
     }

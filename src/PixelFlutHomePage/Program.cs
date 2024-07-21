@@ -21,7 +21,7 @@ builder.Services.AddSingleton<ExternalGameInputService>();
 
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 builder.Services.AddControllersWithViews();
 builder.Services.AddJWolfSwagger(builder.Configuration);
 

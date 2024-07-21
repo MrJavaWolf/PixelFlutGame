@@ -8,5 +8,73 @@
     <h1 class="display-4">Welcome to JWolf's PixelFlut client'</h1>
     <p>Connect with your controller to join</p>
     <p>Code can be found at: <a href="https://github.com/MrJavaWolf/PixelFlutGame">https://github.com/MrJavaWolf/PixelFlutGame</a></p>
-
 </div>
+
+@section Scripts {
+
+    <script src="js/Controller.min.js"></script>
+    <script>
+        // https://samiare.github.io/Controller.js/
+        Controller.search();
+        console.log("JWolf was here!");
+
+        window.addEventListener('gc.controller.found', function (event) {
+            var controller = event.detail.controller;
+            console.log("Controller found at index " + controller.index + ".");
+            console.log("'" + controller.name + "' is ready!");
+        }, false);
+
+        window.addEventListener('gc.controller.lost', function (event) {
+            console.log("The controller at index " + event.detail.index + " has been disconnected.");
+            console.log(Controller.getController(0));
+        }, false);
+
+        var delayInMilliseconds = 16; //1 second
+
+        setInterval(function () {
+            //your code to be executed after 1 second
+            loop();
+        }, delayInMilliseconds);
+
+        function loop() {
+            console.log("Controller length: " + Controller.controllerCount);
+            for (let i = 0; i < Controller.controllerCount; i++) {
+                var controller = Controller.getController(i);
+                if (!controller) continue;
+                if (!controller.inputs) continue;
+                if (!controller.inputs.analogSticks) continue;
+                if (!controller.inputs.analogSticks.LEFT_ANALOG_STICK) continue;
+                if (!controller.inputs.analogSticks.LEFT_ANALOG_STICK.position) continue;
+                if (!controller.inputs.buttons) continue;
+                if (!controller.inputs.buttons.FACE_1) continue;
+                if (!controller.inputs.buttons.FACE_2) continue;
+                if (!controller.inputs.buttons.FACE_3) continue;
+                if (!controller.inputs.buttons.FACE_4) continue;
+                if (!controller.inputs.buttons.START) continue;
+                if (!controller.inputs.buttons.SELECT) continue;
+                let controllerName = "webpage_controller_" + i;
+                let jsonBody = JSON.stringify({
+                    x: controller.inputs.analogSticks.LEFT_ANALOG_STICK.position.x,
+                    y: controller.inputs.analogSticks.LEFT_ANALOG_STICK.position.y,
+                    isStartButtonPressed: controller.inputs.buttons.START.pressed,
+                    isSelectButtonPressed: controller.inputs.buttons.SELECT.pressed,
+                    isSouthButtonPressed: controller.inputs.buttons.FACE_1.pressed,
+                    isEastButtonPressed: controller.inputs.buttons.FACE_2.pressed,
+                    isWestButtonPressed: controller.inputs.buttons.FACE_3.pressed,
+                    isNorthButtonPressed: controller.inputs.buttons.FACE_4.pressed,
+                });
+                console.log("Sending controller state for '" + controllerName + "': " + jsonBody);
+
+                fetch("/api/ExternalGameInput?controllerId=" + controllerName, {
+                    method: "POST",
+                    body: jsonBody,
+                    headers: {
+                        "Content-type": "application/json; charset=UTF-8"
+                    }
+                });
+
+
+            }
+        }
+    </script>
+}

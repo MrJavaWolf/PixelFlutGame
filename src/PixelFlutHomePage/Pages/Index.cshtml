@@ -29,10 +29,9 @@
             console.log(Controller.getController(0));
         }, false);
 
-        var delayInMilliseconds = 16; //1 second
+        var delayInMilliseconds = 30;
 
         setInterval(function () {
-            //your code to be executed after 1 second
             loop();
         }, delayInMilliseconds);
 
@@ -54,8 +53,8 @@
                 if (!controller.inputs.buttons.SELECT) continue;
                 let controllerName = "webpage_controller_" + i;
                 let jsonBody = JSON.stringify({
-                    x: controller.inputs.analogSticks.LEFT_ANALOG_STICK.position.x,
-                    y: controller.inputs.analogSticks.LEFT_ANALOG_STICK.position.y,
+                    x: controller.inputs.analogSticks.LEFT_ANALOG_STICK.position.x / 2 + 0.5,
+                    y: controller.inputs.analogSticks.LEFT_ANALOG_STICK.position.y / 2 + 0.5,
                     isStartButtonPressed: controller.inputs.buttons.START.pressed,
                     isSelectButtonPressed: controller.inputs.buttons.SELECT.pressed,
                     isSouthButtonPressed: controller.inputs.buttons.FACE_1.pressed,

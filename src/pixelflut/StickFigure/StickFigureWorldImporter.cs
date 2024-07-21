@@ -5,7 +5,8 @@ public class StickFigureWorldImporter
 {
     public static StickFigureWorldData LoadWorldData()
     {
-        string json = File.ReadAllText("stickfigure_world.json", Encoding.UTF8);
+        
+        string json = File.ReadAllText(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), "stickfigure_world.json"), Encoding.UTF8);
         StickFigureWorldData data = JsonSerializer.Deserialize<StickFigureWorldData>(json) ?? throw new Exception("Failed to load Stick Figure World data");
         return data;
     }

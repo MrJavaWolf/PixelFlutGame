@@ -92,6 +92,11 @@ public class SpriteLoader
         {
             imageBytes = File.ReadAllBytes(image);
         }
+        else if (File.Exists(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), image)))
+        {
+            imageBytes = File.ReadAllBytes(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), image));
+
+        }
         else
         {
             throw new FileNotFoundException("Could not find file to display", image);

@@ -22,9 +22,10 @@ public class StickFigureDash
 
     public void StartDash(GameTime time, IGamePadDevice gamePad)
     {
-        
+
         StartDashTime = time.TotalTime.TotalSeconds;
         Vector2 input = gamePad.LeftStickInput;
+        input.Y = -input.Y;
         if (input != Vector2.Zero)
         {
             dashDirection = Vector2.Normalize(input);

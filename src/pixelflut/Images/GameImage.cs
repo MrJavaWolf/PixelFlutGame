@@ -101,6 +101,10 @@ public class GameImage : IGame
         {
             imageBytes = File.ReadAllBytes(config.Image);
         }
+        else if (File.Exists(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), config.Image)))
+        {
+            imageBytes = File.ReadAllBytes(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), config.Image));
+        }
         else
         {
             throw new FileNotFoundException("Could not find file to display", config.Image);

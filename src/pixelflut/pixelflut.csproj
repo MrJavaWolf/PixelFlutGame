@@ -41,6 +41,9 @@
 		<None Update="Images\nyan_cat.gif">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="Images\nyan_cat_no_background.gif">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="StickFigure\Resources\spritesheet\Effect\Explosion 1\explosion.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

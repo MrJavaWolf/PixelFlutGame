@@ -69,7 +69,6 @@ public class Program
         services.AddSingleton(Read<PixelFlutGamepadConfiguration>(configuration, "Gamepad"));
         services.AddSingleton(Read<GameLoopConfiguration>(configuration, "GameLoop"));
         services.AddSingleton(Read<DistributedServerConfiguration>(configuration, "DistributedServer"));
-        services.AddSingleton(Read<MqttGameChangerConfiguration>(configuration, "Mqtt"));
         services.AddSingleton<ObjectPool<StickFigureProjectileAnimator>>(serviceProvider =>
         {
             return new DefaultObjectPool<StickFigureProjectileAnimator>(
@@ -82,7 +81,6 @@ public class Program
         });
 
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
-        services.AddSingleton<MqttGameChanger>();
         services.AddSingleton<GamePadsController>();
         services.AddSingleton<DistributedServer>();
         services.AddSingleton<PixelBufferFactory>();

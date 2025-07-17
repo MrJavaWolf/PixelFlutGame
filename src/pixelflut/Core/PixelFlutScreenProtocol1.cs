@@ -1,4 +1,7 @@
-﻿namespace PixelFlut.Core;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
+namespace PixelFlut.Core;
 
 public class PixelFlutScreenProtocol1 : IPixelFlutScreenProtocol
 {
@@ -41,5 +44,24 @@ public class PixelFlutScreenProtocol1 : IPixelFlutScreenProtocol
         send_buffer[offset + 6] = b;
         send_buffer[offset + 7] = a;
         return send_buffer;
+    }
+
+    public void Draw(byte[] buffer, Image<Rgba32> toImage, int? numberOfPixels = null)
+    {
+        int pixels = numberOfPixels ?? PixelsPerBuffer;
+
+        for (int i = 0; i < pixels; i++)
+        {
+            int offset = HeaderSize + i * BytesPerPixel;
+            short x = BitConverter.ToInt16(buffer[(offset + 0)..(offset + 1)]);
+            short y = BitConverter.ToInt16(buffer[(offset + 2)..(offset + 3)]);
+            byte r = buffer[(offset + 4)];
+            byte g = buffer[(offset + 5)];
+            byte b = buffer[(offset + 6)];
+            byte a = buffer[(offset + 7)];
+            if (x < 0 || x >= toImage.Width || y < 0 || y >= toImage.Height)
+                continue;
+            toImage[x, y] = new Rgba32(r, g, b, a);
+        }
     }
 }

@@ -125,6 +125,7 @@ public class PixelFlutScreen
         PrintAndResetStats();
     }
 
+
     public void PrintAndResetStats()
     {
         if (statsPrinterStopwatch.ElapsedMilliseconds > 1000)

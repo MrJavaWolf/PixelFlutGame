@@ -1,4 +1,6 @@
 ﻿// https://github.com/defnull/pixelflut
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Text;
 
 namespace PixelFlut.Core;
@@ -40,5 +42,10 @@ public class PixelFlutScreenProtocolDefNull : IPixelFlutScreenProtocol
     private static string ToHex(byte b)
     {
         return BitConverter.ToString(new byte[] { b }).ToLower();
+    }
+
+    public void Draw(byte[] buffer, Image<Rgba32> toImage, int? numberOfPixels = null)
+    {
+        throw new NotImplementedException();
     }
 }

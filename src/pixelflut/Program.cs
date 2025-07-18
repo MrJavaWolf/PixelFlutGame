@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
+using pixelflut.LiveStreamReactions;
 using PixelFlut.Core;
 using PixelFlut.Core.Sprite;
 using PixelFlut.Distributed;
@@ -25,12 +26,15 @@ public class Program
         // gameFactory.AddGame<YourGameClass>("YourGameName", services);
         // gameFactory.AddGame<YourGameClass, YourGameConfigClass>("YourGameName", services);
 
+
         gameFactory.AddGame<BlackTestImage>("BlackTestImage", services);
         gameFactory.AddGame<RainbowTestImage, RainbowTestImage.Configuration>("RainbowTestImage", services);
         gameFactory.AddGame<GameImage, GameImage.Configuration>("Image", services);
         gameFactory.AddGame<PongGame, PongConfiguration>("Pong", services);
         gameFactory.AddGame<SnakeGame, SnakeConfiguration>("Snake", services);
+        gameFactory.AddGame<LiveStreamReactionsGame, LiveStreamReactionsConfiguration>("LiveStreamReactions", services);
         gameFactory.AddGame<DistributedWorker, DistributedWorkerConfiguration>("Distributed", services);
+
         gameFactory.AddGame<StickFigureGame.StickFigureGame, StickFigureGameConfiguration>("StickFigure", services);
     }
 

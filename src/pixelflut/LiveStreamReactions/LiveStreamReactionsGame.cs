@@ -1,0 +1,209 @@
+﻿using GTweens.Extensions;
+using PixelFlut.Core;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using System.Numerics;
+
+namespace pixelflut.LiveStreamReactions;
+
+internal class LiveStreamReactionsGame : IGame
+{
+    private readonly ILogger<LiveStreamReactionsGame> logger;
+    private readonly PixelBufferFactory bufferFactory;
+    private readonly LiveStreamReactionsConfiguration config;
+    public List<Image<Rgba32>> sprites = [];
+
+    public List<Reaction> ActiveReactions = [];
+    private TimeSpan nextAllowedAutoSpawnTime = TimeSpan.Zero;
+
+    public LiveStreamReactionsGame(
+        ILogger<LiveStreamReactionsGame> logger,
+        PixelBufferFactory bufferFactory,
+        LiveStreamReactionsConfiguration config)
+    {
+        this.logger = logger;
+        this.bufferFactory = bufferFactory;
+        this.config = config;
+        sprites.AddRange(LoadSprites(config, logger));
+    }
+
+    private static List<Image<Rgba32>> LoadSprites(LiveStreamReactionsConfiguration config, ILogger logger)
+    {
+        List<Image<Rgba32>> loadedSprites = [];
+
+        logger.LogInformation($"Loads image: {config.SpriteSheetFile}");
+
+        byte[] spriteSheetBytes;
+        if (File.Exists(config.SpriteSheetFile))
+        {
+            spriteSheetBytes = File.ReadAllBytes(config.SpriteSheetFile);
+        }
+        else if (File.Exists(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), config.SpriteSheetFile)))
+        {
+            spriteSheetBytes = File.ReadAllBytes(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), config.SpriteSheetFile));
+        }
+        else
+        {
+            throw new FileNotFoundException("Could not find file to display", config.SpriteSheetFile);
+        }
+
+        using Image<Rgba32> spriteSheet = Image.Load<Rgba32>(spriteSheetBytes);
+
+        logger.LogInformation($"Image size: {spriteSheet.Width}, {spriteSheet.Height}");
+        logger.LogInformation($"Sprite size: {config.SpriteWidth}, {config.SpriteHeight}");
+        int columns = spriteSheet.Width / config.SpriteWidth;
+        int rows = spriteSheet.Height / config.SpriteHeight;
+        logger.LogInformation($"Columns in sprite sheet: {columns}");
+        logger.LogInformation($"Rows in sprite sheet: {rows}");
+        for (int y = 0; y < rows; y++)
+        {
+            for (int x = 0; x < columns; x++)
+            {
+                var rect = new Rectangle(
+                    x * config.SpriteWidth,
+                    y * config.SpriteHeight,
+                    config.SpriteWidth,
+                    config.SpriteHeight);
+
+                Image<Rgba32> sprite = spriteSheet.Clone();
+                sprite.Mutate(ctx => ctx.Crop(rect));
+                if (CountNumberOfVisiblePixels(sprite) == 0)
+                {
+                    logger.LogInformation($"Skips sprite {x},{y} - Does not contain any visible pixels");
+                    continue;
+                }
+                loadedSprites.Add(sprite);
+            }
+        }
+        logger.LogInformation($"Number of loaded sprites in sprite sheet: {loadedSprites.Count}");
+        return loadedSprites;
+    }
+
+    private static int CountNumberOfVisiblePixels(Image<Rgba32> sprite)
+    {
+        int visiblePixels = 0;
+        for (int y = 0; y < sprite.Height; y++)
+        {
+            for (int x = 0; x < sprite.Width; x++)
+            {
+                var pixel = sprite[x, y];
+                if (pixel.A > 0)
+                {
+                    visiblePixels++;
+                }
+            }
+        }
+        return visiblePixels;
+    }
+
+    public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
+    {
+        // Check if a player have requested a reaction
+        if (gamePads.Any(x => x.StartButton.OnPress))
+        {
+            logger.LogInformation("Player have made an reaction");
+            var reaction = CreateReaction(time);
+            if (reaction != null)
+            {
+                ActiveReactions.Add(reaction);
+            }
+            else
+            {
+                logger.LogInformation("Failed to create reactions, no sprites loaded from spritesheet");
+            }
+        }
+
+        // Auto spawn reactions
+        if (ActiveReactions.Count < config.AutoSpawnKeepAliveAmount &&
+            nextAllowedAutoSpawnTime < time.TotalTime)
+        {
+            logger.LogInformation("Auto spawns a reaction");
+            var reaction = CreateReaction(time);
+            if (reaction != null)
+            {
+                ActiveReactions.Add(reaction);
+            }
+            else
+            {
+                logger.LogInformation("Failed to create reactions, no sprites loaded from spritesheet");
+            }
+
+            nextAllowedAutoSpawnTime = time.TotalTime +
+                TimeSpan.FromMilliseconds(
+                    config.MinTimeBetweenAutoSpawnReactions.TotalMilliseconds +
+                    Random.Shared.NextSingle() * (config.MaxTimeBetweenAutoSpawnReactions.TotalMilliseconds - config.MinTimeBetweenAutoSpawnReactions.TotalMilliseconds));
+        }
+
+        // Update reactions
+        for (int i = 0; i < ActiveReactions.Count; i++)
+        {
+            ActiveReactions[i].Tween?.Tick((float)time.DeltaTime.TotalSeconds);
+            if (ActiveReactions[i].Tween?.IsCompletedOrKilled == true)
+            {
+                ActiveReactions.RemoveAt(i);
+                i--;
+            }
+        }
+        return ActiveReactions.Select(x => x.PixelBuffer).ToList();
+    }
+
+    private Reaction? CreateReaction(GameTime time)
+    {
+        if (sprites.Count <= 0)
+        {
+            return null;
+        }
+
+        Image<Rgba32> reactionSprite = sprites[Random.Shared.Next(sprites.Count)];
+        int numberOfVisiblePixels = CountNumberOfVisiblePixels(reactionSprite);
+        int startX = Random.Shared.Next(config.SpawnStartX, config.SpawnEndX);
+        int startY = Random.Shared.Next(config.SpawnStartY, config.SpawnEndY);
+        int endX = startX + Random.Shared.Next(config.MinXMovement, config.MaxXMovement);
+        int endY = startY + Random.Shared.Next(config.MinYMovement, config.MaxYMovement);
+        TimeSpan duration = TimeSpan.FromMilliseconds(
+                    config.MinimumLifeTime.TotalMilliseconds +
+                    Random.Shared.NextSingle() * (config.MaximumLifeTime.TotalMilliseconds - config.MinimumLifeTime.TotalMilliseconds));
+
+        PixelBuffer pixelBuffer = bufferFactory.Create(numberOfVisiblePixels);
+        int pixelNumber = 0;
+        for (int y = 0; y < reactionSprite.Height; y++)
+        {
+            for (int x = 0; x < reactionSprite.Width; x++)
+            {
+                var pixel = reactionSprite[x, y];
+                if (pixel.A == 0) continue;
+                pixelBuffer.SetPixel(
+                    pixelNumber,
+                    startX + x,
+                    startY + y,
+                    pixel.R,
+                    pixel.G,
+                    pixel.B,
+                    pixel.A);
+                pixelNumber++;
+            }
+        }
+        Vector2 startPosition = new Vector2(startX, startY);
+        Vector2 endPosition = new Vector2(endX, endY);
+        Reaction reaction = new Reaction()
+        {
+            Duration = duration,
+            StartPosition = startPosition,
+            CurrentPosition = startPosition,
+            EndPosition = endPosition,
+            StartTime = time.TotalTime,
+            PixelBuffer = pixelBuffer,
+            Sprite = reactionSprite
+        };
+        reaction.Tween = GTweenExtensions.Tween(
+            () => reaction.CurrentPosition,
+            newPosition => reaction.UpdateLocation(reaction, newPosition),
+            endPosition,
+            (float)duration.TotalSeconds)
+            .SetEasing(GTweens.Easings.Easing.InSine);
+        reaction.Tween.Start();
+        return reaction;
+
+    }
+}

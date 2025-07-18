@@ -8,6 +8,7 @@
 	</PropertyGroup>
 	
 	<ItemGroup>
+		<PackageReference Include="GTweens" Version="4.0.0" />
 		<PackageReference Include="HIDDevices" Version="3.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.7" />
@@ -42,6 +43,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="Images\nyan_cat_no_background.gif">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\smileys-emotion-00.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="StickFigure\Resources\spritesheet\Effect\Explosion 1\explosion.png">

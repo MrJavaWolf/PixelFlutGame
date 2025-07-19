@@ -1,4 +1,5 @@
-﻿using PixelFlut.Core;
+﻿using pixelflut.Core;
+using PixelFlut.Core;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -55,6 +56,7 @@ public class GameImage : IGame
     private readonly ILogger<GameImage> logger;
     private readonly PixelBufferFactory bufferFactory;
     private readonly Configuration config;
+    private readonly FileLoader fileLoader;
     private readonly StoppingToken stoppingToken;
 
     // State
@@ -70,11 +72,13 @@ public class GameImage : IGame
         PixelBufferFactory bufferFactory,
         Configuration config,
         HttpClient httpClient,
+        FileLoader fileLoader,
         StoppingToken stoppingToken)
     {
         this.logger = logger;
         this.bufferFactory = bufferFactory;
         this.config = config;
+        this.fileLoader = fileLoader;
         this.stoppingToken = stoppingToken;
 
         // Loads image
@@ -87,27 +91,7 @@ public class GameImage : IGame
     private Image<Rgba32> LoadImage(HttpClient httpClient, CancellationToken token)
     {
         byte[] imageBytes;
-        if (config.Image.ToLower().StartsWith("http://") || config.Image.ToLower().StartsWith("https://"))
-        {
-            logger.LogInformation($"Tries to download image: {config.Image}");
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            var httpResponse = httpClient.GetAsync(config.Image, token).Result; // Ugly waits for the result, should somehow be async
-            logger.LogInformation($"Response status code: {httpResponse.StatusCode}");
-            imageBytes = httpResponse.Content.ReadAsByteArrayAsync(token).Result;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-        }
-        else if (File.Exists(config.Image))
-        {
-            imageBytes = File.ReadAllBytes(config.Image);
-        }
-        else if (File.Exists(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), config.Image)))
-        {
-            imageBytes = File.ReadAllBytes(Path.Join(Path.GetDirectoryName(Environment.ProcessPath), config.Image));
-        }
-        else
-        {
-            throw new FileNotFoundException("Could not find file to display", config.Image);
-        }
+        imageBytes = fileLoader.Load(config.Image, token);
         logger.LogInformation($"Number of bits in the file: {imageBytes.Count()}");
         Image<Rgba32> image = Image.Load<Rgba32>(imageBytes);
 
@@ -120,6 +104,8 @@ public class GameImage : IGame
         }
         return image;
     }
+
+  
 
     private List<ImageFrame> PreprareFrames(Image<Rgba32> image, CancellationToken token)
     {

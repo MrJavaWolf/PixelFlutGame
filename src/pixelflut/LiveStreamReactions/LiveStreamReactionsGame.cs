@@ -3,6 +3,7 @@ using PixelFlut.Core;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Collections.Concurrent;
 using System.Numerics;
 
 namespace pixelflut.LiveStreamReactions;
@@ -11,22 +12,30 @@ internal class LiveStreamReactionsGame : IGame
 {
     private readonly ILogger<LiveStreamReactionsGame> logger;
     private readonly PixelBufferFactory bufferFactory;
+    private readonly LiveStreamTelegramBot telegram;
     private readonly LiveStreamReactionsConfiguration config;
     public List<Image<Rgba32>> sprites = [];
 
     public List<Reaction> ActiveReactions = [];
     private TimeSpan nextAllowedAutoSpawnTime = TimeSpan.Zero;
+    public ConcurrentQueue<Image<Rgba32>> newReactions = [];
 
     public LiveStreamReactionsGame(
         ILogger<LiveStreamReactionsGame> logger,
         PixelBufferFactory bufferFactory,
+        LiveStreamTelegramBot telegram,
         LiveStreamReactionsConfiguration config)
     {
         this.logger = logger;
         this.bufferFactory = bufferFactory;
+        this.telegram = telegram;
         this.config = config;
         sprites.AddRange(LoadSprites(config, logger));
+        Task telegramTask = Task.Run(telegram.StartAsync);
+        telegram.OnMessage += Telegram_OnMessage;
     }
+
+
 
     private static List<Image<Rgba32>> LoadSprites(LiveStreamReactionsConfiguration config, ILogger logger)
     {
@@ -103,7 +112,7 @@ internal class LiveStreamReactionsGame : IGame
         if (gamePads.Any(x => x.StartButton.OnPress))
         {
             logger.LogInformation("Player have made an reaction");
-            var reaction = CreateReaction(time);
+            var reaction = CreateRandomReaction(time);
             if (reaction != null)
             {
                 ActiveReactions.Add(reaction);
@@ -114,12 +123,19 @@ internal class LiveStreamReactionsGame : IGame
             }
         }
 
+        // reactions from message apps
+        while(newReactions.TryDequeue(out var reactionSprite))
+        {
+            var reaction = CreateReaction(time, reactionSprite);
+            ActiveReactions.Add(reaction);
+        }
+
         // Auto spawn reactions
         if (ActiveReactions.Count < config.AutoSpawnKeepAliveAmount &&
             nextAllowedAutoSpawnTime < time.TotalTime)
         {
             logger.LogInformation("Auto spawns a reaction");
-            var reaction = CreateReaction(time);
+            var reaction = CreateRandomReaction(time);
             if (reaction != null)
             {
                 ActiveReactions.Add(reaction);
@@ -148,7 +164,9 @@ internal class LiveStreamReactionsGame : IGame
         return ActiveReactions.Select(x => x.PixelBuffer).ToList();
     }
 
-    private Reaction? CreateReaction(GameTime time)
+
+
+    private Reaction? CreateRandomReaction(GameTime time)
     {
         if (sprites.Count <= 0)
         {
@@ -156,7 +174,12 @@ internal class LiveStreamReactionsGame : IGame
         }
 
         Image<Rgba32> reactionSprite = sprites[Random.Shared.Next(sprites.Count)];
-        int numberOfVisiblePixels = CountNumberOfVisiblePixels(reactionSprite);
+        return CreateReaction(time, reactionSprite);
+    }
+
+    private Reaction CreateReaction(GameTime time, Image<Rgba32> sprite)
+    {
+        int numberOfVisiblePixels = CountNumberOfVisiblePixels(sprite);
         int startX = Random.Shared.Next(config.SpawnStartX, config.SpawnEndX);
         int startY = Random.Shared.Next(config.SpawnStartY, config.SpawnEndY);
         int endX = startX + Random.Shared.Next(config.MinXMovement, config.MaxXMovement);
@@ -167,11 +190,11 @@ internal class LiveStreamReactionsGame : IGame
 
         PixelBuffer pixelBuffer = bufferFactory.Create(numberOfVisiblePixels);
         int pixelNumber = 0;
-        for (int y = 0; y < reactionSprite.Height; y++)
+        for (int y = 0; y < sprite.Height; y++)
         {
-            for (int x = 0; x < reactionSprite.Width; x++)
+            for (int x = 0; x < sprite.Width; x++)
             {
-                var pixel = reactionSprite[x, y];
+                var pixel = sprite[x, y];
                 if (pixel.A == 0) continue;
                 pixelBuffer.SetPixel(
                     pixelNumber,
@@ -194,7 +217,7 @@ internal class LiveStreamReactionsGame : IGame
             EndPosition = endPosition,
             StartTime = time.TotalTime,
             PixelBuffer = pixelBuffer,
-            Sprite = reactionSprite
+            Sprite = sprite
         };
         reaction.Tween = GTweenExtensions.Tween(
             () => reaction.CurrentPosition,
@@ -204,6 +227,12 @@ internal class LiveStreamReactionsGame : IGame
             .SetEasing(GTweens.Easings.Easing.InSine);
         reaction.Tween.Start();
         return reaction;
+
+    }
+
+    private void Telegram_OnMessage(object? sender, Image<Rgba32> e)
+    {
+        newReactions.Enqueue(e);
 
     }
 }

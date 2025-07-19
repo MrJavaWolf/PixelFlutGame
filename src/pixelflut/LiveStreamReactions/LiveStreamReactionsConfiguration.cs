@@ -30,4 +30,7 @@ public class LiveStreamReactionsConfiguration
     public required int AutoSpawnKeepAliveAmount { get; set; }
     public required TimeSpan MinTimeBetweenAutoSpawnReactions { get; set; }
     public required TimeSpan MaxTimeBetweenAutoSpawnReactions { get; set; }
+    
+    public required LiveStreamTelegramBotConfiguration Telegram { get; set; }
 }
+

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
+using pixelflut.Core;
 using pixelflut.LiveStreamReactions;
 using PixelFlut.Core;
 using PixelFlut.Core.Sprite;
@@ -89,10 +90,13 @@ public class Program
         services.AddSingleton<DistributedServer>();
         services.AddSingleton<PixelBufferFactory>();
         services.AddSingleton<ConsoleAsGamePad>();
+        services.AddSingleton<LiveStreamTelegramBot>();
         services.AddSingleton<GameLoop>();
         services.AddSingleton<PixelFlutScreen>();
         services.AddSingleton<SpriteLoader>();
+        services.AddSingleton<FileLoader>();
         services.AddTransient<GameSelector>();
+        
         services.AddSingleton(new StoppingToken(token));
         services.AddHttpClient();
         services.AddSingleton(gameFactory);

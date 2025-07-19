@@ -21,7 +21,7 @@ public class LiveStreamTelegramBotConfiguration
     public required int StickerYSize { get; set; }
     public required string FontFile { get; set; }
     public required int FontSize { get; set; }
-    
+
 }
 
 public class LiveStreamTelegramBot(
@@ -33,7 +33,8 @@ public class LiveStreamTelegramBot(
     private User? botUser;
     public event EventHandler<Image<Rgba32>>? OnStickerMessage;
     public event EventHandler<Image<Rgba32>>? OnTextMessage;
-    private SixLabors.Fonts.Font? font;
+    private Font? font;
+    private int numberOfActiveUserReactions;
 
     public async Task StartAsync()
     {
@@ -88,12 +89,27 @@ public class LiveStreamTelegramBot(
                 }
                 await bot.DownloadFile(fileInfo.FilePath, stickerStream);
                 stickerStream.Position = 0;
-                Image<Rgba32> stickerImage = SixLabors.ImageSharp.Image.Load<Rgba32>(stickerStream);
+                Image<Rgba32> stickerImage = Image.Load<Rgba32>(stickerStream);
 
+                double maxSizeX = config.Telegram.StickerXSize;
+                double maxSizeY = config.Telegram.StickerYSize;
+
+                if (numberOfActiveUserReactions > 15)
+                {
+                    maxSizeX = maxSizeY = 64;
+                }
+                else if (numberOfActiveUserReactions > 10)
+                {
+                    maxSizeX = maxSizeY = 128;
+                }
+                else if (numberOfActiveUserReactions > 4)
+                {
+                    maxSizeX = maxSizeY = 172;
+                }
 
                 // Calculate target size preserving aspect ratio
-                double ratioX = (double)config.Telegram.StickerXSize / stickerImage.Width;
-                double ratioY = (double)config.Telegram.StickerYSize / stickerImage.Height;
+                double ratioX = maxSizeX / stickerImage.Width;
+                double ratioY = maxSizeY / stickerImage.Height;
                 double ratio = Math.Min(ratioX, ratioY); // Use the smaller ratio to fit
 
                 int newWidth = (int)(stickerImage.Width * ratio);
@@ -147,5 +163,10 @@ public class LiveStreamTelegramBot(
         }
 
         return result.ToString().TrimEnd(); // Trim the final newline
+    }
+
+    internal void UpdateNumberOfActiveReactions(int count)
+    {
+        numberOfActiveUserReactions = count;
     }
 }

@@ -4,7 +4,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Numerics;
 
 namespace pixelflut.LiveStreamReactions;
@@ -17,7 +16,9 @@ internal class LiveStreamReactionsGame : IGame
     private readonly LiveStreamReactionsConfiguration config;
     public List<Image<Rgba32>> sprites = [];
 
-    public List<Reaction> ActiveReactions = [];
+    public List<Reaction> AutoActiveReactions = [];
+    public List<Reaction> UserActiveReactions = [];
+
     private TimeSpan nextAllowedAutoSpawnTime = TimeSpan.Zero;
     public ConcurrentQueue<Image<Rgba32>> newReactions = [];
 
@@ -60,7 +61,6 @@ internal class LiveStreamReactionsGame : IGame
         }
 
         using Image<Rgba32> spriteSheet = Image.Load<Rgba32>(spriteSheetBytes);
-
         logger.LogInformation($"Image size: {spriteSheet.Width}, {spriteSheet.Height}");
         logger.LogInformation($"Sprite size: {config.SpriteWidth}, {config.SpriteHeight}");
         int columns = spriteSheet.Width / config.SpriteWidth;
@@ -117,7 +117,7 @@ internal class LiveStreamReactionsGame : IGame
             var reaction = CreateRandomReaction(time);
             if (reaction != null)
             {
-                ActiveReactions.Add(reaction);
+                UserActiveReactions.Add(reaction);
             }
             else
             {
@@ -126,21 +126,21 @@ internal class LiveStreamReactionsGame : IGame
         }
 
         // reactions from message apps
-        if (newReactions.TryDequeue(out var reactionSprite))
+        while (newReactions.TryDequeue(out var reactionSprite))
         {
             var reaction = CreateReaction(time, reactionSprite);
-            ActiveReactions.Add(reaction);
+            UserActiveReactions.Add(reaction);
         }
 
         // Auto spawn reactions
-        if (ActiveReactions.Count < config.AutoSpawnKeepAliveAmount &&
+        if (AutoActiveReactions.Count < config.AutoSpawnKeepAliveAmount &&
             nextAllowedAutoSpawnTime < time.TotalTime)
         {
-            logger.LogInformation("Auto spawns a reaction");
+            //logger.LogInformation("Auto spawns a reaction");
             var reaction = CreateRandomReaction(time);
             if (reaction != null)
             {
-                ActiveReactions.Add(reaction);
+                AutoActiveReactions.Add(reaction);
             }
             else
             {
@@ -153,26 +153,32 @@ internal class LiveStreamReactionsGame : IGame
                     Random.Shared.NextSingle() * (config.MaxTimeBetweenAutoSpawnReactions.TotalMilliseconds - config.MinTimeBetweenAutoSpawnReactions.TotalMilliseconds));
         }
 
+        UpdateReactions(time, AutoActiveReactions);
+        UpdateReactions(time, UserActiveReactions);
+        telegram.UpdateNumberOfActiveReactions(UserActiveReactions.Count);
+        var pixelBuffers = AutoActiveReactions.Select(x => x.PixelBuffer).ToList();
+        pixelBuffers.AddRange(UserActiveReactions.Select(x => x.PixelBuffer).ToList());
+        return pixelBuffers;
+    }
+
+    private void UpdateReactions(GameTime time, List<Reaction> reactions)
+    {
         // Update reactions
         ConcurrentBag<Reaction> completedReactions = [];
-        Parallel.For(0, ActiveReactions.Count, (i) =>
+        Parallel.For(0, reactions.Count, (i) =>
         {
-            ActiveReactions[i].Tween?.Tick((float)time.DeltaTime.TotalSeconds);
-            if (ActiveReactions[i].Tween?.IsCompletedOrKilled == true)
+            reactions[i].Tween?.Tick((float)time.DeltaTime.TotalSeconds);
+            if (reactions[i].Tween?.IsCompletedOrKilled == true)
             {
-                completedReactions.Add(ActiveReactions[i]);
+                completedReactions.Add(reactions[i]);
             }
         });
 
         foreach (var reaction in completedReactions)
         {
-            ActiveReactions.Remove(reaction);
+            reactions.Remove(reaction);
         }
-
-        return ActiveReactions.Select(x => x.PixelBuffer).ToList();
     }
-
-
 
     private Reaction? CreateRandomReaction(GameTime time)
     {

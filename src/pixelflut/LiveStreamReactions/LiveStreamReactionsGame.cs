@@ -21,6 +21,7 @@ internal class LiveStreamReactionsGame : IGame
     private TimeSpan nextAllowedAutoSpawnTime = TimeSpan.Zero;
     public ConcurrentQueue<Image<Rgba32>> newReactions = [];
 
+
     public LiveStreamReactionsGame(
         ILogger<LiveStreamReactionsGame> logger,
         PixelBufferFactory bufferFactory,
@@ -231,7 +232,7 @@ internal class LiveStreamReactionsGame : IGame
             newPosition => reaction.UpdateLocation(reaction, newPosition),
             endPosition,
             (float)duration.TotalSeconds)
-            .SetEasing(GTweens.Easings.Easing.InSine);
+            .SetEasing(GTweens.Easings.Easing.OutBounce);
         reaction.Tween.Start();
         return reaction;
 

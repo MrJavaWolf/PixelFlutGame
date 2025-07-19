@@ -72,9 +72,9 @@ public class LiveStreamTelegramBot(
 
                 string textToRender = WrapText(message.Text, 50);
                 TextOptions options = new(font);
-                FontRectangle rect = TextMeasurer.MeasureAdvance(message.Text, options);
+                FontRectangle rect = TextMeasurer.MeasureAdvance(textToRender, options);
                 Image<Rgba32> textImage = new Image<Rgba32>((int)rect.Width, (int)rect.Height);
-                textImage.Mutate(x => x.DrawText(message.Text, font, SixLabors.ImageSharp.Color.Pink, new PointF(0, 0)));
+                textImage.Mutate(x => x.DrawText(textToRender, font, SixLabors.ImageSharp.Color.Pink, new PointF(0, 0)));
                 OnMessage?.Invoke(this, textImage);
             }
             if (message.Sticker != null && message.Sticker.Type == StickerType.Regular)

@@ -133,7 +133,7 @@ internal class LiveStreamReactionsGame : IGame
         }
 
         // Auto spawn reactions
-        if (AutoActiveReactions.Count < config.AutoSpawnKeepAliveAmount &&
+        if (UserActiveReactions.Count + AutoActiveReactions.Count < config.AutoSpawnKeepAliveAmount &&
             nextAllowedAutoSpawnTime < time.TotalTime)
         {
             //logger.LogInformation("Auto spawns a reaction");

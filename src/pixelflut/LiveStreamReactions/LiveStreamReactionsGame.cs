@@ -153,15 +153,21 @@ internal class LiveStreamReactionsGame : IGame
         }
 
         // Update reactions
-        for (int i = 0; i < ActiveReactions.Count; i++)
+        ConcurrentBag<Reaction> completedReactions = [];
+        Parallel.For(0, ActiveReactions.Count, (i) =>
         {
             ActiveReactions[i].Tween?.Tick((float)time.DeltaTime.TotalSeconds);
             if (ActiveReactions[i].Tween?.IsCompletedOrKilled == true)
             {
-                ActiveReactions.RemoveAt(i);
-                i--;
+                completedReactions.Add(ActiveReactions[i]);
             }
+        });
+
+        foreach (var reaction in completedReactions)
+        {
+            ActiveReactions.Remove(reaction);
         }
+
         return ActiveReactions.Select(x => x.PixelBuffer).ToList();
     }
 

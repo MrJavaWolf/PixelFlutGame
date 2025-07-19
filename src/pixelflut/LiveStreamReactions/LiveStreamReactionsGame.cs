@@ -4,6 +4,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace pixelflut.LiveStreamReactions;
@@ -20,6 +21,12 @@ internal class LiveStreamReactionsGame : IGame
     private TimeSpan nextAllowedAutoSpawnTime = TimeSpan.Zero;
     public ConcurrentQueue<Image<Rgba32>> newReactions = [];
 
+    /// <summary>
+    /// We may not update all the active reactions every frame, it may be too many pixels
+    /// We will start to update the reactions starting from this reaction in the next update
+    /// </summary>
+    private int? activeReactionAnimationStartIndex = 0;
+
     public LiveStreamReactionsGame(
         ILogger<LiveStreamReactionsGame> logger,
         PixelBufferFactory bufferFactory,
@@ -32,9 +39,9 @@ internal class LiveStreamReactionsGame : IGame
         this.config = config;
         sprites.AddRange(LoadSprites(config, logger));
         Task telegramTask = Task.Run(telegram.StartAsync);
-        telegram.OnMessage += Telegram_OnMessage;
+        telegram.OnStickerMessage += Telegram_OnMessage;
+        telegram.OnTextMessage += Telegram_OnTextMessage;
     }
-
 
 
     private static List<Image<Rgba32>> LoadSprites(LiveStreamReactionsConfiguration config, ILogger logger)
@@ -124,7 +131,7 @@ internal class LiveStreamReactionsGame : IGame
         }
 
         // reactions from message apps
-        if(newReactions.TryDequeue(out var reactionSprite))
+        if (newReactions.TryDequeue(out var reactionSprite))
         {
             var reaction = CreateReaction(time, reactionSprite);
             ActiveReactions.Add(reaction);
@@ -151,8 +158,9 @@ internal class LiveStreamReactionsGame : IGame
                     Random.Shared.NextSingle() * (config.MaxTimeBetweenAutoSpawnReactions.TotalMilliseconds - config.MinTimeBetweenAutoSpawnReactions.TotalMilliseconds));
         }
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
         // Update reactions
-        for (int i = 0; i < ActiveReactions.Count; i++)
+        for (int i = activeReactionAnimationStartIndex ?? 0; i < ActiveReactions.Count; i++)
         {
             ActiveReactions[i].Tween?.Tick((float)time.DeltaTime.TotalSeconds);
             if (ActiveReactions[i].Tween?.IsCompletedOrKilled == true)
@@ -160,6 +168,12 @@ internal class LiveStreamReactionsGame : IGame
                 ActiveReactions.RemoveAt(i);
                 i--;
             }
+            if (stopwatch.ElapsedMilliseconds > 20)
+            {
+                activeReactionAnimationStartIndex = i;
+                break;
+            }
+            activeReactionAnimationStartIndex = null;
         }
         return ActiveReactions.Select(x => x.PixelBuffer).ToList();
     }
@@ -233,6 +247,10 @@ internal class LiveStreamReactionsGame : IGame
     private void Telegram_OnMessage(object? sender, Image<Rgba32> e)
     {
         newReactions.Enqueue(e);
+    }
 
+    private void Telegram_OnTextMessage(object? sender, Image<Rgba32> e)
+    {
+        newReactions.Enqueue(e);
     }
 }

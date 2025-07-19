@@ -31,7 +31,8 @@ public class LiveStreamTelegramBot(
 {
     private TelegramBotClient? bot;
     private User? botUser;
-    public event EventHandler<Image<Rgba32>>? OnMessage;
+    public event EventHandler<Image<Rgba32>>? OnStickerMessage;
+    public event EventHandler<Image<Rgba32>>? OnTextMessage;
     private SixLabors.Fonts.Font? font;
 
     public async Task StartAsync()
@@ -75,7 +76,7 @@ public class LiveStreamTelegramBot(
                 FontRectangle rect = TextMeasurer.MeasureAdvance(textToRender, options);
                 Image<Rgba32> textImage = new Image<Rgba32>((int)rect.Width, (int)rect.Height);
                 textImage.Mutate(x => x.DrawText(textToRender, font, SixLabors.ImageSharp.Color.Pink, new PointF(0, 0)));
-                OnMessage?.Invoke(this, textImage);
+                OnStickerMessage?.Invoke(this, textImage);
             }
             if (message.Sticker != null && message.Sticker.Type == StickerType.Regular)
             {
@@ -103,7 +104,7 @@ public class LiveStreamTelegramBot(
                 stickerImage.Mutate(x => x.Resize(newWidth, newHeight));
 
                 logger.LogInformation("Recieved a sticker message");
-                OnMessage?.Invoke(this, stickerImage);
+                OnStickerMessage?.Invoke(this, stickerImage);
             }
         }
         catch (Exception ex)

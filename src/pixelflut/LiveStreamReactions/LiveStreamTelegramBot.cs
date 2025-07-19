@@ -94,11 +94,8 @@ public class LiveStreamTelegramBot(
                 double maxSizeX = config.Telegram.StickerXSize;
                 double maxSizeY = config.Telegram.StickerYSize;
 
-                if (numberOfActiveUserReactions > 15)
-                {
-                    maxSizeX = maxSizeY = 64;
-                }
-                else if (numberOfActiveUserReactions > 10)
+                
+                if (numberOfActiveUserReactions > 10)
                 {
                     maxSizeX = maxSizeY = 128;
                 }

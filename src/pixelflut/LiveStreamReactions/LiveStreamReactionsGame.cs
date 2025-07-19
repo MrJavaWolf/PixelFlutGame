@@ -124,7 +124,7 @@ internal class LiveStreamReactionsGame : IGame
         }
 
         // reactions from message apps
-        while(newReactions.TryDequeue(out var reactionSprite))
+        if(newReactions.TryDequeue(out var reactionSprite))
         {
             var reaction = CreateReaction(time, reactionSprite);
             ActiveReactions.Add(reaction);

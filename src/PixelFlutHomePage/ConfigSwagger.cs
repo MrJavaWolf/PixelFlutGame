@@ -24,7 +24,7 @@ public static class ConfigSwagger
             {
                 Version = "v1",
                 Title = "JWolf PixelFlut Client API",
-                Description = "OwO what is this?",
+                Description = "GRRRRRRRRRRR WOOF WOOF BARK BARK ARF BARK GRRRR WOOF SNARL HSSSS GRRRR WOOF WOOF BARK ARF GRRRR HSSSS WOOF WOOF BARK ARF GRRRRR HSSSSS BARK ARF GRRRR WOOF WOOF BARK GRRR SNARL ARF WOOF BARK ARF SNARL HSSSSSS",
                 Contact = new OpenApiContact
                 {
                     Name = "JWolf",

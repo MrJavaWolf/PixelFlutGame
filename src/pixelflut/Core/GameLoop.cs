@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PixelFlut.Distributed;
 using System.Diagnostics;
 
 namespace PixelFlut.Core;
@@ -32,7 +31,6 @@ public class GameLoop
     private readonly IServiceProvider provider;
     private readonly GameLoopConfiguration configuration;
     private readonly GamePadsController gamePadsController;
-    private readonly DistributedServer distributedServer;
 
     // Stats
     private GameLoopStats stats = new();
@@ -43,14 +41,12 @@ public class GameLoop
         PixelFlutScreen renderer,
         IServiceProvider provider,
         GamePadsController gamePadsController,
-        DistributedServer distributedServer,
         GameLoopConfiguration configuration)
     {
         this.logger = logger;
         this.renderer = renderer;
         this.provider = provider;
         this.gamePadsController = gamePadsController;
-        this.distributedServer = distributedServer;
         this.configuration = configuration;
         logger.LogInformation($"GameLoop: {{@configuration}}", configuration);
         statsPrinterStopwatch.Start();
@@ -59,7 +55,6 @@ public class GameLoop
     public void Run(CancellationToken cancellationToken)
     {
         // Start the renderer
-        distributedServer.Start(cancellationToken);
         renderer.StartRenderThreads(cancellationToken);
         RunGameLoop(cancellationToken);
     }
@@ -90,9 +85,6 @@ public class GameLoop
 
             // Render the resulting pixels
             renderer.SetFrame(frame);
-
-            // Sync frames to connected clients
-            distributedServer.SyncFrames();
 
             // Calculate how much to sleep to hit our targeted FPS
             int sleepTimeMs = -1;

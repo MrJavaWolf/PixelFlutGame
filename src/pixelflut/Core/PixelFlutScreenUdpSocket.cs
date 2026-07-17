@@ -65,10 +65,10 @@ public class PixelFlutScreenUdpSocket : IPixelFlutScreenSocket
         if (numberOfBuffers == 0) return;
 
         // Pick a buffer to render
-        (int pixels, byte[] sendBuffer) = SelectNextBuffer(frame);
+        (int pixels, Memory<byte> sendBuffer) = SelectNextBuffer(frame);
 
         // Send 
-        int bytesSent = socket.SendTo(sendBuffer, endPoint);
+        int bytesSent = socket.SendTo(sendBuffer.Span, endPoint);
 
         // Update stats
         stats.BytesSent += bytesSent;
@@ -83,7 +83,7 @@ public class PixelFlutScreenUdpSocket : IPixelFlutScreenSocket
         }
     }
 
-    private (int pixels, byte[] sendBuffer) SelectNextBuffer(List<PixelBuffer> frame)
+    private (int pixels, Memory<byte> sendBuffer) SelectNextBuffer(List<PixelBuffer> frame)
     {
         // Ensures we reset if the frame changes
         if (frame.Count <= currentRenderFrameBuffer)
@@ -102,7 +102,7 @@ public class PixelFlutScreenUdpSocket : IPixelFlutScreenSocket
         }
 
         // Sends the buffer
-        byte[] sendBuffer = buffer.Buffers[currentRenderByteBuffer];
+        Memory<byte> sendBuffer = buffer.Buffers[currentRenderByteBuffer];
         int pixelsPerBuffer = buffer.PixelsPerBuffer;
         IncrementBufferIndex(frame, buffer);
 

@@ -27,10 +27,10 @@ public class PixelBuffer
     /// <summary>
     /// The buffers you can send to the pixel flut
     /// </summary>
-    public IReadOnlyList<byte[]> Buffers { get => buffers; }
+    public IReadOnlyList<Memory<byte>> Buffers { get => buffers; }
 
     // Buffers used for sending the bytes
-    private readonly List<byte[]> buffers = new();
+    private readonly List<Memory<byte>> buffers = new();
 
     /// <summary>
     /// Enable this pixel buffer.
@@ -40,7 +40,7 @@ public class PixelBuffer
 
     public int PixelsPerBuffer { get => screenProtocol.PixelsPerBuffer; }
 
-    public PixelBuffer(int numberOfPixels, IPixelFlutScreenProtocol screenProtocol, List<byte[]> buffers)
+    public PixelBuffer(int numberOfPixels, IPixelFlutScreenProtocol screenProtocol, List<Memory<byte>> buffers)
     {
         NumberOfPixels = numberOfPixels;
         this.screenProtocol = screenProtocol;
@@ -108,8 +108,8 @@ public class PixelBuffer
                 $"The {nameof(PixelBuffer)} have {NumberOfPixels} pixels (0 indexed), " +
                 $"you tried to set pixel index {pixelNumber}");
         PixelBufferPosition position = mappings[pixelNumber];
-        byte[] buffer = buffers[position.buffer];
-        byte[] updatedBuffer = screenProtocol.WriteToBuffer(
+        Memory<byte> buffer = buffers[position.buffer];
+        Memory<byte> updatedBuffer = screenProtocol.WriteToBuffer(
             buffer,
             position.position,
             X + screenConfiguration.OffsetX,
@@ -128,8 +128,8 @@ public class PixelBuffer
                 $"you tried to set pixel index {pixelNumber}");
 
         PixelBufferPosition position = mappings[pixelNumber];
-        byte[] buffer = buffers[position.buffer];
-        byte[] updatedBuffer = screenProtocol.WriteToBuffer(
+        Memory<byte> buffer = buffers[position.buffer];
+        Memory<byte> updatedBuffer = screenProtocol.WriteToBuffer(
             buffer,
             position.position,
             X + screenConfiguration.OffsetX,

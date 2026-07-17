@@ -5,7 +5,6 @@ using pixelflut.Core;
 using pixelflut.LiveStreamReactions;
 using PixelFlut.Core;
 using PixelFlut.Core.Sprite;
-using PixelFlut.Distributed;
 using PixelFlut.Images;
 using PixelFlut.Pong;
 using PixelFlut.Snake;
@@ -34,8 +33,7 @@ public class Program
         gameFactory.AddGame<PongGame, PongConfiguration>("Pong", services);
         gameFactory.AddGame<SnakeGame, SnakeConfiguration>("Snake", services);
         gameFactory.AddGame<LiveStreamReactionsGame, LiveStreamReactionsConfiguration>("LiveStreamReactions", services);
-        gameFactory.AddGame<DistributedWorker, DistributedWorkerConfiguration>("Distributed", services);
-
+        //gameFactory.AddGame<TestShaderImage, TestShaderImage.Configuration>("TestShader", services);
         gameFactory.AddGame<StickFigureGame.StickFigureGame, StickFigureGameConfiguration>("StickFigure", services);
     }
 
@@ -73,7 +71,6 @@ public class Program
         services.AddSingleton(Read<PixelFlutScreenConfiguration>(configuration, "Screen"));
         services.AddSingleton(Read<PixelFlutGamepadConfiguration>(configuration, "Gamepad"));
         services.AddSingleton(Read<GameLoopConfiguration>(configuration, "GameLoop"));
-        services.AddSingleton(Read<DistributedServerConfiguration>(configuration, "DistributedServer"));
         services.AddSingleton<ObjectPool<StickFigureProjectileAnimator>>(serviceProvider =>
         {
             return new DefaultObjectPool<StickFigureProjectileAnimator>(
@@ -87,7 +84,6 @@ public class Program
 
         services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
         services.AddSingleton<GamePadsController>();
-        services.AddSingleton<DistributedServer>();
         services.AddSingleton<PixelBufferFactory>();
         services.AddSingleton<ConsoleAsGamePad>();
         services.AddSingleton<LiveStreamTelegramBot>();

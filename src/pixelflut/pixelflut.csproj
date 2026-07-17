@@ -6,6 +6,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Include="..\PixelFlutHomePage\appsettings.json" Link="appsettings.json" />
+	</ItemGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="GTweens" Version="4.0.0" />
@@ -33,9 +37,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="appsettings.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
 		<None Update="Images\tmnt_spritesheet.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

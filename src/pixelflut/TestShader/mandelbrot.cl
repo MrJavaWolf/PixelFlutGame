@@ -86,9 +86,10 @@ __kernel void process_buffer(
     cx *= aspect;
 
     // Zoom and pan using your existing parameters
-    float zoom = exp(-offset);   // offset animates zoom
-    cx /= zoom;
-    cy /= zoom;
+    float zoom = exp(offset * 0.15f);
+
+    cx = (cx / zoom) - 0.743643887037151f;
+       cy = (cy / zoom) + 0.131825904205330f;
 
     // Mandelbrot iteration
     float zx = 0.0f;

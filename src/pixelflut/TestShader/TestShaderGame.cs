@@ -21,7 +21,12 @@ internal class TestShaderGame : IGame
         public double TestImageOffset { get; set; }
 
         /// <summary>
-        /// Some math variable...
+        /// How fast the rainbows are moving
+        /// </summary>
+        public float RainbowSpeed { get; set; }
+
+        /// <summary>
+        /// How big each rainbow is
         /// </summary>
         public float RainbowScale { get; set; }
 
@@ -86,7 +91,10 @@ internal class TestShaderGame : IGame
 
     public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
     {
-        DrawRainBowTestImage(time);
+        if (config.Moving)
+        {
+            DrawRainBowTestImage(time);
+        }
         return frame;
     }
 
@@ -97,7 +105,7 @@ internal class TestShaderGame : IGame
             width: bufferFactory.Screen.ResolutionX,
             height: bufferFactory.Screen.ResolutionY,
             rainbow_scale: config.RainbowScale,
-            offset: (float)time.TotalTime.TotalSeconds);
+            offset: (float)(time.TotalTime.TotalSeconds * config.RainbowSpeed));
 
     }
 }

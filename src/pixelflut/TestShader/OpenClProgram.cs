@@ -365,7 +365,9 @@ public sealed class OpenClProgram : IDisposable
             DeviceType.All);
 
         if (device != 0)
+        {
             return device;
+        }
 
         throw new InvalidOperationException(
             "No usable OpenCL device was found.");

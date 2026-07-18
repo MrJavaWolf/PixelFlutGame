@@ -9,23 +9,34 @@ public class PixelFlutScreenProtocol0_Shader : IPixelFlutScreenProtocol
     public int BufferSize { get => HeaderSize + PixelsPerBuffer * BytesPerPixel; }
     public const int BytesPerPixel = 7;
     public const int HeaderSize = 2;
-    private readonly int width;
-    private readonly int height;
     public byte[] FullBuffer { get; }
-    private int numberOfBuffers;
+    private int numberOfBuffers = 0;
 
-    public PixelFlutScreenProtocol0_Shader(int width, int height)
+    public PixelFlutScreenProtocol0_Shader(PixelFlutScreenConfiguration pixelFlutScreenConfiguration)
     {
-        this.width = width;
-        this.height = height;
-        int numberOfPixels = width * height;
+        int numberOfPixels = pixelFlutScreenConfiguration.ResolutionX * pixelFlutScreenConfiguration.ResolutionY;
         numberOfBuffers = numberOfPixels / PixelsPerBuffer;
         if (numberOfPixels % PixelsPerBuffer != 0)
         {
             numberOfBuffers += 1;
         }
-        int fullBufferSize = numberOfBuffers * PixelsPerBuffer;
+        int fullBufferSize = numberOfBuffers * BufferSize;
         FullBuffer = new byte[fullBufferSize];
+    }
+
+    public List<Memory<byte>> CreateBuffers()
+    {
+        List<Memory<byte>> buffers = [];
+
+        for (int i = 0; i < numberOfBuffers; i++)
+        {
+            int start = i * BufferSize;
+            int length = Math.Min(BufferSize, FullBuffer.Length - start);
+
+            buffers.Add(FullBuffer.AsMemory(start, length));
+        }
+
+        return buffers;
     }
 
     public Memory<byte> CreateBuffer()

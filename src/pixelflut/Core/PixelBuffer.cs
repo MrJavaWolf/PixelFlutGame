@@ -30,7 +30,7 @@ public class PixelBuffer
     public IReadOnlyList<Memory<byte>> Buffers { get => buffers; }
 
     // Buffers used for sending the bytes
-    private readonly List<Memory<byte>> buffers = new();
+    private readonly List<Memory<byte>> buffers = [];
 
     /// <summary>
     /// Enable this pixel buffer.
@@ -45,7 +45,7 @@ public class PixelBuffer
         NumberOfPixels = numberOfPixels;
         this.screenProtocol = screenProtocol;
         this.buffers = buffers;
-        mappings = new PixelBufferPosition[0];
+        mappings = [];
     }
 
     public PixelBuffer(

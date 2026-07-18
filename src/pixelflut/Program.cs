@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using pixelflut.Core;
 using pixelflut.LiveStreamReactions;
+using pixelflut.TestShader;
 using PixelFlut.Core;
 using PixelFlut.Core.Sprite;
 using PixelFlut.Images;
@@ -33,7 +34,7 @@ public class Program
         gameFactory.AddGame<PongGame, PongConfiguration>("Pong", services);
         gameFactory.AddGame<SnakeGame, SnakeConfiguration>("Snake", services);
         gameFactory.AddGame<LiveStreamReactionsGame, LiveStreamReactionsConfiguration>("LiveStreamReactions", services);
-        //gameFactory.AddGame<TestShaderImage, TestShaderImage.Configuration>("TestShader", services);
+        gameFactory.AddGame<TestShaderGame, TestShaderGame.Configuration>("TestShader", services);
         gameFactory.AddGame<StickFigureGame.StickFigureGame, StickFigureGameConfiguration>("StickFigure", services);
     }
 
@@ -82,7 +83,7 @@ public class Program
                  new StickFigureExplosionEffectAnimatorPooledObjectPolicy(serviceProvider.GetRequiredService<SpriteLoader>()));
         });
 
-        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0>();
+        services.AddSingleton<IPixelFlutScreenProtocol, PixelFlutScreenProtocol0_Shader>();
         services.AddSingleton<GamePadsController>();
         services.AddSingleton<PixelBufferFactory>();
         services.AddSingleton<ConsoleAsGamePad>();

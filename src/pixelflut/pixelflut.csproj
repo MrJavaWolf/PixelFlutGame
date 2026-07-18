@@ -158,6 +158,9 @@
 		<None Update="stickfigure_world_test.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestShader\mandelbrot.cl">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestShader\process.cl">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

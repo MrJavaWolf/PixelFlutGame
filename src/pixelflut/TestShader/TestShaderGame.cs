@@ -105,7 +105,7 @@ internal class TestShaderGame : IGame
             width: bufferFactory.Screen.ResolutionX,
             height: bufferFactory.Screen.ResolutionY,
             rainbow_scale: config.RainbowScale,
-            offset: (float)(time.TotalTime.TotalSeconds * config.RainbowSpeed));
+            offset: (float)(Math.Sin(time.TotalTime.TotalSeconds * config.RainbowSpeed)));
 
     }
 }

@@ -1,5 +1,8 @@
-﻿using PixelFlut.Core;
+﻿using pixelflut.Core;
+using PixelFlut.Core;
+using System.Collections;
 using System.Text;
+using System.Text.Unicode;
 
 namespace pixelflut.TestShader;
 
@@ -20,7 +23,7 @@ internal class TestShaderGame : IGame
         /// <summary>
         /// Some math variable...
         /// </summary>
-        public float Multiplier { get; set; }
+        public float RainbowScale { get; set; }
 
         /// <summary>
         /// The path to the shader to use
@@ -44,6 +47,7 @@ internal class TestShaderGame : IGame
         Configuration config,
         ILogger<TestShaderGame> logger,
         PixelBufferFactory bufferFactory,
+        FileLoader fileLoader,
         IPixelFlutScreenProtocol screenProtocol)
     {
         this.config = config;
@@ -66,10 +70,9 @@ internal class TestShaderGame : IGame
         frame = [buffer];
 
 
-        string fullShaderPath = Path.GetFullPath(config.Shader);
-        logger.LogInformation($"Loads shader '{config.Shader}' from file: '{fullShaderPath}'");
-
-        string kernelSource = File.ReadAllText(fullShaderPath, Encoding.UTF8);
+        logger.LogInformation($"Loads shader '{config.Shader}'");
+        byte[] fileContent = fileLoader.Load(config.Shader);
+        string kernelSource = Encoding.UTF8.GetString(fileContent);
 
         openClProgram = new(
             kernelSource: kernelSource,
@@ -93,7 +96,7 @@ internal class TestShaderGame : IGame
             fullBufferMemory.Span,
             width: bufferFactory.Screen.ResolutionX,
             height: bufferFactory.Screen.ResolutionY,
-            multiplier: config.Multiplier,
+            rainbow_scale: config.RainbowScale,
             offset: (float)time.TotalTime.TotalSeconds);
 
     }

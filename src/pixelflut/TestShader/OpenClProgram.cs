@@ -139,7 +139,7 @@ public sealed class OpenClProgram : IDisposable
         Span<byte> output,
         int width,
         int height,
-        float multiplier,
+        float rainbow_scale,
         float offset)
     {
         ThrowIfDisposed();
@@ -154,7 +154,7 @@ public sealed class OpenClProgram : IDisposable
                 _kernel,
                 1,
                 sizeof(int),
-                in byteCount),
+                in width),
             "clSetKernelArg(width)");
 
         // Argument 2: int height
@@ -163,17 +163,17 @@ public sealed class OpenClProgram : IDisposable
                 _kernel,
                 2,
                 sizeof(int),
-                in byteCount),
+                in height),
             "clSetKernelArg(height)");
 
-        // Argument 3: float multiplier
+        // Argument 3: float rainbow_scale
         Check(
             cl.SetKernelArg(
                 _kernel,
                 3,
                 sizeof(float),
-                in multiplier),
-            "clSetKernelArg(multiplier)");
+                in rainbow_scale),
+            "clSetKernelArg(rainbow_scale)");
 
         // Argument 4: float offset
         Check(

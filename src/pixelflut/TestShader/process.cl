@@ -1,6 +1,11 @@
+#define HEADER_SIZE 2
+#define PIXELS_PER_BUFFER 160
+#define BYTES_PER_PIXEL 7
+#define BUFFER_SIZE (HEADER_SIZE + PIXELS_PER_BUFFER * BYTES_PER_PIXEL)
+
+
 inline float3 hue_to_rgb(float hue)
 {
-    // Convert hue in the range [0, 1) to an RGB rainbow.
     float3 phase = (float3)(0.0f, 4.0f, 2.0f);
 
     return clamp(
@@ -10,41 +15,76 @@ inline float3 hue_to_rgb(float hue)
     );
 }
 
+
 __kernel void process_buffer(
     __global uchar* output,
     const int width,
     const int height,
-    const float multiplier,
+    const float rainbow_scale,
     const float offset)
 {
-    const size_t index = get_global_id(0);
-    const size_t pixel_count = (size_t)height * (size_t)width;
-
-    if (index >= pixel_count)
+    const size_t pixel_index = get_global_id(0);
+    const size_t pixel_count = (size_t)width * (size_t)height;
+    if (pixel_index >= pixel_count)
+    {
         return;
+    }
 
-    const int x = (int)(index % (size_t)width);
-    const int y = (int)(index / (size_t)width);
+    //
+    // Find screen coordinate
+    //
+    const int x = (int)(pixel_index % width);
+    const int y = (int)(pixel_index / width);
 
-    /*
-     * x + y creates diagonal bands.
-     *
-     * offset shifts the rainbow diagonally.
-     * multiplier controls the width of a full rainbow:
-     *   multiplier = 1.0 -> width of approximately one screen width
-     *   multiplier = 0.5 -> narrower rainbow
-     *   multiplier = 2.0 -> wider rainbow
-     */
-    const float rainbow_width = fmax(1.0f, (float)width * fabs(multiplier));
 
-    float hue = ((float)(x + y) - offset) / rainbow_width;
+    //
+    // Find sub-buffer and pixel offset inside it
+    //
+    const int buffer_number = pixel_index / PIXELS_PER_BUFFER;
+    const int local_pixel = pixel_index % PIXELS_PER_BUFFER;
+    const size_t buffer_offset = buffer_number * BUFFER_SIZE;
 
-    // Wrap the hue so the rainbow repeats.
-    hue = hue - floor(hue);
+    
+    //
+    // First pixel in every sub-buffer writes the header
+    //
+    if (local_pixel == 0)
+    {
+        output[buffer_offset + 0] = 0x00; // Protocol 1
+        output[buffer_offset + 1] = 0x01; // unused
+    }
 
-    const float3 rgb = hue_to_rgb(hue);
-    const size_t byte_index = index * 3;
-    output[byte_index + 0] = convert_uchar_sat_rte(rgb.x * 255.0f);
-    output[byte_index + 1] = convert_uchar_sat_rte(rgb.y * 255.0f);
-    output[byte_index + 2] = convert_uchar_sat_rte(rgb.z * 255.0f);
+
+    //
+    // Pixel data location
+    //
+    const size_t pixel_offset =
+        buffer_offset +
+        HEADER_SIZE +
+        local_pixel * BYTES_PER_PIXEL;
+
+
+    //
+    // Generate rainbow
+    //
+    float hue = ((float)(x + y) + offset * 100.0f) * rainbow_scale;
+    hue = fmod(hue, 360.0f) / 360.0f;
+    float3 rgb = hue_to_rgb(hue);
+
+
+    //
+    // Write x and y as little endian int16
+    //
+    output[pixel_offset + 0] = (uchar)(x & 0xff);
+    output[pixel_offset + 1] = (uchar)((x >> 8) & 0xff);
+    output[pixel_offset + 2] = (uchar)(y & 0xff);
+    output[pixel_offset + 3] = (uchar)((y >> 8) & 0xff);
+
+
+    //
+    // RGB
+    //
+    output[pixel_offset + 4] = convert_uchar_sat_rte(rgb.x * 255.0f);
+    output[pixel_offset + 5] = convert_uchar_sat_rte(rgb.y * 255.0f);
+    output[pixel_offset + 6] = convert_uchar_sat_rte(rgb.z * 255.0f);
 }

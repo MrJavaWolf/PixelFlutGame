@@ -44,6 +44,8 @@ internal class TestShaderGame : IGame
         public required string KernelName { get; set; } = "process_buffer";
     }
 
+    private int[] Remapper;
+
     private readonly Configuration config;
     private readonly ILogger<TestShaderGame> logger;
     private readonly PixelBufferFactory bufferFactory;
@@ -72,6 +74,9 @@ internal class TestShaderGame : IGame
         (-1.999250000000000f,  0.000000000000000f), // Left Antenna
         ( 0.274000000000000f,  0.482000000000000f), // Satellite Bulbs
         ];
+
+
+
     public TestShaderGame(
         Configuration config,
         ILogger<TestShaderGame> logger,
@@ -103,14 +108,22 @@ internal class TestShaderGame : IGame
         byte[] fileContent = fileLoader.Load(config.Shader);
         string kernelSource = Encoding.UTF8.GetString(fileContent);
 
+        Remapper = new int[bufferFactory.Screen.ResolutionX * bufferFactory.Screen.ResolutionY];
+        for (int i = 0; i < Remapper.Length; i++)
+        {
+            Remapper[i] = i;
+        }
+        FisherYatesShuffle(Remapper);
         openClProgram = new(
             kernelSource: kernelSource,
             kernelName: config.KernelName,
+            remapperBuffer: Remapper,
             inputBufferSize: this.screenProtocol.FullBuffer.Length);
 
         // Initializes the test image
         DrawRainBowTestImage(new GameTime() { TotalTime = TimeSpan.FromSeconds(config.TestImageOffset) });
         this.logger.LogInformation($"Pixel buffer for the {this.GetType().Name} is ready");
+
     }
 
     public List<PixelBuffer> Loop(GameTime time, IReadOnlyList<IGamePadDevice> gamePads)
@@ -165,7 +178,8 @@ internal class TestShaderGame : IGame
             rainbow_scale: config.RainbowScale,
             offset: timeOffset,
             x,
-            y);
+            y,
+            Remapper);
     }
 
     static float SmootherStep(float t)
@@ -182,5 +196,25 @@ internal class TestShaderGame : IGame
     static float Lerp(float a, float b, float t)
     {
         return a + (b - a) * t;
+    }
+
+
+    /// <summary>
+    /// Do an in-place shuffle
+    /// https://stackoverflow.com/questions/273313/randomize-a-listt
+    /// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    /// </summary>
+    /// <param name="array">The array that will be shuffles</param>
+    private void FisherYatesShuffle<T>(T[] array)
+    {
+        int n = array.Length;
+        while (n > 1)
+        {
+            n--;
+            int k = Random.Shared.Next(n + 1);
+            T value = array[k];
+            array[k] = array[n];
+            array[n] = value;
+        }
     }
 }

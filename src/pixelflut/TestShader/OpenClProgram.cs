@@ -6,7 +6,6 @@ namespace pixelflut.TestShader;
 public sealed class OpenClProgram : IDisposable
 {
     private readonly object _gate = new();
-
     private CL? _cl;
 
     private nint _context;
@@ -14,6 +13,7 @@ public sealed class OpenClProgram : IDisposable
     private nint _program;
     private nint _kernel;
     private nint _outputBuffer;
+    private nint _remapperBuffer;
 
     private int _disposeState;
 
@@ -26,7 +26,7 @@ public sealed class OpenClProgram : IDisposable
     /// Creates the OpenCL context, compiles the program and allocates the
     /// input/output buffers.
     /// </summary>
-    public OpenClProgram(string kernelSource, int inputBufferSize, string kernelName = "process_buffer")
+    public OpenClProgram(string kernelSource, int inputBufferSize, int[] remapperBuffer, string kernelName = "process_buffer")
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(kernelSource);
         ArgumentException.ThrowIfNullOrWhiteSpace(kernelName);
@@ -44,7 +44,107 @@ public sealed class OpenClProgram : IDisposable
 
         try
         {
-            Initialize(kernelSource, kernelName);
+            nint device = FindDevice(_cl);
+
+            _context = CreateContext(_cl, device);
+
+            _commandQueue = _cl.CreateCommandQueue(
+                _context,
+                device,
+                CommandQueueProperties.None,
+                out int error);
+
+            Check(error, "clCreateCommandQueue");
+
+            nuint kernelSourceLength = 0;
+
+            _program = _cl.CreateProgramWithSource(
+                _context,
+                1,
+                [kernelSource],
+                ref kernelSourceLength,
+                out error);
+
+            Check(error, "clCreateProgramWithSource");
+
+            error = _cl.BuildProgram(
+                _program,
+                1,
+                [device],
+                "-cl-std=CL1.2",
+                null!,
+                Array.Empty<byte>());
+
+            if (error != 0)
+            {
+                string buildLog = GetBuildLog(
+                    _cl,
+                    _program,
+                    device);
+
+                throw new OpenClException(
+                    "clBuildProgram",
+                    error,
+                    buildLog);
+            }
+
+            _kernel = _cl.CreateKernel(
+                _program,
+                kernelName,
+                out error);
+
+            Check(error, "clCreateKernel");
+
+            nuint capacityInBytes = checked((nuint)InputBufferSize);
+
+            Span<int> errorSpan = stackalloc int[1];
+            _outputBuffer = _cl.CreateBuffer(
+                _context,
+                MemFlags.WriteOnly,
+                capacityInBytes,
+                Span<byte>.Empty,
+                errorSpan);
+
+            Check(errorSpan[0], "clCreateBuffer(output)");
+
+            nuint remapperByteSize = checked((nuint)(remapperBuffer.Length * sizeof(int)));
+
+            _remapperBuffer = _cl.CreateBuffer(
+                _context,
+                MemFlags.ReadOnly,
+                remapperByteSize,
+                Span<byte>.Empty,
+                errorSpan);
+
+            Check(errorSpan[0], "clCreateBuffer(remapper)");
+
+            // Copy remapper data to device
+            Check(
+                _cl.EnqueueWriteBuffer(
+                    _commandQueue,
+                    _remapperBuffer,
+                    blocking_write: true,
+                    offset: 0,
+                    size: remapperByteSize,
+                    ptr: remapperBuffer,
+                    num_events_in_wait_list: 0,
+                    event_wait_list: ReadOnlySpan<nint>.Empty,
+                    @event: Span<nint>.Empty),
+                "clEnqueueWriteBuffer(remapper)");
+
+
+            /*
+             * These arguments never change, so set them once.
+             */
+
+            // Argument 1: __global byte* output
+            Check(
+                _cl.SetKernelArg(
+                    _kernel,
+                    0,
+                    (nuint)IntPtr.Size,
+                    in _outputBuffer),
+                "clSetKernelArg(output)");
         }
         catch
         {
@@ -54,86 +154,7 @@ public sealed class OpenClProgram : IDisposable
         }
     }
 
-    private void Initialize(string kernelSource, string kernelName)
-    {
-        CL cl = GetCl();
 
-        nint device = FindDevice(cl);
-
-        _context = CreateContext(cl, device);
-
-        _commandQueue = cl.CreateCommandQueue(
-            _context,
-            device,
-            CommandQueueProperties.None,
-            out int error);
-
-        Check(error, "clCreateCommandQueue");
-
-        nuint kernelSourceLength = 0;
-
-        _program = cl.CreateProgramWithSource(
-            _context,
-            1,
-            [kernelSource],
-            ref kernelSourceLength,
-            out error);
-
-        Check(error, "clCreateProgramWithSource");
-
-        error = cl.BuildProgram(
-            _program,
-            1,
-            [device],
-            "-cl-std=CL1.2",
-            null!,
-            Array.Empty<byte>());
-
-        if (error != 0)
-        {
-            string buildLog = GetBuildLog(
-                cl,
-                _program,
-                device);
-
-            throw new OpenClException(
-                "clBuildProgram",
-                error,
-                buildLog);
-        }
-
-        _kernel = cl.CreateKernel(
-            _program,
-            kernelName,
-            out error);
-
-        Check(error, "clCreateKernel");
-
-        nuint capacityInBytes = checked((nuint)InputBufferSize);
-
-        Span<int> errorSpan = stackalloc int[1];
-        _outputBuffer = cl.CreateBuffer(
-            _context,
-            MemFlags.WriteOnly,
-            capacityInBytes,
-            Span<byte>.Empty,
-            errorSpan);
-
-        Check(errorSpan[0], "clCreateBuffer(output)");
-
-        /*
-         * These arguments never change, so set them once.
-         */
-
-        // Argument 1: __global byte* output
-        Check(
-            cl.SetKernelArg(
-                _kernel,
-                0,
-                (nuint)IntPtr.Size,
-                in _outputBuffer),
-            "clSetKernelArg(output)");
-    }
 
     public void Run(
         Span<byte> output,
@@ -142,7 +163,8 @@ public sealed class OpenClProgram : IDisposable
         float rainbow_scale,
         float offset,
         float zoom_center_x,
-        float zoom_center_y)
+        float zoom_center_y,
+        int[] remapper)
     {
         ThrowIfDisposed();
         CL cl = GetCl();
@@ -203,6 +225,18 @@ public sealed class OpenClProgram : IDisposable
                 sizeof(float),
                 in zoom_center_y),
             "clSetKernelArg(zoom_center_y)");
+
+        nuint remapperByteCount = checked((nuint)(remapper.Length * sizeof(int)));
+
+
+        // Argument 7: const int* remapper
+        Check(
+            cl.SetKernelArg(
+                _kernel,
+                7,
+                (nuint)IntPtr.Size,
+                in _remapperBuffer),
+            "clSetKernelArg(remapper)");
 
         Span<nuint> globalWorkSize = [byteCount / 3];
         Check(

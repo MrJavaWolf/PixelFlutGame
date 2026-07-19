@@ -23,14 +23,17 @@ __kernel void process_buffer(
     const float rainbow_scale,
     const float offset,
     const float zoom_center_x,
-    const float zoom_center_y)
+    const float zoom_center_y,
+    __global const int* remapper)
 {
-    const size_t pixel_index = get_global_id(0);
+    size_t pixel_index = get_global_id(0);
     const size_t pixel_count = (size_t)width * (size_t)height;
     if (pixel_index >= pixel_count)
     {
         return;
     }
+
+    pixel_index = (size_t)remapper[pixel_index];
 
     //
     // Find screen coordinate

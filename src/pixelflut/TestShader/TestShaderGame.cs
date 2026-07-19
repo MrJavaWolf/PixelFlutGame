@@ -21,12 +21,17 @@ internal class TestShaderGame : IGame
         /// <summary>
         /// How fast the rainbows are moving
         /// </summary>
-        public float RainbowSpeed { get; set; }
+        public float Speed { get; set; }
 
         /// <summary>
         /// How big each rainbow is
         /// </summary>
         public float RainbowScale { get; set; }
+
+        /// <summary>
+        /// How much it should zoom
+        /// </summary>
+        public float ZoomMultiplier { get; set; }
 
         /// <summary>
         /// The path to the shader to use
@@ -49,9 +54,7 @@ internal class TestShaderGame : IGame
 
     private int currentCoordinateSet = 0;
     private List<(float, float)> interesstingCoordinates = [
-        //(-0.500000000000000f,  0.000000000000000f), // Main Cardioid
         (-0.743643887037151f,  0.131825904205330f), // Seahorse Valley
-        (-0.088000000000000f,  0.654000000000000f), // Triple Spiral Valley
         (-1.250660000000000f,  0.020120000000000f), // Mini Mandelbrot
         (-1.768778833000000f,  0.001738996000000f), // Large Mini Mandelbrot
         (-1.749900000000000f,  0.000000000000000f), // Needle
@@ -121,16 +124,63 @@ internal class TestShaderGame : IGame
 
     public void DrawRainBowTestImage(GameTime time)
     {
-        currentCoordinateSet = (int)((time.TotalTime.TotalSeconds * config.RainbowSpeed / 2) % interesstingCoordinates.Count);
-        
+        const float cycleDuration = 2f;
+
+        float elapsed = (float)time.TotalTime.TotalSeconds * config.Speed;
+        float cycle = (elapsed / cycleDuration) % 1f;
+
+        int current = ((int)(elapsed / cycleDuration)) % interesstingCoordinates.Count;
+        int next = (current + 1) % interesstingCoordinates.Count;
+
+        // Zoom
+        float zoom = MathF.Sin(cycle * MathF.PI);
+        zoom = EaseInOutSine(zoom);
+        float timeOffset = zoom * config.ZoomMultiplier;
+
+        // Coordinate interpolation
+        float coordT;
+        const float transitionStart = 0.9f;
+        if (cycle < 0.9f)
+        {
+            // Zooming in: stay at current coordinate
+            coordT = 0f;
+        }
+        else
+        {
+            // Zooming out: interpolate to next coordinate
+            coordT = (cycle - transitionStart) / (1f - transitionStart);   // 0..1
+            coordT = SmootherStep(coordT);
+        }
+
+        var currentCoord = interesstingCoordinates[current];
+        var nextCoord = interesstingCoordinates[next];
+
+        float x = Lerp((float)currentCoord.Item1, (float)nextCoord.Item1, coordT);
+        float y = Lerp((float)currentCoord.Item2, (float)nextCoord.Item2, coordT);
+
         openClProgram.Run(
             fullBufferMemory.Span,
             width: bufferFactory.Screen.ResolutionX,
             height: bufferFactory.Screen.ResolutionY,
             rainbow_scale: config.RainbowScale,
-            offset: Math.Abs(10f * (float)Math.Sin(time.TotalTime.TotalSeconds * config.RainbowSpeed)),
-            interesstingCoordinates[currentCoordinateSet].Item1,
-            interesstingCoordinates[currentCoordinateSet].Item2);
+            offset: timeOffset,
+            x,
+            y);
+    }
 
+    static float SmootherStep(float t)
+    {
+        t = Math.Clamp(t, 0f, 1f);
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+
+    static float EaseInOutSine(float t)
+    {
+        return -(MathF.Cos(MathF.PI * t) - 1f) / 2f;
+    }
+
+    static float Lerp(float a, float b, float t)
+    {
+        return a + (b - a) * t;
     }
 }

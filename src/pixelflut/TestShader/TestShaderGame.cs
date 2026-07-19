@@ -1,8 +1,6 @@
 ﻿using pixelflut.Core;
 using PixelFlut.Core;
-using System.Collections;
 using System.Text;
-using System.Text.Unicode;
 
 namespace pixelflut.TestShader;
 
@@ -48,6 +46,29 @@ internal class TestShaderGame : IGame
     private List<PixelBuffer> frame;
     private readonly OpenClProgram openClProgram;
     private Memory<byte> fullBufferMemory;
+
+    private int currentCoordinateSet = 0;
+    private List<(float, float)> interesstingCoordinates = [
+        //(-0.500000000000000f,  0.000000000000000f), // Main Cardioid
+        (-0.743643887037151f,  0.131825904205330f), // Seahorse Valley
+        (-0.088000000000000f,  0.654000000000000f), // Triple Spiral Valley
+        (-1.250660000000000f,  0.020120000000000f), // Mini Mandelbrot
+        (-1.768778833000000f,  0.001738996000000f), // Large Mini Mandelbrot
+        (-1.749900000000000f,  0.000000000000000f), // Needle
+        (-0.745300000000000f,  0.112700000000000f), // Lightning
+        (-0.761574000000000f, -0.084759600000000f), // Spiral Galaxy
+        (-0.101100000000000f,  0.956300000000000f), // Double Spiral
+        ( 0.001643721971154f, -0.822467633298876f), // Dendrite Forest
+        (-1.941569000000000f,  0.000000000000000f), // Valley of Needles
+        (-0.162000000000000f,  1.040000000000000f), // Snowflake
+        (-0.123750000000000f,  0.565000000000000f), // Rabbit Valley
+        (-0.775683770000000f,  0.136467370000000f), // Feather Valley
+        (-0.745428000000000f,  0.113009000000000f), // Seahorse Filaments
+        (-0.748000000000000f,  0.100500000000000f), // Spiral Ridges
+        (-0.160701350000000f,  1.037566500000000f), // Snowflake Detail
+        (-1.999250000000000f,  0.000000000000000f), // Left Antenna
+        ( 0.274000000000000f,  0.482000000000000f), // Satellite Bulbs
+        ];
     public TestShaderGame(
         Configuration config,
         ILogger<TestShaderGame> logger,
@@ -100,12 +121,16 @@ internal class TestShaderGame : IGame
 
     public void DrawRainBowTestImage(GameTime time)
     {
+        currentCoordinateSet = (int)((time.TotalTime.TotalSeconds * config.RainbowSpeed / 2) % interesstingCoordinates.Count);
+        
         openClProgram.Run(
             fullBufferMemory.Span,
             width: bufferFactory.Screen.ResolutionX,
             height: bufferFactory.Screen.ResolutionY,
             rainbow_scale: config.RainbowScale,
-            offset: (float)(Math.Sin(time.TotalTime.TotalSeconds * config.RainbowSpeed)));
+            offset: Math.Abs(10f * (float)Math.Sin(time.TotalTime.TotalSeconds * config.RainbowSpeed)),
+            interesstingCoordinates[currentCoordinateSet].Item1,
+            interesstingCoordinates[currentCoordinateSet].Item2);
 
     }
 }

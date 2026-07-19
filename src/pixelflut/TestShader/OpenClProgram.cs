@@ -140,7 +140,9 @@ public sealed class OpenClProgram : IDisposable
         int width,
         int height,
         float rainbow_scale,
-        float offset)
+        float offset,
+        float zoom_center_x,
+        float zoom_center_y)
     {
         ThrowIfDisposed();
         CL cl = GetCl();
@@ -183,6 +185,24 @@ public sealed class OpenClProgram : IDisposable
                 sizeof(float),
                 in offset),
             "clSetKernelArg(offset)");
+
+        // Argument 5: float zoom_center_x
+        Check(
+            cl.SetKernelArg(
+                _kernel,
+                5,
+                sizeof(float),
+                in zoom_center_x),
+            "clSetKernelArg(zoom_center_x)");
+
+        // Argument 6: float zoom_center_y
+        Check(
+            cl.SetKernelArg(
+                _kernel,
+                6,
+                sizeof(float),
+                in zoom_center_y),
+            "clSetKernelArg(zoom_center_y)");
 
         Span<nuint> globalWorkSize = [byteCount / 3];
         Check(

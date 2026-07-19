@@ -21,7 +21,9 @@ __kernel void process_buffer(
     const int width,
     const int height,
     const float rainbow_scale,
-    const float offset)
+    const float offset,
+    const float zoom_center_x,
+    const float zoom_center_y)
 {
     const size_t pixel_index = get_global_id(0);
     const size_t pixel_count = (size_t)width * (size_t)height;
@@ -86,16 +88,17 @@ __kernel void process_buffer(
     cx *= aspect;
 
     // Zoom and pan using your existing parameters
-    float zoom = exp(offset * 0.15f);
+    float zoom = exp(offset);
 
-    cx = (cx / zoom) - 0.743643887037151f;
-       cy = (cy / zoom) + 0.131825904205330f;
+    cx = (cx / zoom) + zoom_center_x;
+    cy = (cy / zoom) + zoom_center_y;
+
 
     // Mandelbrot iteration
     float zx = 0.0f;
     float zy = 0.0f;
 
-    const int max_iter = 256;
+    const int max_iter = 512;
     int iter = 0;
 
     while (zx * zx + zy * zy <= 4.0f && iter < max_iter)
